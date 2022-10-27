@@ -3,6 +3,17 @@ GO
 # 1)
 создать ВМ с Ubuntu 20.04/22.04 или развернуть докер любым удобным способом
 
+создал vm centos 7
+
+добавил репозиторий
+sudo yum-config-manager \
+    --add-repo \
+    https://download.docker.com/linux/centos/docker-ce.repo
+
+
+Установил последнюю версию Docker Engine, containerd и Docker Compose
+sudo yum install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
 # 2)
 поставить на нем Docker Engine
 
