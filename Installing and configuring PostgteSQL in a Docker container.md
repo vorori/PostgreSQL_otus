@@ -1,5 +1,3 @@
-GO
-
 # 1)
 создать ВМ с Ubuntu 20.04/22.04 или развернуть докер любым удобным способом
 
@@ -13,9 +11,11 @@ sudo yum-config-manager \
 
 # 2)
 поставить на нем Docker Engine
+
 sudo yum install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 sudo systemctl start docker
+
 sudo systemctl enable docker
 
 # 3)
@@ -26,8 +26,11 @@ mkdir /var/lib/postgres
 # 4)
 развернуть контейнер с PostgreSQL 14 смонтировав в него /var/lib/postgres
 
+
 create network for postgre 
+
 sudo docker network create my_network_postgre
+
 
 sudo docker run -d --name server_postgres14 --network my_network_postgre -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v /var/lib/postgres:/var/lib/postgresql/data postgres:14
 
@@ -41,7 +44,9 @@ sudo docker run -d -it --rm --network my_network_postgre --name pg-client postgr
 
 # 6)
 подключится из контейнера с клиентом к контейнеру с сервером и сделать таблицу с парой строк
+
 sudo docker exec -it pg-client /bin/bash
+
 psql -h server_postgres14 -U postgres
 
 create table persons(id serial, first_name text, second_name text);
@@ -54,12 +59,10 @@ insert into persons(first_name, second_name) values('petr', 'petrov');
 добавил в pg_hba.conf:
 host    all             postgres        0.0.0.0/32              md5
 
-применил насройки:
-postgres=# select pg_reload_conf();
- pg_reload_conf
-----------------
- t
-(1 row)
+применил наcтройки:
+
+select pg_reload_conf();
+
 
 
 установил на windows 10 клиент psql и подключился к моему каластеру postgres на виртуалке
@@ -71,6 +74,7 @@ WARNING: Console code page (866) differs from Windows code page (1251)
          8-bit characters might not work correctly. See psql reference
          page "Notes for Windows users" for details.
 Type "help" for help.
+
 
 postgres=# \dt
           List of relations
@@ -92,18 +96,22 @@ postgres=# select * from persons;
 удалить контейнер с сервером
 
 docker container ls --all
+
 docker stop <Container_ID>
+
 docker rm <Container_ID>
 
 
 # 9)
-создать его заново
+создать его снова
+
 sudo docker run -d --name server_postgres14 --network my_network_postgre -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v /var/lib/postgres:/var/lib/postgresql/data postgres:14
 
 sudo docker run -d -it --rm --network my_network_postgre --name pg-client postgres:14 psql -h server_postgres14 -U postgres 
 
 # 10)
 подключится снова из контейнера с клиентом к контейнеру с сервером
+
 sudo docker exec -it pg-client /bin/bash
 psql -h server_postgres14 -U postgres
 
@@ -121,5 +129,6 @@ postgres=# select * from persons;
 
 # 12)
 оставляйте в ЛК ДЗ комментарии что и как вы делали и как боролись с проблемами
+
 очень понравилась статья на habr
 https://habr.com/ru/post/310460/
