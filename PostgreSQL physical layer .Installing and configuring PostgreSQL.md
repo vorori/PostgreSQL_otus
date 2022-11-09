@@ -211,7 +211,7 @@ psql
 psql (14.5)
 Type "help" for help.
 
-postgres=# \dt
+postgres= \dt
         List of relations
  Schema | Name | Type  |  Owner
 --------+------+-------+----------
@@ -230,3 +230,78 @@ postgres=# select * from test;
 удалите файлы с данными из /var/lib/postgres, перемонтируйте внешний диск который сделали ранее от первой 
 виртуальной машины ко второй и запустите PostgreSQL на второй машине так чтобы он работал с данными на внешнем диске, 
 расскажите как вы это сделали и что в итоге получилось.
+
+
+Все получилось  кластер стартанул с примапленного диска с данными со старой виртуалки. такое задание очень понравилось !!! спасибо!)
+сделал все тоже самое только диск не надо форматировать а монтировать с данными и тогда все ок)))
+
+естественно пред тем как отмонтировать диск с первой виртуалки остановил службу postgres на первром сервере чтобы не повредить данные
+
+
+создал директорию для монтирования нового диска
+sudo mkdir -p /mnt/data
+монтирую диск сразу (уже с данными от старого кластера с первой виртуалки)
+sudo mount -o defaults /dev/vdb1 /mnt/data
+
+
+[root@new vorori]# sudo mount -o defaults /dev/vdb1 /mnt/data
+[root@new vorori]# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        895M     0  895M   0% /dev
+tmpfs           919M     0  919M   0% /dev/shm
+tmpfs           919M  596K  919M   1% /run
+tmpfs           919M     0  919M   0% /sys/fs/cgroup
+/dev/vda2        20G  1.8G   19G   9% /
+tmpfs           184M     0  184M   0% /run/user/1000
+/dev/vdb1       9.8G   79M  9.2G   1% /mnt/data
+
+
+редактирую службу заппуск чтобы указать директорию нового диска /mnt/data
+vim /usr/lib/systemd/system/postgresql-14.service
+
+меняю значение пременной
+Environment=PGDATA=/mnt/data/14/data
+
+обязательно конфигурацию демона systemctl
+systemctl daemon-reload  (презапускаю конфигурацию демона systemctl )
+
+
+systemctl start postgresql-14
+
+[root@new data]# systemctl start postgresql-14
+[root@new data]# systemctl status postgresql-14
+● postgresql-14.service - PostgreSQL 14 database server
+   Loaded: loaded (/usr/lib/systemd/system/postgresql-14.service; enabled; vendor preset: disabled)
+   Active: active (running) since Wed 2022-11-09 13:10:46 UTC; 9s ago
+     Docs: https://www.postgresql.org/docs/14/static/
+  Process: 8106 ExecStartPre=/usr/pgsql-14/bin/postgresql-14-check-db-dir ${PGDATA} (code=exited, status=0/SUCCESS)
+ Main PID: 8112 (postmaster)
+   CGroup: /system.slice/postgresql-14.service
+           ├─8112 /usr/pgsql-14/bin/postmaster -D /mnt/data/14/data
+           ├─8115 postgres: logger
+           ├─8117 postgres: checkpointer
+           ├─8118 postgres: background writer
+           ├─8119 postgres: walwriter
+           ├─8120 postgres: autovacuum launcher
+           ├─8121 postgres: stats collector
+           └─8122 postgres: logical replication launcher
+
+
+
+root@new data] su - postgres
+-bash-4.2$ psql
+psql (14.5)
+Type "help" for help.
+
+postgres=# \dt
+        List of relations
+ Schema | Name | Type  |  Owner
+--------+------+-------+----------
+ public | test | table | postgres
+(1 row)
+
+postgres=# select * from test;
+ c1
+----
+ 1
+(1 row)
