@@ -261,8 +261,8 @@ INSERT 0 1
 а как так? нам же никто прав на создание таблиц и insert в них под ролью readonly?
 
 надо явно запретить 
-revoke CREATE on SCHEMA public FROM public; 
-revoke all on DATABASE testdb FROM public; 
+REVOKE CREATE on SCHEMA public FROM public; 
+REVOKE all on DATABASE testdb FROM public; 
 
 # 36 
 есть идеи как убрать эти права? если нет - смотрите шпаргалку
