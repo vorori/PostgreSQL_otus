@@ -188,7 +188,34 @@ name                  |  setting\
 
 График tps по пункту # 6
 
+pgbench (14.6)\
+starting vacuum...end.\
+progress: 60.0 s, 483.1 tps, lat 16.546 ms stddev 15.408\
+progress: 120.0 s, 429.6 tps, lat 18.615 ms stddev 17.830\
+progress: 180.0 s, 389.4 tps, lat 20.531 ms stddev 19.988\
+progress: 240.0 s, 587.0 tps, lat 13.631 ms stddev 10.522\
+progress: 300.0 s, 569.5 tps, lat 14.039 ms stddev 10.560\
+progress: 360.0 s, 399.1 tps, lat 20.040 ms stddev 17.643\
+progress: 420.0 s, 522.7 tps, lat 15.302 ms stddev 14.202\
+progress: 480.0 s, 513.8 tps, lat 15.564 ms stddev 13.265\
+progress: 540.0 s, 581.3 tps, lat 13.757 ms stddev 13.175\
+progress: 600.0 s, 476.2 tps, lat 16.792 ms stddev 16.420\
+transaction type: <builtin: TPC-B (sort of)>\
+scaling factor: 1\
+query mode: simple\
+number of clients: 8\
+number of threads: 1\
+duration: 600 s\
+number of transactions actually processed: 297116\
+latency average = 16.150 ms\
+latency stddev = 14.981 ms\
+initial connection time = 15.528 ms\
+tps = 495.179260 (without initial connection time)
+
 ![](https://quickchart.io/chart?c={%20type:%20%27bar%27,%20data:%20{%20labels:%20[%271%27,%272%27,%273%27,%274%27,%275%27,%276%27,%277%27,%278%27,%279%27,%2710%27],%20datasets:%20[{%20label:%20%27tps%27,%20data:%20[%20,483.1,429.6,389.4,587.0,569.5,399.1,522.7,513.8,581.3,476.2%20]%20}]%20}})
+
+
+
 
 
 
