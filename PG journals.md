@@ -201,5 +201,5 @@ data checksums гарантирует целостность данных на �
 
 SET zero_damaged_pages = on;
 vacuum full test;
-select * from messages;
+select * from test;
 </pre>
