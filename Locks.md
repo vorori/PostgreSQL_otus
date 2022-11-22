@@ -516,14 +516,14 @@ ORDER BY pid, virtualxid, transactionid::text::bigint;
 
 Воспроизведите взаимоблокировку трех транзакций. Можно ли разобраться в ситуации постфактум, изучая журнал сообщений?
 
-
+<pre>
 sudo -u postgres psql -c "drop table messages"
 sudo -u postgres psql -c "create table messages(id int primary key,message text)"
 sudo -u postgres psql -c "insert into messages values (1, 'one')"
 sudo -u postgres psql -c "insert into messages values (2, 'two')"
 sudo -u postgres psql -c "insert into messages values (3, 'three')"
 sudo -u postgres psql -c "select * from messages"
-
+</pre>
 
 <pre>
 
@@ -601,7 +601,62 @@ session 3 для процесса 2635 (третий сеанс) произош�
 
 Могут ли две транзакции, выполняющие единственную команду UPDATE одной и той же таблицы (без where), заблокировать друг друга?
 
+да могут если в выражении update исполользовать подзапрос со своей логикой
+
 Задание со звездочкой*
 Попробуйте воспроизвести такую ситуацию.
 
+<pre>
+sudo -u postgres psql -c "drop table messages"
+sudo -u postgres psql -c "create table messages(id integer primary key generated always as identity, n float)"
+sudo -u postgres psql -c "insert into messages(n) select random() from generate_series(1,1000000)"
+</pre>
 
+
+<pre>
+первая сессия
+
+sudo -u postgres psql << EOF
+BEGIN ISOLATION LEVEL REPEATABLE READ;
+UPDATE messages SET n = (select id from messages order by id asc limit 1 for update);
+COMMIT;
+EOF
+
+
+
+вторая сессия
+
+sudo -u postgres psql << EOF
+BEGIN ISOLATION LEVEL REPEATABLE READ;
+UPDATE messages SET n = (select id from messages order by id desc limit 1 for update);
+COMMIT;
+EOF
+</pre>
+
+
+
+<pre>
+первый сеанс сваливаетсся в ошибку выполняя откат своих действий ROLLBACK
+
+мы забираем id for update в первом сеансе отсортированные во возрастанию, а во втором по убыванию из-за чего по началу вроде как все ок, но когда два запроса "пересекаются" начинаются проблемы
+
+ERROR:  deadlock detected
+DETAIL:  Process 2776 waits for ShareLock on transaction 781; blocked by process 2780.
+Process 2780 waits for ShareLock on transaction 780; blocked by process 2776.
+HINT:  See server log for query details.
+CONTEXT:  while updating tuple (5405,75) in relation "messages"
+ROLLBACK
+
+
+лог сервера
+
+2022-11-22 13:33:08.273 UTC [2776] ERROR:  deadlock detected
+2022-11-22 13:33:08.273 UTC [2776] DETAIL:  Process 2776 waits for ShareLock on transaction 781; blocked by process 2780.
+        Process 2780 waits for ShareLock on transaction 780; blocked by process 2776.
+        Process 2776: UPDATE messages SET n = (select id from messages order by id asc limit 1 for update);
+        Process 2780: UPDATE messages SET n = (select id from messages order by id desc limit 1 for update);
+2022-11-22 13:33:08.273 UTC [2776] HINT:  See server log for query details.
+2022-11-22 13:33:08.273 UTC [2776] CONTEXT:  while updating tuple (5405,75) in relation "messages"
+2022-11-22 13:33:08.273 UTC [2776] STATEMENT:  UPDATE messages SET n = (select id from messages order by id asc limit 1 for update);
+
+</pre>
