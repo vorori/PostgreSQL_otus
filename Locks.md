@@ -517,6 +517,26 @@ ORDER BY pid, virtualxid, transactionid::text::bigint;
 Воспроизведите взаимоблокировку трех транзакций. Можно ли разобраться в ситуации постфактум, изучая журнал сообщений?
 
 
+sudo -u postgres psql -c "drop table messages"
+sudo -u postgres psql -c "create table messages(id int primary key,message text)"
+sudo -u postgres psql -c "insert into messages values (1, 'one')"
+sudo -u postgres psql -c "insert into messages values (2, 'two')"
+sudo -u postgres psql -c "insert into messages values (3, 'three')"
+
+<pre>
+
+| ШАГ     | session 1                                                            | session 2                                                            | session 3                                                            |
+|---------|----------------------------------------------------------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|
+| 1 start | BEGIN;                                                               | BEGIN;                                                               | BEGIN;                                                               |
+| 2       | SELECT txid_current(), pg_backend_pid();                             | SELECT txid_current(), pg_backend_pid();                             | SELECT txid_current(), pg_backend_pid();                             |
+| 3       | SELECT message FROM messages WHERE id = 1 FOR UPDATE;                |                                                                      |                                                                      |
+| 4       |                                                                      | SELECT message FROM messages WHERE id = 2 FOR UPDATE;                |                                                                      |
+| 5       |                                                                      |                                                                      | SELECT message FROM messages WHERE id = 3 FOR UPDATE;                |
+| 6       | UPDATE messages SET message = 'message from session 1' WHERE id = 2; |                                                                      |                                                                      |
+| 7       |                                                                      | UPDATE messages SET message = 'message from session 2' WHERE id = 3; |                                                                      |
+| 8       |                                                                      |                                                                      | UPDATE messages SET message = 'message from session 3' WHERE id = 1; |
+</pre>
+
 # 4
 
 Могут ли две транзакции, выполняющие единственную команду UPDATE одной и той же таблицы (без where), заблокировать друг друга?
