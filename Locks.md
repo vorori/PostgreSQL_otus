@@ -522,10 +522,12 @@ sudo -u postgres psql -c "create table messages(id int primary key,message text)
 sudo -u postgres psql -c "insert into messages values (1, 'one')"
 sudo -u postgres psql -c "insert into messages values (2, 'two')"
 sudo -u postgres psql -c "insert into messages values (3, 'three')"
+sudo -u postgres psql -c "select * from messages"
+
 
 <pre>
 
-| ШАГ     | session 1                                                            | session 2                                                            | session 3                                                            |
+| ШАГ     | session 1 txid 772   pid 2587                                        | session 2 txid 774  pid 2591                                         | session 3  txid 775  pid 2635                                        |
 |---------|----------------------------------------------------------------------|----------------------------------------------------------------------|----------------------------------------------------------------------|
 | 1 start | BEGIN;                                                               | BEGIN;                                                               | BEGIN;                                                               |
 | 2       | SELECT txid_current(), pg_backend_pid();                             | SELECT txid_current(), pg_backend_pid();                             | SELECT txid_current(), pg_backend_pid();                             |
@@ -536,6 +538,17 @@ sudo -u postgres psql -c "insert into messages values (3, 'three')"
 | 7       |                                                                      | UPDATE messages SET message = 'message from session 2' WHERE id = 3; |                                                                      |
 | 8       |                                                                      |                                                                      | UPDATE messages SET message = 'message from session 3' WHERE id = 1; |
 </pre>
+
+
+<pre>
+
+
+sudo -u postgres psql
+BEGIN;
+SELECT txid_current(), pg_backend_pid();
+
+
+
 
 # 4
 
