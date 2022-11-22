@@ -541,6 +541,48 @@ sudo -u postgres psql -c "select * from messages"
 
 
 <pre>
+РЕЗУЛЬТАТЫ
+
+---------------------------------------------------------------------------------------------
+session 1 висит:
+
+UPDATE messages SET message = 'message from session 1' WHERE id = 2;
+---------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------
+session 2 выполнил обновление
+
+postgres=*# UPDATE messages SET message = 'message from session 2' WHERE id = 3;
+UPDATE 1
+---------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------
+session 3 Выпало сообшение с ошибкой 
+
+postgres=*# UPDATE messages SET message = 'message from session 3' WHERE id = 1;
+ERROR:  deadlock detected
+DETAIL:  Process 2635 waits for ShareLock on transaction 772; blocked by process 2587.
+Process 2587 waits for ShareLock on transaction 774; blocked by process 2591.
+Process 2591 waits for ShareLock on transaction 775; blocked by process 2635.
+HINT:  See server log for query details.
+CONTEXT:  while updating tuple (0,1) in relation "messages"
+---------------------------------------------------------------------------------------------
+
+
+в логе
+
+---------------------------------------------------------------------------------------------
+2022-11-22 12:53:13.671 UTC [2635] DETAIL:  Process 2635 waits for ShareLock on transaction 772; blocked by process 2587.
+        Process 2587 waits for ShareLock on transaction 774; blocked by process 2591.
+        Process 2591 waits for ShareLock on transaction 775; blocked by process 2635.
+        Process 2635: UPDATE messages SET message = 'message from session 3' WHERE id = 1;
+        Process 2587: UPDATE messages SET message = 'message from session 1' WHERE id = 2;
+        Process 2591: UPDATE messages SET message = 'message from session 2' WHERE id = 3;
+2022-11-22 12:53:13.671 UTC [2635] HINT:  See server log for query details.
+2022-11-22 12:53:13.671 UTC [2635] CONTEXT:  while updating tuple (0,1) in relation "messages"
+2022-11-22 12:53:13.671 UTC [2635] STATEMENT:  UPDATE messages SET message = 'message from session 3' WHERE id = 1;
+---------------------------------------------------------------------------------------------
 
 
 sudo -u postgres psql
