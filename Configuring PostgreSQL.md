@@ -282,3 +282,14 @@ latency average = 13.050 ms
 latency stddev = 11.952 ms
 initial connection time = 17.225 ms
 tps = 612.934325 (without initial connection time)
+
+
+
+
+пред тестом выполнил
+/usr/bin/vacuumdb -U postgres -p 5432 --full --analyze --all
+fsync = off
+max_wal_size = 4GB
+synchronous_commit = off
+
+Во многих случаях отключение synchronous_commit для некритичных транзакций может дать больший выигрыш в скорости, чем отключение
