@@ -288,8 +288,20 @@ tps = 612.934325 (without initial connection time)
 
 
 
-пред тестом выполнил
-
+sysbench \
+--db-driver=pgsql \
+--report-interval=60 \
+--oltp-table-size=1000000 \
+--oltp-tables-count=23 \
+--threads=64 \
+--time=600 \
+--pgsql-host=localhost \
+--pgsql-port=5432 \
+--pgsql-user=test \
+--pgsql-password=test \
+--pgsql-db=test \
+/usr/share/sysbench/tests/include/oltp_legacy/oltp.lua \
+run
 
 [ 5s ] thds: 64 tps: 105.96 qps: 2266.27 (r/w/o: 1600.74/440.82/224.71) lat (ms,95%): 1506.29 err/s: 0.00 reconn/s: 0.00
 [ 10s ] thds: 64 tps: 184.61 qps: 3718.32 (r/w/o: 2605.68/743.42/369.21) lat (ms,95%): 802.05 err/s: 0.00 reconn/s: 0.00
