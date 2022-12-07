@@ -41,6 +41,9 @@ pgbench и sysbench чтобы было с чем сравнивать
 c clients
 --client=clients Количество смоделированных клиентов, то есть количество одновременных сеансов базы данных. По умолчанию 1.
 
+-C (каждый пользователь подключается под своей сессией)
+
+
 -P sec
 --progress=sec
 Показывать отчет о проделанной работе каждую sec секунду. Отчет включает время с начала выполнения, TPS с момента последнего отчета, а также среднюю задержку транзакции и стандартное отклонение с момента последнего отчета. При регулировании ( -R) задержка вычисляется относительно запланированного времени начала транзакции, а не фактического времени начала транзакции, поэтому она также включает среднее время задержки расписания.
@@ -159,42 +162,43 @@ run
 
 # результат
 
-[ 60s ] thds: 64 tps: 189.96 qps: 3809.35 (r/w/o: 2668.07/760.26/381.02) lat (ms,95%): 943.16 err/s: 0.00 reconn/s: 0.00
-[ 120s ] thds: 64 tps: 213.05 qps: 4264.67 (r/w/o: 2985.06/853.37/426.25) lat (ms,95%): 846.57 err/s: 0.02 reconn/s: 0.00
-[ 180s ] thds: 64 tps: 315.63 qps: 6318.40 (r/w/o: 4422.69/1264.27/631.45) lat (ms,95%): 601.29 err/s: 0.07 reconn/s: 0.00
-[ 240s ] thds: 64 tps: 184.93 qps: 3696.77 (r/w/o: 2588.12/738.70/369.95) lat (ms,95%): 877.61 err/s: 0.03 reconn/s: 0.00
-[ 300s ] thds: 64 tps: 228.13 qps: 4566.60 (r/w/o: 3196.40/913.85/456.35) lat (ms,95%): 816.63 err/s: 0.03 reconn/s: 0.00
-[ 360s ] thds: 64 tps: 180.52 qps: 3606.66 (r/w/o: 2525.01/720.53/361.12) lat (ms,95%): 943.16 err/s: 0.00 reconn/s: 0.00
-[ 420s ] thds: 64 tps: 234.36 qps: 4691.43 (r/w/o: 3283.87/938.75/468.82) lat (ms,95%): 787.74 err/s: 0.03 reconn/s: 0.00
-[ 480s ] thds: 64 tps: 134.44 qps: 2685.65 (r/w/o: 1880.35/536.42/268.88) lat (ms,95%): 1050.76 err/s: 0.00 reconn/s: 0.00
-[ 540s ] thds: 64 tps: 150.50 qps: 3010.93 (r/w/o: 2107.10/602.73/301.10) lat (ms,95%): 1032.01 err/s: 0.02 reconn/s: 0.00
-[ 600s ] thds: 64 tps: 228.80 qps: 4574.78 (r/w/o: 3202.66/914.33/457.78) lat (ms,95%): 733.00 err/s: 0.05 reconn/s: 0.00
+[ 5s ] thds: 64 tps: 92.13 qps: 2049.52 (r/w/o: 1451.55/399.91/198.06) lat (ms,95%): 1280.93 err/s: 0.40 reconn/s: 0.00
+[ 10s ] thds: 64 tps: 82.61 qps: 1659.93 (r/w/o: 1164.69/330.03/165.21) lat (ms,95%): 2045.74 err/s: 0.00 reconn/s: 0.00
+[ 15s ] thds: 64 tps: 48.00 qps: 934.53 (r/w/o: 652.75/185.79/95.99) lat (ms,95%): 2493.86 err/s: 0.00 reconn/s: 0.00
+[ 20s ] thds: 64 tps: 89.20 qps: 1789.90 (r/w/o: 1252.47/359.02/178.41) lat (ms,95%): 1561.52 err/s: 0.00 reconn/s: 0.00
+[ 25s ] thds: 64 tps: 31.40 qps: 646.39 (r/w/o: 453.19/130.40/62.80) lat (ms,95%): 3448.53 err/s: 0.00 reconn/s: 0.00
+[ 30s ] thds: 64 tps: 32.60 qps: 602.00 (r/w/o: 425.60/111.20/65.20) lat (ms,95%): 3911.79 err/s: 0.00 reconn/s: 0.00
+[ 35s ] thds: 64 tps: 113.20 qps: 2324.46 (r/w/o: 1617.84/480.21/226.41) lat (ms,95%): 1191.92 err/s: 0.00 reconn/s: 0.00
+[ 40s ] thds: 64 tps: 41.80 qps: 815.99 (r/w/o: 576.19/156.20/83.60) lat (ms,95%): 2449.36 err/s: 0.00 reconn/s: 0.00
+[ 45s ] thds: 64 tps: 33.00 qps: 653.00 (r/w/o: 457.80/129.20/66.00) lat (ms,95%): 3386.99 err/s: 0.00 reconn/s: 0.00
+[ 50s ] thds: 64 tps: 32.80 qps: 669.01 (r/w/o: 464.21/139.00/65.80) lat (ms,95%): 4055.23 err/s: 0.00 reconn/s: 0.00
+[ 55s ] thds: 64 tps: 32.40 qps: 666.80 (r/w/o: 465.20/136.80/64.80) lat (ms,95%): 3706.08 err/s: 0.00 reconn/s: 0.00
+[ 60s ] thds: 64 tps: 37.80 qps: 734.40 (r/w/o: 514.40/144.40/75.60) lat (ms,95%): 3326.55 err/s: 0.00 reconn/s: 0.00
 SQL statistics:
     queries performed:
-        read:                            1731842
-        write:                           494752
-        other:                           247436
-        total:                           2474030
-    transactions:                        123688 (205.16 per sec.)
-    queries:                             2474030 (4103.55 per sec.)
-    ignored errors:                      15     (0.02 per sec.)
+        read:                            47614
+        write:                           13598
+        other:                           6804
+        total:                           68016
+    transactions:                        3399   (53.50 per sec.)
+    queries:                             68016  (1070.47 per sec.)
+    ignored errors:                      2      (0.03 per sec.)
     reconnects:                          0      (0.00 per sec.)
 
 General statistics:
-    total time:                          602.8977s
-    total number of events:              123688
+    total time:                          63.5364s
+    total number of events:              3399
 
 Latency (ms):
-         min:                                    3.92
-         avg:                                  310.74
-         max:                                 4596.30
-         95th percentile:                      861.95
-         sum:                             38434523.53
+         min:                                   10.04
+         avg:                                 1147.50
+         max:                                 6655.73
+         95th percentile:                     2828.87
+         sum:                              3900353.37
 
 Threads fairness:
-    events (avg/stddev):           1932.6250/21.10
-    execution time (avg/stddev):   600.5394/0.24
-
+    events (avg/stddev):           53.1094/3.73
+    execution time (avg/stddev):   60.9430/0.63
 
 </pre>
 
@@ -208,7 +212,7 @@ Threads fairness:
 #применил вот такие настройки
 
 ALTER SYSTEM SET
- max_connections = '98';
+ max_connections = '100';
 ALTER SYSTEM SET
  shared_buffers = '925MB';
 ALTER SYSTEM SET
@@ -231,6 +235,17 @@ ALTER SYSTEM SET
  min_wal_size = '1GB';
 ALTER SYSTEM SET
  max_wal_size = '4GB';
+
+
+# 5
+нагрузить кластер через утилиту
+https://github.com/Percona-Lab/sysbench-tpcc (требует установки
+https://github.com/akopytov/sysbench) или через утилиту pgbench (https://postgrespro.ru/docs/postgrespro/14/pgbench)
+написать какого значения tps удалось достичь, показать какие параметры какие значения устанавливали и почему
+
+заметил что  pgtune советует применить нажеуказанные настройки 
+по поводу распаралеливания запросов но из коробки по умолчанию эти параметры завыщены в 2 раза и если их оставить то в моем случае tps был сушественно выше нежели с нижеуказанными настройками.
+
 ALTER SYSTEM SET
  max_worker_processes = '4';
 ALTER SYSTEM SET
@@ -241,22 +256,7 @@ ALTER SYSTEM SET
  max_parallel_maintenance_workers = '2';
 
 
-
-
-
-
-
-
-
-# 5
-нагрузить кластер через утилиту
-https://github.com/Percona-Lab/sysbench-tpcc (требует установки
-https://github.com/akopytov/sysbench) или через утилиту pgbench (https://postgrespro.ru/docs/postgrespro/14/pgbench)
-написать какого значения tps удалось достичь, показать какие параметры в
-какие значения устанавливали и почему
-
-
-с новыми настройками получили прирост в tps по сравнению с первым тестом на настройках по умолчанию
+с новыми настройками получили прирост в tps как pgbench так и в sysbench  по сравнению с первыми тестами на настройках по умолчанию
 
 bash-4.2$ /usr/pgsql-14/bin/pgbench -c8 -P 60 -T 600 -U postgres postgres
 pgbench (14.6)
@@ -287,9 +287,42 @@ tps = 612.934325 (without initial connection time)
 
 
 пред тестом выполнил
-/usr/bin/vacuumdb -U postgres -p 5432 --full --analyze --all
-fsync = off
-max_wal_size = 4GB
-synchronous_commit = off
 
-Во многих случаях отключение synchronous_commit для некритичных транзакций может дать больший выигрыш в скорости, чем отключение
+
+[ 5s ] thds: 64 tps: 105.96 qps: 2266.27 (r/w/o: 1600.74/440.82/224.71) lat (ms,95%): 1506.29 err/s: 0.00 reconn/s: 0.00
+[ 10s ] thds: 64 tps: 184.61 qps: 3718.32 (r/w/o: 2605.68/743.42/369.21) lat (ms,95%): 802.05 err/s: 0.00 reconn/s: 0.00
+[ 15s ] thds: 64 tps: 246.20 qps: 4924.73 (r/w/o: 3443.95/988.59/492.19) lat (ms,95%): 657.93 err/s: 0.00 reconn/s: 0.00
+[ 20s ] thds: 64 tps: 393.42 qps: 7887.10 (r/w/o: 5522.21/1577.66/787.23) lat (ms,95%): 376.49 err/s: 0.00 reconn/s: 0.00
+[ 25s ] thds: 64 tps: 567.56 qps: 11341.86 (r/w/o: 7943.08/2263.85/1134.93) lat (ms,95%): 282.25 err/s: 0.00 reconn/s: 0.00
+[ 30s ] thds: 64 tps: 680.22 qps: 13574.35 (r/w/o: 9504.85/2709.07/1360.44) lat (ms,95%): 235.74 err/s: 0.00 reconn/s: 0.00
+[ 35s ] thds: 64 tps: 199.00 qps: 4048.24 (r/w/o: 2828.03/822.01/398.20) lat (ms,95%): 707.07 err/s: 0.00 reconn/s: 0.00
+[ 40s ] thds: 64 tps: 120.20 qps: 2399.28 (r/w/o: 1677.05/481.82/240.41) lat (ms,95%): 977.74 err/s: 0.00 reconn/s: 0.00
+[ 45s ] thds: 64 tps: 131.59 qps: 2631.87 (r/w/o: 1843.11/525.57/263.19) lat (ms,95%): 846.57 err/s: 0.00 reconn/s: 0.00
+[ 50s ] thds: 64 tps: 130.00 qps: 2591.45 (r/w/o: 1814.03/517.41/260.00) lat (ms,95%): 1013.60 err/s: 0.00 reconn/s: 0.00
+[ 55s ] thds: 64 tps: 123.60 qps: 2496.79 (r/w/o: 1745.19/504.20/247.40) lat (ms,95%): 861.95 err/s: 0.00 reconn/s: 0.00
+[ 60s ] thds: 64 tps: 129.00 qps: 2557.67 (r/w/o: 1791.25/508.41/258.01) lat (ms,95%): 909.80 err/s: 0.00 reconn/s: 0.00
+SQL statistics:
+    queries performed:
+        read:                            211694
+        write:                           60482
+        other:                           30244
+        total:                           302420
+    transactions:                        15121  (249.37 per sec.)
+    queries:                             302420 (4987.38 per sec.)
+    ignored errors:                      0      (0.00 per sec.)
+    reconnects:                          0      (0.00 per sec.)
+
+General statistics:
+    total time:                          60.6353s
+    total number of events:              15121
+
+Latency (ms):
+         min:                                    4.91
+         avg:                                  255.04
+         max:                                 2008.54
+         95th percentile:                      733.00
+         sum:                              3856511.86
+
+Threads fairness:
+    events (avg/stddev):           236.2656/7.64
+    execution time (avg/stddev):   60.2580/0.13
