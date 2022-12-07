@@ -244,6 +244,7 @@ https://github.com/Percona-Lab/sysbench-tpcc (требует установки
 https://github.com/akopytov/sysbench) или через утилиту pgbench (https://postgrespro.ru/docs/postgrespro/14/pgbench)
 написать какого значения tps удалось достичь, показать какие параметры какие значения устанавливали и почему
 
+<pre>
 заметил что  pgtune советует применить нажеуказанные настройки 
 по поводу распаралеливания запросов но из коробки по умолчанию эти параметры завыщены в 2 раза и если их оставить то в моем случае tps был сушественно выше нежели с нижеуказанными настройками.
 
@@ -327,3 +328,5 @@ Latency (ms):
 Threads fairness:
     events (avg/stddev):           236.2656/7.64
     execution time (avg/stddev):   60.2580/0.13
+
+</pre>
