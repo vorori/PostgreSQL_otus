@@ -211,7 +211,7 @@ ALTER TABLE postgres_air.boarding_pass RENAME TO old_boarding_pass;
 # преименовываем новую партицированную таблицу в boarding_pass чтобы не нарушать логику работы приложения
 ALTER TABLE postgres_air.new_boarding_pass RENAME TO boarding_pass;
 </pre>
-
+1
 
 <pre>
 # смотрим как распределились данные по партициям
