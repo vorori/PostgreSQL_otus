@@ -33,6 +33,8 @@ WHERE nspname NOT IN ('pg_catalog', 'information_schema') AND C.relkind <> 'i' A
 
 </pre>
 
+
+# 2
 <pre>
 # таблица которую будем секционировать содержит более 25 миллионов срок
 air=# select count(*) from postgres_air.boarding_pass;
@@ -73,6 +75,7 @@ where boarding_time > '2020-08-01 22:45:00';
 </pre>
 
 
+# 3
 <pre>
 # экспрементировать будем на таблице postgres_air.boarding_pass   ( посадочные талоны)
 # структура таблицы и пример данных которые находятся внутри таблицы 
@@ -125,7 +128,7 @@ air=# select * from postgres_air.boarding_pass limit 10;
 
 
 
-
+# 4
 <pre>
 # для того чтобы поменять структуру таблицы на таблицу с секционированием  
 1) создам новую таблицу с такой же структурой но уже она будет секционированная
@@ -139,6 +142,7 @@ air=# select * from postgres_air.boarding_pass limit 10;
 
 
 
+# 5
 <pre>
 # создал  таблицу но уже с partition by
 CREATE TABLE postgres_air.new_boarding_pass (
@@ -173,6 +177,8 @@ INSERT 0 25293490
 air=#
 </pre>
 
+
+# 6
 <pre>
 # строим индекс по столбцу boarding_time
 CREATE INDEX boarding_pass_boarding_time ON postgres_air.new_boarding_pass USING btree (boarding_time);
@@ -211,8 +217,9 @@ ALTER TABLE postgres_air.boarding_pass RENAME TO old_boarding_pass;
 # преименовываем новую партицированную таблицу в boarding_pass чтобы не нарушать логику работы приложения
 ALTER TABLE postgres_air.new_boarding_pass RENAME TO boarding_pass;
 </pre>
-1
 
+
+# 7
 <pre>
 # смотрим как распределились данные по партициям
 
@@ -229,6 +236,7 @@ air=# \dt+ postgres_air.boarding_pas*
 
 
 
+# 8
 <pre>
 # получили партицированную таблицу(со всеми данными) с тем же именем что и была чтобы не нарушать логику работы приложения
 
