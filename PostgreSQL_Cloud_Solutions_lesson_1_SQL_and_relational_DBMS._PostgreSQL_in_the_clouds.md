@@ -1,35 +1,40 @@
-# 1)
-<pre>
-создать новый проект в Google Cloud Platform, например postgres2023-, где yyyymm год, месяц вашего рождения (имя проекта должно быть уникально на уровне GCP), Яндекс облако или на любых ВМ, докере
+## 1)
 
+### создать новый проект в Google Cloud Platform, например postgres2023-, где yyyymm год, месяц вашего рождения (имя проекта должно быть уникально на уровне GCP), Яндекс облако или на любых ВМ, докере 
+
+
+<pre>
 --прошел регистрацию Yandex Compute Cloud 
 </pre>
 
-# 2)
+## 2)
+
+### далее создать инстанс виртуальной машины с дефолтными параметрами
+
 <pre>
-далее создать инстанс виртуальной машины с дефолтными параметрами
 --создал centos 
 </pre>
 
-# 3)
-<pre>
-добавить свой ssh ключ в metadata ВМ
- 
+## 3)
+
+### добавить свой ssh ключ в metadata ВМ
+ <pre>
 --добавил ключ работаю из cmd win 10
 --ssh-keygen -t ed25519
 </pre>
 
-# 4)
-<pre>
-зайти удаленным ssh (первая сессия), не забывайте про ssh-add
+## 4)
 
+### зайти удаленным ssh (первая сессия), не забывайте про ssh-add
+
+<pre>
 --выполнил подключение к VM
 
 ssh vorori@130.193.53.190
 Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
 </pre>
 
-# 5)
+## 5)
 <pre>
 поставить PostgreSQL 15
 
@@ -55,14 +60,14 @@ Initializing database ... OK
 --systemctl status postgresql-15
 </pre>
 
-# 6)
+## 6)
 <pre>
 зайти вторым ssh (вторая сессия)
 --зашел 
 --sudo su - postgres
 </pre>
 
-# 7)
+## 7)
 <pre>
 запустить везде psql из под пользователя postgres
 
@@ -73,7 +78,7 @@ Initializing database ... OK
 --выполнено!
 </pre>
 
-# 8)
+## 8)
 <pre>
 выключить auto commit
 
@@ -83,7 +88,7 @@ Initializing database ... OK
 
 </pre>
 
-# 9)
+## 9)
 <pre>
 сделать в первой сессии новую таблицу и наполнить ее данными 
 create table persons(id serial, first_name text, second_name text);
@@ -94,7 +99,7 @@ commit;
 --готово
 </pre>
 
-# 10)
+## 10)
 <pre>
 посмотреть текущий уровень изоляции: show transaction isolation level
 
@@ -105,7 +110,7 @@ commit;
 (1 row)
 </pre>
 
-# 11)
+## 11)
 <pre>
 начать новую транзакцию в обоих сессиях с дефолтным (не меняя) уровнем изоляции
 
@@ -113,7 +118,7 @@ commit;
 --BEGIN;
 </pre>
 
-# 12)
+## 12)
 <pre>
 в первой сессии добавить новую запись 
 insert into persons(first_name, second_name) values('sergey', 'sergeev');
@@ -121,7 +126,7 @@ insert into persons(first_name, second_name) values('sergey', 'sergeev');
 --INSERT 0 1
 </pre>
 
-# 13)
+## 13)
 <pre>
 сделать select * from persons во второй сессии
 
@@ -134,7 +139,7 @@ insert into persons(first_name, second_name) values('sergey', 'sergeev');
 (2 rows)
 </pre>
 
-# 14)
+## 14)
 <pre>
 видите ли вы новую запись и если да то почему?
 
@@ -142,7 +147,7 @@ insert into persons(first_name, second_name) values('sergey', 'sergeev');
 --транзакция не зафиксированна
 </pre>
 
-# 15)
+## 15)
 <pre>
 завершить первую транзакцию - commit;
 
@@ -150,7 +155,7 @@ insert into persons(first_name, second_name) values('sergey', 'sergeev');
 COMMIT
 </pre>
 
-# 16)
+## 16)
 <pre>
 сделать select * from persons во второй сессии
 
@@ -163,7 +168,7 @@ COMMIT
 (3 rows)
 </pre>
 
-# 17)
+## 17)
 <pre>
 видите ли вы новую запись и если да то почему?
 
@@ -171,7 +176,7 @@ COMMIT
 </pre>
 
 
-# 18)
+## 18)
 <pre>
 завершите транзакцию во второй сессии
 
@@ -179,7 +184,7 @@ COMMIT
 --COMMIT
 </pre>
 
-# 19)
+## 19)
 <pre>
 начать новые но уже repeatable read транзации
 set transaction isolation level repeatable read;
@@ -192,7 +197,7 @@ set transaction isolation level repeatable read;
 (1 row)
 </pre>
 
-# 20)
+## 20)
 <pre>
 в первой сессии добавить новую запись 
 insert into persons(first_name, second_name) values('sveta', 'svetova');
@@ -204,7 +209,7 @@ insert into persons(first_name, second_name) values('sveta', 'svetova');
 INSERT 0 1
 </pre>
 
-# 21)
+## 21)
 <pre>
 сделать select * from persons во второй сессии
 
@@ -217,14 +222,14 @@ INSERT 0 1
 (3 rows)
 </pre>
 
-# 22)
+## 22)
 <pre>
 видите ли вы новую запись и если да то почему?
 
 Новую запись не видно, фиксация транзакции первой сессии не произведена.
 </pre>
 
-# 23)
+## 23)
 <pre>
 завершить первую транзакцию - commit;
 
@@ -232,7 +237,7 @@ INSERT 0 1
 COMMIT
 </pre>
 
-# 24)
+## 24)
 <pre>
 сделать select * from persons во второй сессии
 
@@ -245,14 +250,14 @@ COMMIT
 </pre>
 
 
-# 25)
+## 25)
 <pre>
 видите ли вы новую запись и если да то почему?
 
 --Новую запись не видно, фантомное чтение при repeatable --read не допускается.
 </pre>
 
-# 26)
+## 26)
 <pre>
 завершить вторую транзакцию
 
@@ -260,7 +265,7 @@ COMMIT
 COMMIT
 </pre>
 
-# 27)
+## 27)
 <pre>
 сделать select * from persons во второй сессии
 
@@ -274,7 +279,7 @@ COMMIT
 (4 rows)
 </pre>
 
-# 28)
+## 28)
 <pre>
 видите ли вы новую запись и если да то почему? 
 
