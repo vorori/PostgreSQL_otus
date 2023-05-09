@@ -111,8 +111,8 @@ psql -U postgres -h 158.160.13.204 -d postgres
 <pre>
 
 docker container ls --all
-docker stop <Container_ID>
-docker rm <Container_ID>
+docker stop my_Container_ID
+docker rm my_Container_ID
 
 </pre>
 
