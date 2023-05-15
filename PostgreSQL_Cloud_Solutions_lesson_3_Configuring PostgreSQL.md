@@ -433,13 +433,12 @@ vim /etc/fstab
 /dev/vol/newpostgre          /newpostgresss                   xfs     defaults        0 0
 
 
-
-
 Далее сохраним файл и перезагрузим систему (выполним команду reboot), после чего вновь проверим, что наш логический том примонтирован к каталогу.
 
-
 reboot -h now
-<pre>
+
+
+</pre>
 
 
 #### 8)
@@ -448,7 +447,7 @@ reboot -h now
 ####  в вашем случае это скорее всего будет /dev/sdb - https://www.digitalocean.com/community/tutorials/how-to-partition-and-format-storage-devices-in-linux
 
 <pre>
-
+готово
 </pre>
 
 
@@ -457,18 +456,17 @@ reboot -h now
 ####  перезагрузите инстанс и убедитесь, что диск остается примонтированным (если не так смотрим в сторону fstab)
 
 <pre>
-
+готово
 </pre>
 
 
 
 #### 10)
 
-####   сделайте пользователя postgres владельцем /mnt/data - chown -R postgres:postgres /mnt/data/
+####   сделайте пользователя postgres владельцем /mnt/data - chown -R postgres:postgres /newpostgresss
 
 <pre>
-
-
+chown -R postgres:postgres /newpostgresss
 </pre>
 
 
@@ -478,8 +476,8 @@ reboot -h now
 ####   перенесите содержимое /var/lib/postgresql/15 в /mnt/data - mv /var/lib/postgresql/15 /mnt/data
 
 <pre>
-
-
+systemctl stop postgresql-15.service
+mv /var/lib/pgsql/15 /newpostgresss
 </pre>
 
 
@@ -489,7 +487,7 @@ reboot -h now
 ####   попытайтесь запустить кластер - sudo -u postgres pg_ctlcluster 15 main start
 
 <pre>
-
+systemctl start postgresql-15.service
 
 </pre>
 
@@ -503,7 +501,7 @@ reboot -h now
 
 <pre>
 
-
+Кластер не стартует потому что мы преместили каталог с данными на другой диск в другую директорию
 </pre>
 
 
@@ -512,9 +510,15 @@ reboot -h now
 
 ####   попытайтесь запустить кластер - sudo -u postgres pg_ctlcluster 15 main start 
 ####   напишите получилось или нет и почему
+
 <pre>
+vim /usr/lib/systemd/system/postgresql-15.service
+меняю значение пременной
+Environment=PGDATA=/newpostgresss/15/data
 
 
+обязательно конфигурацию демона systemctl
+systemctl daemon-reload  (презапускаю конфигурацию демона systemctl )
 </pre>
 
 
@@ -527,7 +531,8 @@ reboot -h now
 
 <pre>
 
-
+напишите что и почему поменяли
+менял пременную Environment в службе postgresql-15.service которая отвечает за местоположения каталога с данными postgres
 </pre>
 
 
@@ -538,6 +543,7 @@ reboot -h now
 ####   напишите получилось или нет и почему
 <pre>
 
+все работает все получилось postgre сейчас работает на другом диске и служба обрашается на новый каталог с данными на новом диске
 
 </pre>
 
@@ -548,7 +554,25 @@ reboot -h now
 ####   зайдите через через psql и проверьте содержимое ранее созданной таблицы
 
 <pre>
+sudo su - postgres
+psql
 
+-bash-4.2$ psql
+psql (14.5)
+Type "help" for help.
+
+postgres= \dt
+        List of relations
+ Schema | Name | Type  |  Owner
+--------+------+-------+----------
+ public | test | table | postgres
+(1 row)
+
+postgres=# select * from test;
+ c1
+----
+ 1
+(1 row)
 
 </pre>
 
@@ -562,5 +586,42 @@ reboot -h now
 
 <pre>
 
+естественно пред тем как отмонтировать диск с первой виртуалки остановил службу postgres на первром сервере чтобы не повредить данные и выключаю сервер
 
+Все получилось  кластер стартанул с примапленного диска с данными со старой виртуалки. 
+сделал все тоже самое только диск не надо форматировать существующий диск а монтировать с данными и тогда все ок
+
+
+
+создал директорию для монтирования нового диска
+sudo mkdir -p /mnt/data
+монтирую диск сразу (уже с данными от старого кластера с первой виртуалки)
+sudo mount -o defaults /dev/vdb1 /mnt/data
+
+
+[root@new vorori]# sudo mount -o defaults /dev/vdb1 /mnt/data
+[root@new vorori]# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        895M     0  895M   0% /dev
+tmpfs           919M     0  919M   0% /dev/shm
+tmpfs           919M  596K  919M   1% /run
+tmpfs           919M     0  919M   0% /sys/fs/cgroup
+/dev/vda2        20G  1.8G   19G   9% /
+tmpfs           184M     0  184M   0% /run/user/1000
+/dev/vdb1       9.8G   79M  9.2G   1% /mnt/data
+
+
+редактирую службу заппуск чтобы указать директорию нового диска /mnt/data
+vim /usr/lib/systemd/system/postgresql-15.service
+
+меняю значение пременной
+Environment=PGDATA=/mnt/data/15/data
+
+обязательно конфигурацию демона systemctl
+systemctl daemon-reload  (презапускаю конфигурацию демона systemctl )
+
+systemctl start postgresql-15
+● postgresql-15.service - PostgreSQL 15 database server
+   Loaded: loaded (/usr/lib/systemd/system/postgresql-15.service; enabled; vendor preset: disabled)
+   Active: active (running) since Mon 2023-05-15 14:04:04 UTC; 12s ago
 </pre>
