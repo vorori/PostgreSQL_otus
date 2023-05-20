@@ -209,7 +209,7 @@ erage=0.003 s; distance=32768 kB, estimate=32768 kB
 </pre>
 
 
-#### 1.12) restore не определюнную 
+#### 1.12) restore на определюный бекап и Point-In-Time-Recovery (PITR) 
 
 <pre> 
 rm -rf /var/lib/pgsql/15/data
