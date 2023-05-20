@@ -2,9 +2,271 @@
 
 #### Делам бэкап Постгреса используя WAL-G или pg_probackup и восстанавливаемся на другом кластере
 
+#### 1.1) install WAL-G
+
+<pre> 
+-- sudo rm /usr/local/bin/wal-g
+wget https://github.com/philyuchkoff/wal-g-centos7/releases/download/2.0.1/wal-g-pg && mkdir /usr/local/bin/wal-g && sudo mv wal-g-pg /usr/local/bin/wal-g
+sudo ls -l /usr/local/bin/wal-g
+
+sudo rm -rf /var/postgre_backup && sudo mkdir /var/postgre_backup && sudo chmod 777 /var/postgre_backup
+
+chown postgres:postgres /var/postgre_backup
+
+</pre>
 
 
-#### 1.1) Создаем два кластера
+#### 1.2)Создаем файл конфигурации для wal-g
+
+<pre> 
+sudo su - postgres
+vim ~/.walg.json
+
+
+-- https://github.com/wal-g/wal-g/blob/master/docs/PostgreSQL.md
+-- https://github.com/wal-g/wal-g/blob/master/docs/STORAGES.md
+
+{
+    "WALG_FILE_PREFIX": "/var/postgre_backup",
+    "WALG_COMPRESSION_METHOD": "brotli",
+    "WALG_DELTA_MAX_STEPS": "5",
+    "PGDATA": "/var/lib/pgsql/15/data",
+    "PGHOST": "/var/run/postgresql/.s.PGSQL.5432"
+}
+
+-- опция для дебага
+--     "WALG_LOG_LEVEL": "DEVEL"
+
+mkdir /var/lib/pgsql/15/data/log_wal_g
+chown postgres:postgres /var/lib/pgsql/15/data/log_wal_g
+chmod 700 /var/lib/pgsql/15/data/log_wal_g
+
+vim /var/lib/pgsql/15/data/postgresql.conf
+или
+echo "wal_level=replica" >> /var/lib/pgsql/15/data/postgresql.auto.conf
+echo "archive_mode=on" >> /var/lib/pgsql/15/data/postgresql.auto.conf
+echo "archive_command='/usr/local/bin/wal-g/wal-g-pg wal-push \"%p\" >> /var/lib/pgsql/15/data/log_wal_g/archive_command.log 2>&1' " >> /var/lib/pgsql/15/data/postgresql.auto.conf
+echo "archive_timeout=60" >> /var/lib/pgsql/15/data/postgresql.auto.conf 
+echo "restore_command='/usr/local/bin/wal-g/wal-g-pg wal-fetch \"%f\" \"%p\" >> /var/lib/pgsql/15/data/log_wal_g/restore_command.log 2>&1' " >> /var/lib/pgsql/15/data/postgresql.auto.conf
+
+sudo systemctl restart postgresql-15
+sudo systemctl status postgresql-15
+</pre>
+
+
+#### 1.3)наполняем данными 
+
+<pre> 
+su - postgres
+
+-- Создадим новую базу данных
+psql -c "CREATE DATABASE otus;"
+
+-- Таблицу в этой базе данных и заполним ее тестовыми данными
+psql otus -c "create table test(i int);"
+psql otus -c "insert into test values (10), (20), (30);"
+psql otus -c "select * from test;"
+</pre>
+
+#### 1.4) выполняем бекап
+
+<pre> 
+выполнил бэкап
+su - postgres
+su - postgres
+su - postgres
+
+-bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-push /var/lib/pgsql/15/data
+-bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-push /var/lib/pgsql/15/data
+-bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-push /var/lib/pgsql/15/data
+</pre>
+
+#### 1.5) смотрим на наличие ошибок 
+
+<pre> 
+cat /var/lib/pgsql/15/data/log/postgresql-Sun.log
+cat /var/lib/pgsql/15/data/log_wal_g/archive_command.log
+
+-bash-4.2$ cat /var/lib/pgsql/15/data/log_wal_g/archive_command.log
+INFO: 2023/05/21 00:29:08.700980 FILE PATH: 00000001000000000000000C.br
+INFO: 2023/05/21 00:30:05.936070 FILE PATH: 00000001000000000000000D.br
+INFO: 2023/05/21 00:30:06.353350 FILE PATH: 00000001000000000000000E.00000060.backup.br
+INFO: 2023/05/21 00:30:06.361288 FILE PATH: 00000001000000000000000E.br
+INFO: 2023/05/21 00:30:40.390422 FILE PATH: 00000001000000000000000F.br
+INFO: 2023/05/21 00:30:56.695581 FILE PATH: 000000010000000000000010.br
+INFO: 2023/05/21 00:30:56.824121 FILE PATH: 000000010000000000000011.00000028.backup.br
+INFO: 2023/05/21 00:30:56.842308 FILE PATH: 000000010000000000000011.br
+</pre>
+
+#### 1.6) смотрим какие бекапы есть в наличии
+
+<pre> 
+/usr/local/bin/wal-g/wal-g-pg backup-list
+/usr/local/bin/wal-g/wal-g-pg backup-list
+/usr/local/bin/wal-g/wal-g-pg backup-list
+
+-bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-list
+name                                                     modified                  wal_segment_backup_start
+base_00000001000000000000000E                            2023-05-21T00:30:06+03:00 00000001000000000000000E
+base_000000010000000000000011_D_00000001000000000000000E 2023-05-21T00:30:56+03:00 000000010000000000000011
+base_000000010000000000000013_D_000000010000000000000011 2023-05-21T00:32:42+03:00 000000010000000000000013
+</pre>
+
+#### 1.7) обновляем наши данные
+
+<pre> 
+psql otus -c "UPDATE test SET i = 3 WHERE i = 30"
+psql otus -c "select * from test;"
+</pre>
+
+#### 1.8) делаем еше один бекап
+
+<pre> 
+-- make delta
+/usr/local/bin/wal-g/wal-g-pg backup-push /var/lib/pgsql/15/data
+</pre>
+
+#### 1.9) смотрим снова на лист бекапов
+
+<pre> 
+-bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-list
+name                                                     modified                  wal_segment_backup_start
+base_00000001000000000000000E                            2023-05-21T00:30:06+03:00 00000001000000000000000E
+base_000000010000000000000011_D_00000001000000000000000E 2023-05-21T00:30:56+03:00 000000010000000000000011
+base_000000010000000000000013_D_000000010000000000000011 2023-05-21T00:32:42+03:00 000000010000000000000013
+base_000000010000000000000016_D_000000010000000000000013 2023-05-21T00:39:49+03:00 000000010000000000000016
+</pre>
+
+#### 1.10) бекапы физически лежат сдесь
+
+<pre> 
+cd /var/postgre_backup
+-bash-4.2$ ls -l
+total 8
+drwxr-xr-x. 6 postgres postgres 4096 May 21 00:39 basebackups_005
+drwx------. 2 postgres postgres 4096 May 21 00:39 wal_005
+cd basebackups_005
+-bash-4.2$ cd basebackups_005
+-bash-4.2$ ls -l
+total 16
+drwxr-xr-x. 3 postgres postgres  76 May 21 00:30 base_00000001000000000000000E
+-rw-r--r--. 1 postgres postgres 379 May 21 00:30 base_00000001000000000000000E_backup_stop_sentinel.json
+drwxr-xr-x. 3 postgres postgres  76 May 21 00:30 base_000000010000000000000011_D_00000001000000000000000E
+-rw-r--r--. 1 postgres postgres 503 May 21 00:30 base_000000010000000000000011_D_00000001000000000000000E_backup_stop_sentinel.json
+drwxr-xr-x. 3 postgres postgres  76 May 21 00:32 base_000000010000000000000013_D_000000010000000000000011
+-rw-r--r--. 1 postgres postgres 530 May 21 00:32 base_000000010000000000000013_D_000000010000000000000011_backup_stop_sentinel.json
+drwxr-xr-x. 3 postgres postgres  76 May 21 00:39 base_000000010000000000000016_D_000000010000000000000013
+-rw-r--r--. 1 postgres postgres 528 May 21 00:39 base_000000010000000000000016_D_000000010000000000000013_backup_stop_sentinel.json
+</pre>
+
+
+#### 1.11) restore последняя резервная копия
+
+
+<pre> 
+-- https://github.com/wal-g/wal-g/blob/master/docs/PostgreSQL.md
+
+# удаляю данные
+rm -rf /var/lib/pgsql/15/data
+
+###WAL-G также может получить последнюю резервную копию, используя LATEST:
+### wal-g backup-fetch ~/extract/to/here LATEST
+
+/usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data LATEST
+/usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data LATEST
+/usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data LATEST
+
+
+### сделаем файл для восстановления из архивов wal и стартуем postgresql
+su - postgres 
+touch /var/lib/pgsql/15/data/recovery.signal
+systemctl restart postgresql-15.service
+
+2023-05-21 01:00:49.910 MSK [5651] LOG:  database system was interrupted; last known up at 2023-05-21 00:39:49 MSK
+2023-05-21 01:00:50.118 MSK [5651] LOG:  starting archive recovery
+2023-05-21 01:00:50.177 MSK [5651] LOG:  restored log file "000000010000000000000016" from archive
+2023-05-21 01:00:50.253 MSK [5651] LOG:  redo starts at 0/16000028
+2023-05-21 01:00:50.304 MSK [5651] LOG:  restored log file "000000010000000000000017" from archive
+2023-05-21 01:00:50.405 MSK [5651] LOG:  consistent recovery state reached at 0/16000100
+2023-05-21 01:00:50.405 MSK [5646] LOG:  database system is ready to accept read-only connections
+2023-05-21 01:00:50.433 MSK [5651] LOG:  redo done at 0/17000110 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.18 s
+2023-05-21 01:00:50.498 MSK [5651] LOG:  restored log file "000000010000000000000017" from archive
+2023-05-21 01:00:50.584 MSK [5651] LOG:  selected new timeline ID: 2
+2023-05-21 01:00:50.713 MSK [5651] LOG:  archive recovery complete
+2023-05-21 01:00:50.719 MSK [5649] LOG:  checkpoint starting: end-of-recovery immediate wait
+2023-05-21 01:00:50.752 MSK [5649] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 2 recycled; write=0.004 s, sync=0.006 s, total=0.039 s; sync files=2, longest=0.004 s, av
+erage=0.003 s; distance=32768 kB, estimate=32768 kB
+2023-05-21 01:00:50.761 MSK [5646] LOG:  database system is ready to accept connections
+
+### как видим последнее наше изменение UPDATE test SET i = 3 WHERE i = 30 все ОКК!
+-bash-4.2$ psql otus -c "select * from test;"
+ i
+----
+ 10
+ 20
+  3
+(3 rows)
+</pre>
+
+
+#### 1.12) restore не определюнную 
+
+<pre> 
+rm -rf /var/lib/pgsql/15/data
+systemctl restart postgresql-15.service
+
+[root@zk4 wal-g]# systemctl restart postgresql-15.service
+Job for postgresql-15.service failed because the control process exited with error code. See "systemctl status postgresql-15.service" and "journalctl -xe" for details.
+
+### список бекапов
+su - postgres
+/usr/local/bin/wal-g/wal-g-pg backup-list
+/usr/local/bin/wal-g/wal-g-pg backup-list
+/usr/local/bin/wal-g/wal-g-pg backup-list
+
+base_00000001000000000000000E                            2023-05-21T00:30:06+03:00 00000001000000000000000E
+base_000000010000000000000011_D_00000001000000000000000E 2023-05-21T00:30:56+03:00 000000010000000000000011
+base_000000010000000000000013_D_000000010000000000000011 2023-05-21T00:32:42+03:00 000000010000000000000013
+base_000000010000000000000016_D_000000010000000000000013 2023-05-21T00:39:49+03:00 000000010000000000000016
+
+
+### восстанавливаюсь на определенный бекап
+### /usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data backup_name
+
+/usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data base_000000010000000000000013_D_000000010000000000000011
+/usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data base_000000010000000000000013_D_000000010000000000000011
+/usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data base_000000010000000000000013_D_000000010000000000000011
+
+### сделаем файл для восстановления из архивов wal и стартуем postgresql
+su - postgres 
+touch /var/lib/pgsql/15/data/recovery.signal
+chown postgres:postgres /var/lib/pgsql/15/data/recovery.signal
+
+### настироим параметры для Point-In-Time-Recovery (PITR) 
+vim /var/lib/pgsql/15/data/postgresql.auto.conf
+recovery_target_time = '2023-05-21 00:32:42.000'
+recovery_target_action = 'promote'
+recovery_target_inclusive = 'on'
+
+systemctl restart postgresql-15.service
+
+### УРА ВСЕ ПОЛУЧИЛОСЬ!!!
+-bash-4.2$ psql otus -c "select * from test;"
+ i
+----
+ 10
+ 20
+ 30
+(3 rows)
+</pre>
+
+
+#### 2)
+
+#### Задание повышенной сложности* под нагрузкой* бэкап снимаем с реплики**
+
+<pre>
+#### 2.1) Создаем два кластера
 <pre>
 создал 2 vm centos core 2 озу 4gb 
 otus_vm1_centos ip 192.168.2.4
@@ -59,7 +321,7 @@ systemctl restart postgresql-15.service
 </pre>
 
 
-#### 1.2) подготовительные мероприятия для настройки асинхронной репликации for linux
+#### 2.2) подготовительные мероприятия для настройки асинхронной репликации for linux
 <pre> 
 #otus_vm1_centos ip 192.168.2.4
 firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" source address="192.168.2.8" port protocol="tcp" port="5432" accept"
@@ -73,7 +335,7 @@ firewall-cmd --list-all
 </pre>
 
 
-#### 1.3) подготовительные мероприятия для настройки асинхронной репликации for postgres
+#### 2.3) подготовительные мероприятия для настройки асинхронной репликации for postgres
 
 <pre> 
 sudo -u postgres psql -c "ALTER SYSTEM SET wal_level = 'replica';"
@@ -185,272 +447,6 @@ reply_time       | 2023-05-20 23:05:50.380522+03
 все ОК!
 </pre>
 
-
-
-#### 1.4) install WAL-G
-
-<pre> 
--- sudo rm /usr/local/bin/wal-g
-wget https://github.com/philyuchkoff/wal-g-centos7/releases/download/2.0.1/wal-g-pg && mkdir /usr/local/bin/wal-g && sudo mv wal-g-pg /usr/local/bin/wal-g
-sudo ls -l /usr/local/bin/wal-g
-
-sudo rm -rf /var/postgre_backup && sudo mkdir /var/postgre_backup && sudo chmod 777 /var/postgre_backup
-
-chown postgres:postgres /var/postgre_backup
-
-</pre>
-
-
-#### 1.5)Создаем файл конфигурации для wal-g
-
-<pre> 
-sudo su - postgres
-vim ~/.walg.json
-
-
--- https://github.com/wal-g/wal-g/blob/master/docs/PostgreSQL.md
--- https://github.com/wal-g/wal-g/blob/master/docs/STORAGES.md
-
-{
-    "WALG_FILE_PREFIX": "/var/postgre_backup",
-    "WALG_COMPRESSION_METHOD": "brotli",
-    "WALG_DELTA_MAX_STEPS": "5",
-    "PGDATA": "/var/lib/pgsql/15/data",
-    "PGHOST": "/var/run/postgresql/.s.PGSQL.5432"
-}
-
--- опция для дебага
---     "WALG_LOG_LEVEL": "DEVEL"
-
-mkdir /var/lib/pgsql/15/data/log_wal_g
-chown postgres:postgres /var/lib/pgsql/15/data/log_wal_g
-chmod 700 /var/lib/pgsql/15/data/log_wal_g
-
-vim /var/lib/pgsql/15/data/postgresql.conf
-или
-echo "wal_level=replica" >> /var/lib/pgsql/15/data/postgresql.auto.conf
-echo "archive_mode=on" >> /var/lib/pgsql/15/data/postgresql.auto.conf
-echo "archive_command='/usr/local/bin/wal-g/wal-g-pg wal-push \"%p\" >> /var/lib/pgsql/15/data/log_wal_g/archive_command.log 2>&1' " >> /var/lib/pgsql/15/data/postgresql.auto.conf
-echo "archive_timeout=60" >> /var/lib/pgsql/15/data/postgresql.auto.conf 
-echo "restore_command='/usr/local/bin/wal-g/wal-g-pg wal-fetch \"%f\" \"%p\" >> /var/lib/pgsql/15/data/log_wal_g/restore_command.log 2>&1' " >> /var/lib/pgsql/15/data/postgresql.auto.conf
-
-sudo systemctl restart postgresql-15
-sudo systemctl status postgresql-15
-</pre>
-
-
-#### 1.5)наполняем данными 
-
-<pre> 
-su - postgres
-
--- Создадим новую базу данных
-psql -c "CREATE DATABASE otus;"
-
--- Таблицу в этой базе данных и заполним ее тестовыми данными
-psql otus -c "create table test(i int);"
-psql otus -c "insert into test values (10), (20), (30);"
-psql otus -c "select * from test;"
-</pre>
-
-#### 1.6) выполняем бекап
-
-<pre> 
-выполнил бэкап
-su - postgres
-su - postgres
-su - postgres
-
--bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-push /var/lib/pgsql/15/data
--bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-push /var/lib/pgsql/15/data
--bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-push /var/lib/pgsql/15/data
-</pre>
-
-#### 1.7) смотрим на наличие ошибок 
-
-<pre> 
-cat /var/lib/pgsql/15/data/log/postgresql-Sun.log
-cat /var/lib/pgsql/15/data/log_wal_g/archive_command.log
-
--bash-4.2$ cat /var/lib/pgsql/15/data/log_wal_g/archive_command.log
-INFO: 2023/05/21 00:29:08.700980 FILE PATH: 00000001000000000000000C.br
-INFO: 2023/05/21 00:30:05.936070 FILE PATH: 00000001000000000000000D.br
-INFO: 2023/05/21 00:30:06.353350 FILE PATH: 00000001000000000000000E.00000060.backup.br
-INFO: 2023/05/21 00:30:06.361288 FILE PATH: 00000001000000000000000E.br
-INFO: 2023/05/21 00:30:40.390422 FILE PATH: 00000001000000000000000F.br
-INFO: 2023/05/21 00:30:56.695581 FILE PATH: 000000010000000000000010.br
-INFO: 2023/05/21 00:30:56.824121 FILE PATH: 000000010000000000000011.00000028.backup.br
-INFO: 2023/05/21 00:30:56.842308 FILE PATH: 000000010000000000000011.br
-</pre>
-
-#### 1.8) смотрим какие бекапы есть в наличии
-
-<pre> 
-/usr/local/bin/wal-g/wal-g-pg backup-list
-/usr/local/bin/wal-g/wal-g-pg backup-list
-/usr/local/bin/wal-g/wal-g-pg backup-list
-
--bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-list
-name                                                     modified                  wal_segment_backup_start
-base_00000001000000000000000E                            2023-05-21T00:30:06+03:00 00000001000000000000000E
-base_000000010000000000000011_D_00000001000000000000000E 2023-05-21T00:30:56+03:00 000000010000000000000011
-base_000000010000000000000013_D_000000010000000000000011 2023-05-21T00:32:42+03:00 000000010000000000000013
-</pre>
-
-#### 1.9) обновляем наши данные
-
-<pre> 
-psql otus -c "UPDATE test SET i = 3 WHERE i = 30"
-psql otus -c "select * from test;"
-</pre>
-
-#### 1.10) делаем еше один бекап
-
-<pre> 
--- make delta
-/usr/local/bin/wal-g/wal-g-pg backup-push /var/lib/pgsql/15/data
-</pre>
-
-#### 1.10) смотрим снова на лист бекапов
-
-<pre> 
--bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-list
-name                                                     modified                  wal_segment_backup_start
-base_00000001000000000000000E                            2023-05-21T00:30:06+03:00 00000001000000000000000E
-base_000000010000000000000011_D_00000001000000000000000E 2023-05-21T00:30:56+03:00 000000010000000000000011
-base_000000010000000000000013_D_000000010000000000000011 2023-05-21T00:32:42+03:00 000000010000000000000013
-base_000000010000000000000016_D_000000010000000000000013 2023-05-21T00:39:49+03:00 000000010000000000000016
-</pre>
-
-#### 1.11) бекапы физически лежат сдесь
-
-<pre> 
-cd /var/postgre_backup
--bash-4.2$ ls -l
-total 8
-drwxr-xr-x. 6 postgres postgres 4096 May 21 00:39 basebackups_005
-drwx------. 2 postgres postgres 4096 May 21 00:39 wal_005
-cd basebackups_005
--bash-4.2$ cd basebackups_005
--bash-4.2$ ls -l
-total 16
-drwxr-xr-x. 3 postgres postgres  76 May 21 00:30 base_00000001000000000000000E
--rw-r--r--. 1 postgres postgres 379 May 21 00:30 base_00000001000000000000000E_backup_stop_sentinel.json
-drwxr-xr-x. 3 postgres postgres  76 May 21 00:30 base_000000010000000000000011_D_00000001000000000000000E
--rw-r--r--. 1 postgres postgres 503 May 21 00:30 base_000000010000000000000011_D_00000001000000000000000E_backup_stop_sentinel.json
-drwxr-xr-x. 3 postgres postgres  76 May 21 00:32 base_000000010000000000000013_D_000000010000000000000011
--rw-r--r--. 1 postgres postgres 530 May 21 00:32 base_000000010000000000000013_D_000000010000000000000011_backup_stop_sentinel.json
-drwxr-xr-x. 3 postgres postgres  76 May 21 00:39 base_000000010000000000000016_D_000000010000000000000013
--rw-r--r--. 1 postgres postgres 528 May 21 00:39 base_000000010000000000000016_D_000000010000000000000013_backup_stop_sentinel.json
-</pre>
-
-
-#### 1.12) restore последняя резервная копия
-
-
-<pre> 
--- https://github.com/wal-g/wal-g/blob/master/docs/PostgreSQL.md
-
-# удаляю данные
-rm -rf /var/lib/pgsql/15/data
-
-###WAL-G также может получить последнюю резервную копию, используя LATEST:
-### wal-g backup-fetch ~/extract/to/here LATEST
-
-/usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data LATEST
-/usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data LATEST
-/usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data LATEST
-
-
-### сделаем файл для восстановления из архивов wal и стартуем postgresql
-su - postgres 
-touch /var/lib/pgsql/15/data/recovery.signal
-systemctl restart postgresql-15.service
-
-2023-05-21 01:00:49.910 MSK [5651] LOG:  database system was interrupted; last known up at 2023-05-21 00:39:49 MSK
-2023-05-21 01:00:50.118 MSK [5651] LOG:  starting archive recovery
-2023-05-21 01:00:50.177 MSK [5651] LOG:  restored log file "000000010000000000000016" from archive
-2023-05-21 01:00:50.253 MSK [5651] LOG:  redo starts at 0/16000028
-2023-05-21 01:00:50.304 MSK [5651] LOG:  restored log file "000000010000000000000017" from archive
-2023-05-21 01:00:50.405 MSK [5651] LOG:  consistent recovery state reached at 0/16000100
-2023-05-21 01:00:50.405 MSK [5646] LOG:  database system is ready to accept read-only connections
-2023-05-21 01:00:50.433 MSK [5651] LOG:  redo done at 0/17000110 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.18 s
-2023-05-21 01:00:50.498 MSK [5651] LOG:  restored log file "000000010000000000000017" from archive
-2023-05-21 01:00:50.584 MSK [5651] LOG:  selected new timeline ID: 2
-2023-05-21 01:00:50.713 MSK [5651] LOG:  archive recovery complete
-2023-05-21 01:00:50.719 MSK [5649] LOG:  checkpoint starting: end-of-recovery immediate wait
-2023-05-21 01:00:50.752 MSK [5649] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 2 recycled; write=0.004 s, sync=0.006 s, total=0.039 s; sync files=2, longest=0.004 s, av
-erage=0.003 s; distance=32768 kB, estimate=32768 kB
-2023-05-21 01:00:50.761 MSK [5646] LOG:  database system is ready to accept connections
-
-### как видим последнее наше изменение UPDATE test SET i = 3 WHERE i = 30 все ОКК!
--bash-4.2$ psql otus -c "select * from test;"
- i
-----
- 10
- 20
-  3
-(3 rows)
-</pre>
-
-
-#### 1.12) restore не определюнную 
-
-<pre> 
-rm -rf /var/lib/pgsql/15/data
-systemctl restart postgresql-15.service
-
-[root@zk4 wal-g]# systemctl restart postgresql-15.service
-Job for postgresql-15.service failed because the control process exited with error code. See "systemctl status postgresql-15.service" and "journalctl -xe" for details.
-
-### список бекапов
-su - postgres
-/usr/local/bin/wal-g/wal-g-pg backup-list
-/usr/local/bin/wal-g/wal-g-pg backup-list
-/usr/local/bin/wal-g/wal-g-pg backup-list
-
-base_00000001000000000000000E                            2023-05-21T00:30:06+03:00 00000001000000000000000E
-base_000000010000000000000011_D_00000001000000000000000E 2023-05-21T00:30:56+03:00 000000010000000000000011
-base_000000010000000000000013_D_000000010000000000000011 2023-05-21T00:32:42+03:00 000000010000000000000013
-base_000000010000000000000016_D_000000010000000000000013 2023-05-21T00:39:49+03:00 000000010000000000000016
-
-
-### восстанавливаюсь на определенный бекап
-### /usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data backup_name
-
-/usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data base_000000010000000000000013_D_000000010000000000000011
-/usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data base_000000010000000000000013_D_000000010000000000000011
-/usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data base_000000010000000000000013_D_000000010000000000000011
-
-### сделаем файл для восстановления из архивов wal и стартуем postgresql
-su - postgres 
-touch /var/lib/pgsql/15/data/recovery.signal
-chown postgres:postgres /var/lib/pgsql/15/data/recovery.signal
-
-### настироим параметры для Point-In-Time-Recovery (PITR) 
-vim /var/lib/pgsql/15/data/postgresql.auto.conf
-recovery_target_time = '2023-05-21 00:32:42.000'
-recovery_target_action = 'promote'
-recovery_target_inclusive = 'on'
-
-systemctl restart postgresql-15.service
-
-### УРА ВСЕ ПОЛУЧИЛОСЬ!!!
--bash-4.2$ psql otus -c "select * from test;"
- i
-----
- 10
- 20
- 30
-(3 rows)
-</pre>
-
-
-#### 2)
-
-#### Задание повышенной сложности* под нагрузкой* бэкап снимаем с реплики**
-
-<pre>
 
 </pre>
 
