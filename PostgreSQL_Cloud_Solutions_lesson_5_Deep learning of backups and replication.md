@@ -346,9 +346,11 @@ drwxr-xr-x. 3 postgres postgres  76 May 21 00:39 base_000000010000000000000016_D
 
 
 #### 1.12) restore последняя резервная копия
-### -- https://github.com/wal-g/wal-g/blob/master/docs/PostgreSQL.md
+
 
 <pre> 
+-- https://github.com/wal-g/wal-g/blob/master/docs/PostgreSQL.md
+
 # удаляю данные
 rm -rf /var/lib/pgsql/15/data
 
