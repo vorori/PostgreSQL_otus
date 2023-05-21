@@ -379,15 +379,15 @@ sudo -u postgres psql -c "ALTER SYSTEM SET synchronous_commit TO 'on';"
 systemctl restart postgresql-15.service
 </pre>
 
-###Теперь включаем на VM1 (он же будет мастером режим асинхронной репликации)
-###создаю на VM1 мастере пользователя который будет отвечать за репликацию 
+### Теперь включаем на VM1 (он же будет мастером режим асинхронной репликации)
+### создаю на VM1 мастере пользователя который будет отвечать за репликацию 
 
 <pre> 
 sudo -u postgres psql -c "CREATE ROLE user_replicator WITH REPLICATION PASSWORD 'klJlkdfsjImdsksdmsd98' LOGIN;"
 </pre>
 
 
-###доступ для роли user_replicator
+### доступ для роли user_replicator
 
 <pre> 
 vim /var/lib/pgsql/15/data/pg_hba.conf
@@ -395,13 +395,13 @@ host    replication     user_replicator          192.168.2.8/32            scram
 </pre>
 
 
-####создаю слот на мастере VM1
+#### создаю слот на мастере VM1
 
 <pre> 
 sudo -u postgres psql -c "SELECT * FROM pg_create_physical_replication_slot('my_slot_replication');"
 </pre>
 
-###проверяю слот
+### проверяю слот
 
 <pre> 
 su - postgres
@@ -427,7 +427,7 @@ two_phase           | f
 </pre>
 
 
-#на VM2 останавливаю кластер удаляю данные 
+### на VM2 останавливаю кластер удаляю данные 
 
 <pre> 
 sudo systemctl stop postgresql-15
@@ -437,7 +437,7 @@ sudo -u postgres pg_basebackup -h 192.168.2.4 -D /var/lib/pgsql/15/data -U user_
 
 pass klJlkdfsjImdsksdmsd98
 
-###важная заметка пока удаляю конфигурацию о архивировании журналов через wal-g пока на реплике не настроен сам wal-g. чтобы реплика корректно стартанула
+### важная заметка пока удаляю конфигурацию о архивировании журналов через wal-g пока на реплике не настроен сам wal-g. чтобы реплика корректно стартанула
 archive_command='/usr/local/bin/wal-g/wal-g-pg wal-push "%p" >> /var/lib/pgsql/15/data/log_wal_g/archive_command.log 2>&1'
 archive_timeout=60
 restore_command='/usr/local/bin/wal-g/wal-g-pg wal-fetch "%f" "%p" >> /var/lib/pgsql/15/data/log_wal_g/restore_command.log 2>&1
@@ -457,13 +457,13 @@ rm -rf /var/lib/pgsql/15/data/backup_label.old
 cat /var/lib/pgsql/15/data/postgresql.auto.conf
 </pre>
 
-#запускаю кластер на VM2
+### запускаю кластер на VM2
 
 <pre> 
 sudo systemctl restart postgresql-15
 </pre>
 
-#Сейчас VM2 сервер является репликой (находится в режиме восстановления):
+### Сейчас VM2 сервер является репликой (находится в режиме восстановления):
 
 <pre> 
 sudo -u postgres psql -c "SELECT pg_is_in_recovery();"
@@ -476,7 +476,7 @@ pg_is_in_recovery
 
 
 
-#на главном сервере VM1 проверяем репликацию
+### на главном сервере VM1 проверяем репликацию
 
 <pre> 
 postgres=# SELECT * FROM pg_stat_replication \gx
@@ -518,7 +518,7 @@ echo "wal_level=replica" >> /var/lib/pgsql/15/data/postgresql.auto.conf
 echo "archive_mode=always" >> /var/lib/pgsql/15/data/postgresql.auto.conf
 echo "archive_command='/usr/local/bin/wal-g/wal-g-pg wal-push \"%p\" >> /var/lib/pgsql/15/data/log_wal_g/archive_command.log 2>&1' " >> /var/lib/pgsql/15/data/postgresql.auto.conf
 echo "archive_timeout=60" >> /var/lib/pgsql/15/data/postgresql.auto.conf 
- ### не добавляем !!!!!!!echo "restore_command='/usr/local/bin/wal-g/wal-g-pg wal-fetch \"%f\" \"%p\" >> /var/lib/pgsql/15/data/log_wal_g/restore_command.log 2>&1' " >> /var/lib/pgsql/15/data/postgresql.auto.conf
+### не добавляем !!!!!!!echo "restore_command='/usr/local/bin/wal-g/wal-g-pg wal-fetch \"%f\" \"%p\" >> /var/lib/pgsql/15/data/log_wal_g/restore_command.log 2>&1' " >> /var/lib/pgsql/15/data/postgresql.auto.conf
 
 sudo systemctl restart postgresql-15
 sudo systemctl status postgresql-15
@@ -554,7 +554,7 @@ INFO: 2023/05/21 14:04:00.493370 FILE PATH: 00000004000000000000002E.br
 curl -s https://packagecloud.io/install/repositories/akopytov/sysbench/script.rpm.sh | sudo bash
 sudo yum -y install sysbench
 
-#генерирую большую вставку данных на мастере
+### генерирую большую вставку данных на мастере
 sudo -u postgres psql -c "CREATE ROLE test LOGIN SUPERUSER PASSWORD 'test'"
 sudo -u postgres psql -c "CREATE DATABASE test"
 sudo -u postgres sysbench \
