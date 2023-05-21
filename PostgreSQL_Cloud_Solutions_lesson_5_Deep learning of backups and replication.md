@@ -333,6 +333,8 @@ systemctl restart postgresql-15.service
 
 
 #### 2.2) подготовительные мероприятия для настройки асинхронной репликации for linux
+
+
 <pre> 
 #otus_vm1_centos ip 192.168.2.4
 firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" source address="192.168.2.8" port protocol="tcp" port="5432" accept"
