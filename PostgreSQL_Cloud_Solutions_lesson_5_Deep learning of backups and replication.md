@@ -260,16 +260,22 @@ systemctl restart postgresql-15.service
 (3 rows)
 </pre>
 
+
 ### удаляю ненужные файлы остатки после восстановления
+
+<pre>
 rm -rf /var/lib/pgsql/15/data/tablespace_map.old
 rm -rf /var/lib/pgsql/15/data/backup_label.old
+</pre>
 
 ### удаляю строки из postgresql.auto.conf
+
+<pre>
 vim /var/lib/pgsql/15/data/postgresql.auto.conf
 recovery_target_time = '2023-05-21 00:32:42.000'
 recovery_target_action = 'promote'
 recovery_target_inclusive = 'on'
-
+</pre>
 
 
 #### 2)
