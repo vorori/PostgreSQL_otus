@@ -10,7 +10,7 @@ wget https://github.com/philyuchkoff/wal-g-centos7/releases/download/2.0.1/wal-g
 sudo ls -l /usr/local/bin/wal-g
 
 sudo rm -rf /var/postgre_backup && sudo mkdir /var/postgre_backup && sudo chmod 777 /var/postgre_backup
-
+chmod 645 /usr/local/bin/wal-g/wal-g-pg
 chown postgres:postgres /var/postgre_backup
 
 </pre>
@@ -476,5 +476,90 @@ reply_time       | 2023-05-21 11:42:40.438807+03
 </pre>
 
 
-</pre>
+#### 2.4) установка настройка wal-g на реплике проделаю по аналогии в задании 1 выше
 
+### обязательный нюанс не добавляюм строку restore_command!!!!! и параметр  archive_mode=always на реплике!!!!!
+vim /var/lib/pgsql/15/data/postgresql.conf
+или
+echo "wal_level=replica" >> /var/lib/pgsql/15/data/postgresql.auto.conf
+echo "archive_mode=always" >> /var/lib/pgsql/15/data/postgresql.auto.conf
+echo "archive_command='/usr/local/bin/wal-g/wal-g-pg wal-push \"%p\" >> /var/lib/pgsql/15/data/log_wal_g/archive_command.log 2>&1' " >> /var/lib/pgsql/15/data/postgresql.auto.conf
+echo "archive_timeout=60" >> /var/lib/pgsql/15/data/postgresql.auto.conf 
+ ### не добавляем !!!!!!!echo "restore_command='/usr/local/bin/wal-g/wal-g-pg wal-fetch \"%f\" \"%p\" >> /var/lib/pgsql/15/data/log_wal_g/restore_command.log 2>&1' " >> /var/lib/pgsql/15/data/postgresql.auto.conf
+
+sudo systemctl restart postgresql-15
+sudo systemctl status postgresql-15
+
+### убедимся что все работает на матере выполняю
+SELECT pg_switch_wal();
+SELECT pg_switch_wal();
+SELECT pg_switch_wal();
+
+### проверяю нет ли ошибок на реплике 
+cat /var/lib/pgsql/15/data/log/postgresql-Sun.log
+cat /var/lib/pgsql/15/data/log_wal_g/archive_command.log
+
+[root@client8 wal-g]# cat /var/lib/pgsql/15/data/log_wal_g/archive_command.log
+INFO: 2023/05/21 14:01:58.777165 FILE PATH: 00000004000000000000002C.br
+INFO: 2023/05/21 14:02:00.553924 FILE PATH: 00000004000000000000002D.br
+INFO: 2023/05/21 14:04:00.493370 FILE PATH: 00000004000000000000002E.br
+
+вижу все ок wal сегменты ра реплике архивируются!!!!!!!!
+
+
+
+#### 2.5) выполняю нагрузку на мастере vm1 при помощи  sysbench создам базу test и буду вставлять большое количество данных а в этот момент выполню бекап на реплике!!!!!
+curl -s https://packagecloud.io/install/repositories/akopytov/sysbench/script.rpm.sh | sudo bash
+sudo yum -y install sysbench
+
+#генерирую большую вставку данных на мастере
+sudo -u postgres psql -c "CREATE ROLE test LOGIN SUPERUSER PASSWORD 'test'"
+sudo -u postgres psql -c "CREATE DATABASE test"
+sudo -u postgres sysbench \
+--db-driver=pgsql \
+--oltp-table-size=1000000 \
+--oltp-tables-count=30 \
+--threads=1 \
+--pgsql-host=localhost \
+--pgsql-port=5432 \
+--pgsql-user=test \
+--pgsql-password=test \
+--pgsql-db=test \
+/usr/share/sysbench/tests/include/oltp_legacy/parallel_prepare.lua \
+run
+
+
+#### 2.5)  выполню бекап на реплике пока идет массированная вставка данных на мастере!!!!!
+выполнил бэкап
+su - postgres
+su - postgres
+su - postgres
+
+-bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-push /var/lib/pgsql/15/data
+-bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-push /var/lib/pgsql/15/data
+-bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-push /var/lib/pgsql/15/data
+
+-bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-push /var/lib/pgsql/15/data
+INFO: 2023/05/21 14:13:50.110471 Couldn't find previous backup. Doing full backup.
+INFO: 2023/05/21 14:13:50.122503 Calling pg_start_backup()
+INFO: 2023/05/21 14:13:50.145186 Starting a new tar bundle
+INFO: 2023/05/21 14:13:50.145211 Walking ...
+INFO: 2023/05/21 14:13:50.145388 Starting part 1 ...
+INFO: 2023/05/21 14:13:58.009309 Packing ...
+INFO: 2023/05/21 14:13:58.009706 Finished writing part 1.
+INFO: 2023/05/21 14:13:58.009757 Starting part 2 ...
+INFO: 2023/05/21 14:13:58.009793 /global/pg_control
+INFO: 2023/05/21 14:13:58.010071 Finished writing part 2.
+INFO: 2023/05/21 14:13:58.010079 Calling pg_stop_backup()
+INFO: 2023/05/21 14:13:58.020444 Starting part 3 ...
+INFO: 2023/05/21 14:13:58.020488 backup_label
+INFO: 2023/05/21 14:13:58.020494 tablespace_map
+INFO: 2023/05/21 14:13:58.020662 Finished writing part 3.
+INFO: 2023/05/21 14:13:58.026890 Wrote backup with name base_00000004000000000000002E
+
+
+#### 2.6) ИТОГО ВСЕ ПОЛУЧИЛОСЬ БЕКАП НА РЕПЛИКЕ СНЯТ!!!!! 
+
+-bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-list
+name                          modified                  wal_segment_backup_start
+base_00000004000000000000002E 2023-05-21T14:13:58+03:00 00000004000000000000002E
