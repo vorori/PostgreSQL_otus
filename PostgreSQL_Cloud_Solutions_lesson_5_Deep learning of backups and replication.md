@@ -217,8 +217,12 @@ systemctl restart postgresql-15.service
 
 [root@zk4 wal-g]# systemctl restart postgresql-15.service
 Job for postgresql-15.service failed because the control process exited with error code. See "systemctl status postgresql-15.service" and "journalctl -xe" for details.
+</pre>
+
 
 ### список бекапов
+
+<pre> 
 su - postgres
 /usr/local/bin/wal-g/wal-g-pg backup-list
 /usr/local/bin/wal-g/wal-g-pg backup-list
@@ -228,29 +232,40 @@ base_00000001000000000000000E                            2023-05-21T00:30:06+03:
 base_000000010000000000000011_D_00000001000000000000000E 2023-05-21T00:30:56+03:00 000000010000000000000011
 base_000000010000000000000013_D_000000010000000000000011 2023-05-21T00:32:42+03:00 000000010000000000000013
 base_000000010000000000000016_D_000000010000000000000013 2023-05-21T00:39:49+03:00 000000010000000000000016
+</pre>
 
 
 ### восстанавливаюсь на определенный бекап
 ### /usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data backup_name
 
+<pre>
 /usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data base_000000010000000000000013_D_000000010000000000000011
 /usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data base_000000010000000000000013_D_000000010000000000000011
 /usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data base_000000010000000000000013_D_000000010000000000000011
+</pre>
 
 ### сделаем файл для восстановления из архивов wal и стартуем postgresql
+
+<pre>
 su - postgres 
 touch /var/lib/pgsql/15/data/recovery.signal
 chown postgres:postgres /var/lib/pgsql/15/data/recovery.signal
+</pre>
+
 
 ### настироим параметры для Point-In-Time-Recovery (PITR) 
+<pre>
 vim /var/lib/pgsql/15/data/postgresql.auto.conf
 recovery_target_time = '2023-05-21 00:32:42.000'
 recovery_target_action = 'promote'
 recovery_target_inclusive = 'on'
 
 systemctl restart postgresql-15.service
+</pre>
 
 ### УРА ВСЕ ПОЛУЧИЛОСЬ!!!
+
+<pre>
 -bash-4.2$ psql otus -c "select * from test;"
  i
 ----
