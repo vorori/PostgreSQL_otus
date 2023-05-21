@@ -297,8 +297,9 @@ recovery_target_inclusive = 'on'
 
 #### Задание повышенной сложности* под нагрузкой* бэкап снимаем с реплики**
 
-<pre>
 #### 2.1) Создаем два кластера postgresql для обединения в потоковую репликацию
+
+
 <pre>
 создал 2 vm centos core 2 озу 4gb 
 otus_vm1_centos ip 192.168.2.4
@@ -387,6 +388,7 @@ sudo -u postgres psql -c "CREATE ROLE user_replicator WITH REPLICATION PASSWORD 
 
 
 ###доступ для роли user_replicator
+
 <pre> 
 vim /var/lib/pgsql/15/data/pg_hba.conf
 host    replication     user_replicator          192.168.2.8/32            scram-sha-256
@@ -394,11 +396,13 @@ host    replication     user_replicator          192.168.2.8/32            scram
 
 
 ####создаю слот на мастере VM1
+
 <pre> 
 sudo -u postgres psql -c "SELECT * FROM pg_create_physical_replication_slot('my_slot_replication');"
 </pre>
 
 ###проверяю слот
+
 <pre> 
 su - postgres
 psql
@@ -424,6 +428,7 @@ two_phase           | f
 
 
 #на VM2 останавливаю кластер удаляю данные 
+
 <pre> 
 sudo systemctl stop postgresql-15
 sudo systemctl status postgresql-15
@@ -444,20 +449,22 @@ hot_standby = 'on'
 
 ### удаляю ненужные файлы остатки после восстановления
 rm -rf /var/lib/pgsql/15/data/backup_label.old
-
 </pre>
 
 #проверяю что появилась дополнителная информация по слоту репликации
+
 <pre> 
 cat /var/lib/pgsql/15/data/postgresql.auto.conf
 </pre>
 
 #запускаю кластер на VM2
+
 <pre> 
 sudo systemctl restart postgresql-15
 </pre>
 
 #Сейчас VM2 сервер является репликой (находится в режиме восстановления):
+
 <pre> 
 sudo -u postgres psql -c "SELECT pg_is_in_recovery();"
 
@@ -470,6 +477,7 @@ pg_is_in_recovery
 
 
 #на главном сервере VM1 проверяем репликацию
+
 <pre> 
 postgres=# SELECT * FROM pg_stat_replication \gx
 -[ RECORD 1 ]----+------------------------------
@@ -502,6 +510,8 @@ reply_time       | 2023-05-21 11:42:40.438807+03
 #### 2.4) установка настройка wal-g на реплике проделаю по аналогии в задании 1 выше
 
 ### обязательный нюанс не добавляюм строку restore_command!!!!! и параметр  archive_mode=always на реплике!!!!!
+
+<pre> 
 vim /var/lib/pgsql/15/data/postgresql.conf
 или
 echo "wal_level=replica" >> /var/lib/pgsql/15/data/postgresql.auto.conf
@@ -512,13 +522,20 @@ echo "archive_timeout=60" >> /var/lib/pgsql/15/data/postgresql.auto.conf
 
 sudo systemctl restart postgresql-15
 sudo systemctl status postgresql-15
+</pre>
 
 ### убедимся что все работает на матере выполняю
+
+<pre> 
 SELECT pg_switch_wal();
 SELECT pg_switch_wal();
 SELECT pg_switch_wal();
+</pre>
+
 
 ### проверяю нет ли ошибок на реплике 
+
+<pre> 
 cat /var/lib/pgsql/15/data/log/postgresql-Sun.log
 cat /var/lib/pgsql/15/data/log_wal_g/archive_command.log
 
@@ -528,10 +545,12 @@ INFO: 2023/05/21 14:02:00.553924 FILE PATH: 00000004000000000000002D.br
 INFO: 2023/05/21 14:04:00.493370 FILE PATH: 00000004000000000000002E.br
 
 вижу все ок wal сегменты ра реплике архивируются!!!!!!!!
-
+</pre>
 
 
 #### 2.5) выполняю нагрузку на мастере vm1 при помощи  sysbench создам базу test и буду вставлять большое количество данных а в этот момент выполню бекап на реплике!!!!!
+
+<pre>
 curl -s https://packagecloud.io/install/repositories/akopytov/sysbench/script.rpm.sh | sudo bash
 sudo yum -y install sysbench
 
@@ -550,9 +569,12 @@ sudo -u postgres sysbench \
 --pgsql-db=test \
 /usr/share/sysbench/tests/include/oltp_legacy/parallel_prepare.lua \
 run
+</pre>
 
 
 #### 2.5)  выполню бекап на реплике пока идет массированная вставка данных на мастере!!!!!
+
+<pre>
 выполнил бэкап
 su - postgres
 su - postgres
@@ -579,10 +601,12 @@ INFO: 2023/05/21 14:13:58.020488 backup_label
 INFO: 2023/05/21 14:13:58.020494 tablespace_map
 INFO: 2023/05/21 14:13:58.020662 Finished writing part 3.
 INFO: 2023/05/21 14:13:58.026890 Wrote backup with name base_00000004000000000000002E
-
+</pre>
 
 #### 2.6) ИТОГО ВСЕ ПОЛУЧИЛОСЬ БЕКАП НА РЕПЛИКЕ СНЯТ!!!!! 
 
+<pre>
 -bash-4.2$ /usr/local/bin/wal-g/wal-g-pg backup-list
 name                          modified                  wal_segment_backup_start
 base_00000004000000000000002E 2023-05-21T14:13:58+03:00 00000004000000000000002E
+</pre>
