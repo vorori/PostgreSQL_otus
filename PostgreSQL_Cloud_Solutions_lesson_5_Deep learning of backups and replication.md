@@ -260,13 +260,24 @@ systemctl restart postgresql-15.service
 (3 rows)
 </pre>
 
+### удаляю ненужные файлы остатки после восстановления
+rm -rf /var/lib/pgsql/15/data/tablespace_map.old
+rm -rf /var/lib/pgsql/15/data/backup_label.old
+
+### удаляю строки из postgresql.auto.conf
+vim /var/lib/pgsql/15/data/postgresql.auto.conf
+recovery_target_time = '2023-05-21 00:32:42.000'
+recovery_target_action = 'promote'
+recovery_target_inclusive = 'on'
+
+
 
 #### 2)
 
 #### Задание повышенной сложности* под нагрузкой* бэкап снимаем с реплики**
 
 <pre>
-#### 2.1) Создаем два кластера
+#### 2.1) Создаем два кластера postgresql для обединения в потоковую репликацию
 <pre>
 создал 2 vm centos core 2 озу 4gb 
 otus_vm1_centos ip 192.168.2.4
@@ -366,7 +377,7 @@ sudo -u postgres psql -c "SELECT * FROM pg_create_physical_replication_slot('my_
 
 ###проверяю слот
 <pre> 
-sudo -u postgres 
+su - postgres
 psql
 SELECT * FROM pg_replication_slots; \gx
 
@@ -395,6 +406,22 @@ sudo systemctl stop postgresql-15
 sudo systemctl status postgresql-15
 sudo -u postgres rm -rf /var/lib/pgsql/15/data/*
 sudo -u postgres pg_basebackup -h 192.168.2.4 -D /var/lib/pgsql/15/data -U user_replicator -P -v -R -X stream -S my_slot_replication
+
+pass klJlkdfsjImdsksdmsd98
+
+###важная заметка пока удаляю конфигурацию о архивировании журналов через wal-g пока на реплике не настроен сам wal-g. чтобы реплика корректно стартанула
+archive_command='/usr/local/bin/wal-g/wal-g-pg wal-push "%p" >> /var/lib/pgsql/15/data/log_wal_g/archive_command.log 2>&1'
+archive_timeout=60
+restore_command='/usr/local/bin/wal-g/wal-g-pg wal-fetch "%f" "%p" >> /var/lib/pgsql/15/data/log_wal_g/restore_command.log 2>&1
+
+#### и добавить параметр
+archive_mode = 'off'
+hot_standby = 'on'
+
+
+### удаляю ненужные файлы остатки после восстановления
+rm -rf /var/lib/pgsql/15/data/backup_label.old
+
 </pre>
 
 #проверяю что появилась дополнителная информация по слоту репликации
@@ -423,26 +450,27 @@ pg_is_in_recovery
 <pre> 
 postgres=# SELECT * FROM pg_stat_replication \gx
 -[ RECORD 1 ]----+------------------------------
-pid              | 3360
+pid              | 7250
 usesysid         | 16388
 usename          | user_replicator
 application_name | walreceiver
 client_addr      | 192.168.2.8
 client_hostname  |
-client_port      | 58390
-backend_start    | 2023-05-20 23:02:36.681187+03
+client_port      | 59178
+backend_start    | 2023-05-21 11:41:06.95554+03
 backend_xmin     |
 state            | streaming
-sent_lsn         | 0/3000148
-write_lsn        | 0/3000148
-flush_lsn        | 0/3000148
-replay_lsn       | 0/3000148
-write_lag        |
-flush_lag        |
-replay_lag       |
+sent_lsn         | 0/26442670
+write_lsn        | 0/26442670
+flush_lsn        | 0/26442670
+replay_lsn       | 0/26442670
+write_lag        | 00:00:00.000705
+flush_lag        | 00:00:00.002072
+replay_lag       | 00:00:00.002202
 sync_priority    | 0
 sync_state       | async
-reply_time       | 2023-05-20 23:05:50.380522+03
+reply_time       | 2023-05-21 11:42:40.438807+03
+
 
 все ОК!
 </pre>
