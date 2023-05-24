@@ -388,6 +388,7 @@ Threads fairness:
 
 <pre>
 
+synchronous_commit = off
 fsync = off
 full_page_writes = off
 full_page_writes = off
