@@ -872,10 +872,10 @@ postgresql:
     # RESOURCE USAGE (except WAL)
     #------------------------------------------------------------------------------
 
-    shared_buffers: 128MB
+    shared_buffers: 2048MB
     temp_buffers: 8MB
     work_mem: 4MB
-    maintenance_work_mem: 64MB
+    maintenance_work_mem: 512MB
     max_connections: 100
     dynamic_shared_memory_type: posix
     seq_page_cost: 1
@@ -933,8 +933,8 @@ postgresql:
     # - Checkpoints -
 
     checkpoint_completion_target: 0.9
-    min_wal_size: 128MB
-    max_wal_size: 256MB
+    min_wal_size: 2000MB
+    max_wal_size: 4000MB
 
     #------------------------------------------------------------------------------
     # WRITE-AHEAD LOG
@@ -1100,10 +1100,10 @@ postgresql:
     # RESOURCE USAGE (except WAL)
     #------------------------------------------------------------------------------
 
-    shared_buffers: 128MB
+    shared_buffers: 2048MB
     temp_buffers: 8MB
     work_mem: 4MB
-    maintenance_work_mem: 64MB
+    maintenance_work_mem: 512MB
     max_connections: 100
     dynamic_shared_memory_type: posix
     seq_page_cost: 1
@@ -1161,8 +1161,8 @@ postgresql:
     # - Checkpoints -
 
     checkpoint_completion_target: 0.9
-    min_wal_size: 128MB
-    max_wal_size: 256MB
+    min_wal_size: 2000MB
+    max_wal_size: 4000MB
 
     #------------------------------------------------------------------------------
     # WRITE-AHEAD LOG
@@ -1328,10 +1328,10 @@ postgresql:
     # RESOURCE USAGE (except WAL)
     #------------------------------------------------------------------------------
 
-    shared_buffers: 128MB
+    shared_buffers: 2048MB
     temp_buffers: 8MB
     work_mem: 4MB
-    maintenance_work_mem: 64MB
+    maintenance_work_mem: 512MB
     max_connections: 100
     dynamic_shared_memory_type: posix
     seq_page_cost: 1
@@ -1389,8 +1389,8 @@ postgresql:
     # - Checkpoints -
 
     checkpoint_completion_target: 0.9
-    min_wal_size: 128MB
-    max_wal_size: 256MB
+    min_wal_size: 2000MB
+    max_wal_size: 4000MB
 
     #------------------------------------------------------------------------------
     # WRITE-AHEAD LOG
