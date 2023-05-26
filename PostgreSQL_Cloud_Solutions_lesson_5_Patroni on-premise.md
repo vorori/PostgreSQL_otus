@@ -2080,15 +2080,14 @@ killall -0 haproxy проверяет запущен ли процесс HAProxy
 </pre>
 
 
-#6) смотрим какие бекапы есть в наличии
+# 6) настраиваем бэкап используя WAL-G 
 
 <pre> 
 
-настраиваем бэкап используя WAL-G 
 
 #### 1.1) install WAL-G
 
-<pre> 
+
 -- sudo rm /usr/local/bin/wal-g
 wget https://github.com/philyuchkoff/wal-g-centos7/releases/download/2.0.1/wal-g-pg && mkdir /usr/local/bin/wal-g && sudo mv wal-g-pg /usr/local/bin/wal-g
 sudo ls -l /usr/local/bin/wal-g
@@ -2096,12 +2095,12 @@ sudo ls -l /usr/local/bin/wal-g
 sudo rm -rf /var/postgre_backup && sudo mkdir /var/postgre_backup && sudo chmod 777 /var/postgre_backup
 chmod 645 /usr/local/bin/wal-g/wal-g-pg
 chown postgres:postgres /var/postgre_backup
-</pre>
+
 
 
 #### 1.2)Создаем файл конфигурации для wal-g
 
-<pre> 
+
 sudo su - postgres
 vim ~/.walg.json
 
@@ -2238,11 +2237,10 @@ base_00000001000000000000000C_D_00000001000000000000000A 2023-05-26T16:44:38+03:
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-
-все настроенно можно добавлять задания в крон на репликах и будет счастье.
-
+### все настроенно можно добавлять задания в крон на репликах и будет счастье.
 
 </pre>
+
 
 # 7) Итоги
 
