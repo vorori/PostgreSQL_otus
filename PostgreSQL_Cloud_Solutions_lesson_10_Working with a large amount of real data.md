@@ -290,6 +290,7 @@ chmod 600 /home/gpadmin/.ssh/authorized_keys     # выдаю правельны
 </pre>
 
 #### Утилита gpssh-exkeys
+<pre>
 1.13)
 
 Утилита gpssh-exkeys обменивается ключами SSH между указанными именами хостов (или адресами хостов). 
@@ -339,8 +340,11 @@ gpssh-exkeys -f /home/gpadmin/.hosts
   ... finished key exchange with gp2.ru-central1.internal
 
 [INFO] completed successfully
+
+</pre>
 	 
 #### проверяю ВСЕ КЛЮЧИ
+<pre>
 1.13.1)
 
 на сервере ноде ДОЛДЖНЫ ПОЯВИТЬСЯ ВСЕ КЛЮЧИ!
@@ -355,8 +359,10 @@ total 16
 -rw------- 1 gpadmin gpadmin 3243 Jun 12 18:11 id_rsa
 -rw-r--r-- 1 gpadmin gpadmin  758 Jun 12 18:11 id_rsa.pub
 -rw-rw-r-- 1 gpadmin gpadmin 1403 Jun 12 18:11 known_hosts
+</pre>
 
 #### создаю директорию для будующих данных
+<pre>
 1.13.2)
 
 создаю директорию для будующих данных
@@ -377,13 +383,15 @@ mkdir /home/gpadmin/data_mirror
 [gp2.ru-central1.internal]
 
 
-#на ноде и на мастере появятся каталоги
+на ноде и на мастере появятся каталоги
 [gpadmin@gp2 ~]$ ls -l /home/gpadmin
 total 0
 drwxrwxr-x 2 gpadmin gpadmin 6 Jun 12 18:16 data
 drwxrwxr-x 2 gpadmin gpadmin 6 Jun 12 18:16 data_mirror
+</pre>
 
 #### настройка конфигурационного файла на главной ноде
+<pre>
 1.14)
 
 настройка конфигурационного файла на главной ноде смотрим что у нас есть в наличии
@@ -435,8 +443,10 @@ MASTER_DIRECTORY=/home/gpadmin/data
 Количество зеркальных расположений должно быть равно количеству первичных расположений, указанному в параметре DATA_DIRECTORY.
 declare -a MIRROR_DATA_DIRECTORY=(/home/gpadmin/data_mirror /home/gpadmin/data_mirror /home/gpadmin/data_mirror)
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+</pre>
 
 #### инициализируем кластер создаем рабочуую среду
+<pre>
 1.15)
 
 инициализируем кластер создаем рабочуую среду
@@ -604,8 +614,10 @@ server shutting down
 20230612:18:28:52:002464 gpinitsystem:gp1:gpadmin-[WARN]:-Cluster setup finished
 20230612:18:28:52:002464 gpinitsystem:gp1:gpadmin-[INFO]:-Use gpinitstandby to create a Standby Master
 20230612:18:28:52:002464 gpinitsystem:gp1:gpadmin-[WARN]:-*******************************************************
+</pre>
 
 #### проверил логи проверил директории с данными на обоих нодах успешно заполнены дефолтными данными все ок 
+<pre>
 1.16)
 
 обычно ечли чтото у нас не получается надо смотреть сюда тут ворох логов в котором можно найти нашу закавырку если такая имеется 
@@ -617,8 +629,10 @@ total 216
 -rw-rw-r-- 1 gpadmin gpadmin   2071 Jun 12 18:28 gpsegstart.py_gp1:gpadmin_20230612.log
 -rw-rw-r-- 1 gpadmin gpadmin   2575 Jun 12 18:28 gpstart_20230612.log
 -rw-rw-r-- 1 gpadmin gpadmin   2265 Jun 12 18:28 gpstop_20230612.log
+</pre>
 
 #### проверка сегментов
+<pre>
 1.17)
 
 проверяем на мастере что были созданы три рабочих сегмента  и один главный сегмент
@@ -628,16 +642,19 @@ drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg0
 drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg1
 drwx------ 22 gpadmin gpadmin 4096 Jun 12 18:28 gpseg-1
 drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg2
-
+</pre>
 
 #проверка сегментов проверяем на ноде
+<pre>
 [gpadmin@gp2 ~]$ ls -l /home/gpadmin/data
 total 12
 drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg3
 drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg4
 drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg5
+</pre>
 
 #### описание главный сегмент
+<pre>
 1.18)
 
 главный сегмент в названии будет отрицательное число в нашем случае -1
@@ -673,8 +690,10 @@ drwx------ 3 gpadmin gpadmin    60 Jun 12 18:28 pg_xlog
 -rw------- 1 gpadmin gpadmin 23645 Jun 12 18:28 postgresql.conf
 -rw------- 1 gpadmin gpadmin    95 Jun 12 18:28 postmaster.opts
 -rw------- 1 gpadmin gpadmin    76 Jun 12 18:28 postmaster.pid
+</pre>
 
 #### пременая для главного сегмента
+<pre>
 1.19)
 
 настраиваем пременную для главного сегмента на мастере
@@ -687,8 +706,10 @@ su - gpadmin
 
 [gpadmin@client8 ~]$ echo $MASTER_DATA_DIRECTORY
 /home/gpadmin/data/gpsne-1
+</pre>
 
 #### connect
+<pre>
 1.20)
 
 подключаемся к gp
@@ -722,9 +743,10 @@ postgres=# \l
            |         |          |            |            | gpadmin=CTc/gpadmin
  test      | gpadmin | UTF8     | en_US.utf8 | en_US.utf8 |
 (4 rows)
-
+</pre>
 
 #### смотрим конфигурацию gp
+<pre>
 1.21)
 
 смотрим конфигурацию gp эта ключевая таблица в которой описываются метаданные нашего кластера
@@ -741,9 +763,10 @@ test=# select * from gp_segment_configuration;
     4 |       2 | p    | p              | n    | u      | 6002 | gp1.ru-central1.internal | gp1.ru-central1.internal | /home/gpadmin/data/gpseg2
     7 |       5 | p    | p              | n    | u      | 6002 | gp2.ru-central1.internal | gp2.ru-central1.internal | /home/gpadmin/data/gpseg5
 (7 rows)
-
+</pre>
 
 #### тестовые данные
+<pre>
 1.22)
 
 генерируем числа от одного до миллиона и помещаем в нашу таблицу
@@ -765,9 +788,10 @@ test=# EXPLAIN(ANALYZE) select count(*) from t1;
  Optimizer: Pivotal Optimizer (GPORCA)
  Execution time: 77.551 ms
 (10 rows)
-
+</pre>
 
 #### EXPLAIN(ANALYZE) select sum(colA) from t1
+<pre>
 1.23)
 
 test=# EXPLAIN(ANALYZE) select sum(colA) from t1;
@@ -784,10 +808,11 @@ test=# EXPLAIN(ANALYZE) select sum(colA) from t1;
  Optimizer: Pivotal Optimizer (GPORCA)
  Execution time: 42.343 ms
 (10 rows)
-
+</pre>
 
 
 #### режим распространения зеркала
+<pre>
 1.24)
 
 Режим распространения зеркала:
@@ -795,9 +820,10 @@ test=# EXPLAIN(ANALYZE) select sum(colA) from t1;
 Выполните команду инициализации: gpinitsystem plus – S, узел Способ распределения раскидистый
 
 gpinitsystem -c gpinitsystem_config -h /home/gpadmin/.hosts -s gp1.ru-central1.internal –S
-
+</pre>
 
 #### если надо удалить кластер gp
+<pre>
 1.25)
 
 если надо удалить кластер gp
@@ -822,7 +848,7 @@ Continue with Greenplum instance deletion? Yy|Nn (default=N):
 cd /home/gpadmin/data
 ls -l
 total 0
-
+</pre>
 
 
 
