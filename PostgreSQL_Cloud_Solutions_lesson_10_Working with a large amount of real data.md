@@ -222,6 +222,7 @@ which psql
 </pre>
 
 #### генерирую ключ
+<pre>
 1.12.1)
 
 Выполните следующие шаги на главном хосте в качестве пользователя gpadmin.
@@ -250,10 +251,11 @@ The key's randomart image is:
 |     . +.oo..o.+ |
 |      o .oo.o+E. |
 +----[SHA256]-----+
+</pre>
 
 #### передаю публичный ключ на сервер ноду 2
 1.12.2)
-
+<pre>
 #после генерации мне надо предать этот публичный ключ на сервер ноду 2
 ssh-copy-id -i ~/.ssh/id_rsa.pub gpadmin@gp2.ru-central1.internal -p 22
 ssh-copy-id -i ~/.ssh/id_rsa.pub gpadmin@gp2.ru-central1.internal -p 22
@@ -263,10 +265,12 @@ ssh-copy-id -i ~/.ssh/id_rsa.pub gpadmin@gp2.ru-central1.internal -p 22
 ssh gpadmin@gp2.ru-central1.internal
 ssh gpadmin@gp2.ru-central1.internal
 ssh gpadmin@gp2.ru-central1.internal
+</pre>
 
 
---------------------------------------------------------------------------
 #### если по старинке
+<pre>
+--------------------------------------------------------------------------
 1.12.3)
 
 если по старинке создал на сервере к которому буду подключаться
@@ -283,7 +287,7 @@ cat /home/gpadmin/.ssh/id_rsa.pub                # копирую публичн
 vim /home/gpadmin/.ssh/authorized_keys           # вставляю
 chmod 600 /home/gpadmin/.ssh/authorized_keys     # выдаю правельные разрешения
 --------------------------------------------------------------------------
-
+</pre>
 
 #### Утилита gpssh-exkeys
 1.13)
