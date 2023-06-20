@@ -2,9 +2,6 @@
 
 #### Устанаввливаю настраиваю Greenplum
 
-<pre>
-</pre>
-
 
 
 <pre>
@@ -865,7 +862,7 @@ total 0
 
 #### данные
 <pre>
-1)
+2.1)
 
 данные
 https://console.cloud.google.com/storage/browser/chicago10;tab=objects?prefix=&forceOnObjectsSortingFiltering=false
@@ -876,7 +873,7 @@ https://console.cloud.google.com/storage/browser/chicago10;tab=objects?prefix=&f
 
 #### создать бакет
 <pre>
-1.2)
+2.2)
 
 создать бакет
 https://console.cloud.yandex.ru/folders/b1g4ll61pn5hi287rrrc/storage/create-bucket
@@ -890,14 +887,14 @@ name myotus
 
 #### Загрузил файлы CSV в бакет
 <pre>
-1.3)
+2.3)
 
 Загрузил файлы CSV, предварительно скаченные с https://console.cloud.google.com/storage/browser/chicago10
 </pre>
 
 #### инструкция как пользоваться Как пользоваться S3 API
 <pre>
-1.4)
+2.4)
 
 инструкция как пользоваться Как пользоваться S3 API
 https://cloud.yandex.ru/docs/storage/s3/?from=int-console-empty-state
@@ -905,7 +902,7 @@ https://cloud.yandex.ru/docs/storage/s3/?from=int-console-empty-state
 
 #### создаю сервисный аакаунт
 <pre>
-1.5)
+2.5)
 
 создаю сервисный аакаунт myvorori
 https://console.cloud.yandex.ru/folders/b1g4ll61pn5hi287rrrc?section=service-accounts
@@ -914,7 +911,7 @@ https://console.cloud.yandex.ru/folders/b1g4ll61pn5hi287rrrc/storage/buckets
 
 #### создаю ключ
 <pre>
-1.6)
+2.6)
 
 создаю ключ по инструкции
 https://cloud.yandex.ru/docs/iam/operations/sa/create-access-key
@@ -930,14 +927,14 @@ YCMrCVoA8TpR3dCg8-p4RraHSmuzy0Dp_iClfTBU
 
 #### рава доступа к моему бакету
 <pre>
-1.7)
+2.7)
 
 добавил права доступа к моему бакету myotus для моего сервисного аакаунта myvorori
 </pre>
 
 #### s3fs-fuse
 <pre>
-1.8) 
+2.8) 
 
 создаю каталог для данных и устанавливаю s3fs-fuse
 yum install s3fs-fuse
@@ -947,7 +944,7 @@ cd /home/gpadmin/taxi
 
 #### .passwd-s3fs
 <pre>
-1.9)
+2.9)
 
 добавляю ранее созданный индификатор,двоеточие и сервисный ключ
 /home/gpadmin/.passwd-s3fs
@@ -963,7 +960,7 @@ YCAJEGmWpeoKgY6bwncE9rtJs:YCMrCVoA8TpR3dCg8-p4RraHSmuzy0Dp_iClfTBU
 
 #### монтирую бакет при помощи s3fs 
 <pre>
-1.10)
+2.10)
 
 монтирую при помощи s3fs 
 s3fs myotus /home/gpadmin/taxi -o passwd_file=/home/gpadmin/.passwd-s3fs -o url=https://storage.yandexcloud.net -o use_path_request_style -o dbglevel=info -f -o curldbg
@@ -987,7 +984,7 @@ s3fs <имя_бакета> $HOME/s3fs -o passwd_file=$HOME/.passwd-s3fs -o url=h
 
 #### проверяю
 <pre>
-1.11)
+2.11)
 проверяю ура !!!появился новый подключенный раздел s3fs            4.0G     0  4.0G   0% /home/gpadmin/taxi:
 [gpadmin@gp1 taxi]$ df -h
 Filesystem      Size  Used Avail Use% Mounted on
@@ -1003,7 +1000,7 @@ s3fs            4.0G     0  4.0G   0% /home/gpadmin/taxi
 
 #### проверяю данные
 <pre>
-1.12) 
+2.12) 
 
 видим наши данные в нашем подгруженном бакете
 [gpadmin@gp1 ~]$ cd /home/gpadmin/taxi
@@ -1039,7 +1036,7 @@ total 6782364
 
 #### создаем тестовую бд и таблицу
 <pre>
-1.13) 
+2.13) 
 
 создаем бд и таблицу
 Загрузим данные в Постгрес, предварительно создав БД taxi:
@@ -1108,7 +1105,7 @@ dropoff_location text
 
 #### команда на загрузку данных в цикле 
 <pre>
-1.14) 
+2.14) 
 
 команда на загрузку данных в цикле 
 for f in *.csv*; do psql -U gpadmin -p 5432 -h gp1.ru-central1.internal -d taxi -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
@@ -1144,7 +1141,7 @@ COPY 670978
 
 #### выполняем заливку при пормощи  gpfdist
 <pre>
-1.15) 
+2.15) 
 
 выполняем заливку при пормощи  gpfdist
 https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/utility_guide-ref-gpfdist.html
@@ -1160,7 +1157,7 @@ gpfdist -d /home/gpadmin/taxi -p 8081 > gpfdist.log 2>&1 &
 
 #### если надо остановить gpfdist
 <pre>
-1.16)
+2.16)
 
 если надо остановить gpfdist
 Чтобы остановить gpfdist, когда он работает в фоновом режиме:
@@ -1172,7 +1169,7 @@ $ kill 3456
 
 #### status gpfdist
 <pre>
-1.17)
+2.17)
 
 проверяем лог что gpfdist работает и все ок 
 [gpadmin@gp1 ~]$ cat gpfdist.log
@@ -1190,7 +1187,7 @@ Serving HTTP on port 8081, directory /home/gpadmin/taxi
 
 #### создаем внешнюю/внешнюю веб-таблицу и заливаем из нее данные в нашу
 <pre>
-1.18)
+2.18)
 
 создаем внешнюю/внешнюю веб-таблицу и заливаем из нее данные в нашу
 CREATE READABLE EXTERNAL TABLE taxi_trips_ext (like taxi_trips2)
@@ -1202,16 +1199,159 @@ INSERT INTO taxi_trips2  SELECT * FROM taxi_trips_ext;
 INSERT 0 668818
 </pre>
 
+
+
+#### 3)
+
 #### Сравнить скорость выполнения запросов на PosgreSQL и выбранной СУБД
+
+<pre>
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------кластер на postgres 15 -------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+#### создал и установил с подтюнил postgres 15
+<pre>
+3.1) 
+
+создал и установил с подтюнил postgres 15 озу 6 gb CPU 2 диск hdd
+влил тот же объем данных что и на кластер gp
+
+ALTER SYSTEM SET
+ max_connections = '40';
+ALTER SYSTEM SET
+ shared_buffers = '1536MB';
+ALTER SYSTEM SET
+ effective_cache_size = '4608MB';
+ALTER SYSTEM SET
+ maintenance_work_mem = '500MB';
+ALTER SYSTEM SET
+ checkpoint_completion_target = '0.9';
+ALTER SYSTEM SET
+ wal_buffers = '16MB';
+ALTER SYSTEM SET
+ default_statistics_target = '100';
+ALTER SYSTEM SET
+ random_page_cost = '4';
+ALTER SYSTEM SET
+ effective_io_concurrency = '2';
+ALTER SYSTEM SET
+ work_mem = '19660kB';
+ALTER SYSTEM SET
+ min_wal_size = '1GB';
+ALTER SYSTEM SET
+ max_wal_size = '4GB';
+
+sudo yum install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+sudo yum -y repolist
+sudo yum install postgresql15-contrib
+
+sudo /usr/pgsql-15/bin/postgresql-15-setup initdb
+systemctl enable postgresql-15.service
+systemctl status postgresql-15.service
+systemctl restart postgresql-15.service
+
+create user gpadmin;
+create database taxi with owner gpadmin;
+s3fs myotus /home/gpadmin/ttt -o passwd_file=/home/gpadmin/.passwd-s3fs -o url=https://storage.yandexcloud.net -o umask=0000
+for f in *.csv*; do psql -U gpadmin  -d taxi -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
+</pre>
 
 
 <pre>
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------итого по запросам ------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
 </pre>
 
+
+#### прогнал запросы big:
+<pre>
+3.2)
+
+---------------------------------------------------------------------------------------------------------------------------------------
+запрос 
+EXPLAIN(ANALYZE) SELECT payment_type, round(sum(tips)/sum(trip_total)*100, 0) + 0 as tips_percent, count(*) as c 
+FROM taxi_trips
+group by payment_type
+order by c;
+
+на gp 2 ноды  6 сегментов
+Execution time: 3629.583 ms
+
+на ванильном Postgre
+Execution Time: 107498.652 ms
+---------------------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+
+#### тестовая генерация данных
+<pre>
+3.3)
+
+---------------------------------------------------------------------------------------------------------------------------------------
+тестовая генерация данных:
+create table t1 as select generate_series(1,1000000) as colA distributed by (colA);
+
+на gp 2 ноды  6 сегментов
+Execution time: 1.583 ms
+
+на ванильном Postgre
+Execution time: 2.884 ms
+---------------------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+#### select count(*) from t1;
+<pre>
+3.4)
+
+---------------------------------------------------------------------------------------------------------------------------------------
+запрос:
+EXPLAIN(ANALYZE) select count(*) from t1;
+
+на gp 2 ноды  6 сегментов
+Execution time: 92.168 ms
+
+на ванильном Postgre
+Execution Time: 84.369 ms
+---------------------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+#### EXPLAIN(ANALYZE) select sum(colA) from t1;
+<pre>
+3.5)
+
+---------------------------------------------------------------------------------------------------------------------------------------
+запрос:
+EXPLAIN(ANALYZE) select sum(colA) from t1;
+
+на gp 2 ноды  6 сегментов
+Execution time: 88.765 ms
+
+на ванильном Postgre
+Execution Time: 102.372 ms
+---------------------------------------------------------------------------------------------------------------------------------------
+</pre>
 
 #### 4)
 
 #### Описать что и как делали и с какими проблемами столкнулись
 
 <pre>
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------трудности---------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+<pre>
+первый раз работал с gp разбирал ошибки когда кластер не поднимался
+изучал документацию gp чтобы корректно поднять кластер на двух ВМ и шести сегментов
+с самого начала поднял gp на одной VM но мне показалось это не очень круто
+
+были шероховатиости  в работе с бакетом и s3fs 
+потратил достаточно большое количество времени чтобы устранить ошибки подключения и доступа
 </pre>
