@@ -50,6 +50,7 @@ cat /proc/meminfo  | grep MemTotal
 #### настройка ОС
 <pre>
 1.3)
+
 vim /etc/sysctl.conf
 vm.overcommit_memory = 2
 vm.overcommit_ratio = 95 
@@ -58,32 +59,44 @@ kernel.sem = 250 2048000 200 8192
 sysctl --system
 </pre>
 
+
+
+#### создать столько файлов и процессов вплодь до этого числа
+<pre>
 1.4)
-создать столько файлов и процессов вплодь до этого числа
+
 vim /etc/security/limits.conf 
 * soft nofile 524288
 * hard nofile 524288
 * soft nproc 131072
 * hard nproc 131072
 
+</pre>
 
+
+#### добавляем групу gpadmin
+<pre>
 1.5)
-добавляем групу gpadmin
+
 groupadd gpadmin
 useradd gpadmin -r -m -g gpadmin
 echo Q123456789q | passwd --stdin gpadmin
+</pre>
 
-
+#### открываю порты если разворачиваемся не на яндекс облаке
+<pre>
 1.6)
-открываю порты если разворачиваемся не на яндекс облаке
+
 firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" source address="10.129.0.13" port protocol="tcp" port="22" accept"
 firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" source address="10.129.0.31" port protocol="tcp" port="22" accept"
 firewall-cmd --reload		
 firewall-cmd --list-all		
+</pre>
 
-
+#### скачиваем устанавливаем
+<pre>
 1.7)
-скачиваем устанавливаем
+
 wget https://github.com/greenplum-db/gpdb/releases/download/6.24.3/open-source-greenplum-db-6.24.3-rhel7-x86_64.rpm
 yum install ./open-source-greenplum-db-6.24.3-rhel7-x86_64.rpm
 
@@ -118,11 +131,12 @@ Total size: 298 M
 Total download size: 2.5 M
 Installed size: 301 M
 Is this ok [y/d/N]: y
+</pre>
 
-
-
+#### проверяем
+<pre>
 1.8)
-проверяем
+
 cd /usr/local
 ls -l
 
@@ -140,10 +154,12 @@ drwxr-xr-x.  8 root root 214 Jun  9 22:15 okagent
 drwxr-xr-x.  2 root root   6 Apr 11  2018 sbin
 drwxr-xr-x.  5 root root  49 Feb 11  2020 share
 drwxr-xr-x.  2 root root   6 Apr 11  2018 src
+</pre>
 
-
+####  заходим под пользователем gpadmin для установки настройки
+<pre>
 1.9)
-заходим под пользователем gpadmin для установки настройки
+
 su - gpadmin
 
 настравиваем среду к файлу greenplum_path.sh
@@ -161,22 +177,25 @@ su - gpadmin
 [gpadmin@client8 greenplum-db-6.24.3]$
 [gpadmin@client8 greenplum-db-6.24.3]$ which psql
 /usr/local/greenplum-db-6.24.3/bin/psql
+</pre>
 
-
+#### Создайте файл с именем hosts в домашнем каталоге пользователя gpadmin, который содержит все имена хостов Greenplum
+<pre>
 1.10)
-Создайте файл с именем hosts в домашнем каталоге пользователя gpadmin, который содержит все имена хостов Greenplum:
+
 vim /home/gpadmin/.hosts
 vim /home/gpadmin/.hosts
 vim /home/gpadmin/.hosts
 
-[gpadmin@client8 ~]$ hostname
+hostname
 gp1.ru-central1.internal
 gp2.ru-central1.internal
+</pre>
 
-
-
+#### заходим под пользователем gpadmin для установки настройки
+<pre>
 1.11)
-заходим под пользователем gpadmin для установки настройки
+
 su - gpadmin
 
 настравиваем среду к файлу greenplum_path.sh
@@ -191,24 +210,20 @@ vim /home/gpadmin/.bashrc
 exit
 logout
 su - gpadmin
+</pre>
+
+####  проверяем $GPHOME
+<pre>
+1.12)
 
 cd $GPHOME/
 which psql
 /usr/local/greenplum-db-6.24.3/bin/psql
+</pre>
 
-
-1.12)
-Создайте файл с именем hosts в домашнем каталоге пользователя gpadmin, который содержит все имена хостов Greenplum:
-vim /home/gpadmin/.hosts
-vim /home/gpadmin/.hosts
-vim /home/gpadmin/.hosts
-
-hostname
-gp1.ru-central1.internal
-gp2.ru-central1.internal
-
-
+#### генерирую ключ
 1.12.1)
+
 Выполните следующие шаги на главном хосте в качестве пользователя gpadmin.
 генерирую ключ (на второй ноде тоже чтобы создать каталог ./ssh)
 su - gpadmin
@@ -236,8 +251,9 @@ The key's randomart image is:
 |      o .oo.o+E. |
 +----[SHA256]-----+
 
-
+#### передаю публичный ключ на сервер ноду 2
 1.12.2)
+
 #после генерации мне надо предать этот публичный ключ на сервер ноду 2
 ssh-copy-id -i ~/.ssh/id_rsa.pub gpadmin@gp2.ru-central1.internal -p 22
 ssh-copy-id -i ~/.ssh/id_rsa.pub gpadmin@gp2.ru-central1.internal -p 22
@@ -250,13 +266,18 @@ ssh gpadmin@gp2.ru-central1.internal
 
 
 --------------------------------------------------------------------------
-1.12.3)если по старинке создал на сервере к которому буду подключаться
+#### если по старинке
+1.12.3)
+
+если по старинке создал на сервере к которому буду подключаться
 создал файл
 touch /home/gpadmin/.ssh/authorized_keys
 touch /home/gpadmin/.ssh/authorized_keys
 touch /home/gpadmin/.ssh/authorized_keys
 
+#### выполняю
 1.12.4)
+
 вставил в него мой публичный ключ с гланого сервера 
 cat /home/gpadmin/.ssh/id_rsa.pub                # копирую публичный ключ пользователя gpadmin сервера с которого буду подключаться
 vim /home/gpadmin/.ssh/authorized_keys           # вставляю
@@ -264,8 +285,9 @@ chmod 600 /home/gpadmin/.ssh/authorized_keys     # выдаю правельны
 --------------------------------------------------------------------------
 
 
-
+#### Утилита gpssh-exkeys
 1.13)
+
 Утилита gpssh-exkeys обменивается ключами SSH между указанными именами хостов (или адресами хостов). 
 Это позволяет подключаться по SSH между хостами Greenplum и сетевыми интерфейсами без запроса пароля. 
 Утилита используется для первоначальной подготовки системы базы данных Greenplum для беспарольного доступа по SSH, 
@@ -314,8 +336,9 @@ gpssh-exkeys -f /home/gpadmin/.hosts
 
 [INFO] completed successfully
 	 
-
+#### проверяю ВСЕ КЛЮЧИ
 1.13.1)
+
 на сервере ноде ДОЛДЖНЫ ПОЯВИТЬСЯ ВСЕ КЛЮЧИ!
 появятся вот эти файлы причем и на ноде которую мы подключили
 ls -l /home/gpadmin/.ssh
@@ -329,8 +352,9 @@ total 16
 -rw-r--r-- 1 gpadmin gpadmin  758 Jun 12 18:11 id_rsa.pub
 -rw-rw-r-- 1 gpadmin gpadmin 1403 Jun 12 18:11 known_hosts
 
-
+#### создаю директорию для будующих данных
 1.13.2)
+
 создаю директорию для будующих данных
 Утилита gpsshпозволяет запускать команды оболочки bash на нескольких хостах одновременно, используя SSH (защищенную оболочку). 
 Вы можете запустить одну команду, указав ее в командной строке, или пропустить команду, чтобы войти в интерактивный сеанс командной строки.
@@ -355,10 +379,12 @@ total 0
 drwxrwxr-x 2 gpadmin gpadmin 6 Jun 12 18:16 data
 drwxrwxr-x 2 gpadmin gpadmin 6 Jun 12 18:16 data_mirror
 
+#### настройка конфигурационного файла на главной ноде
 1.14)
+
 настройка конфигурационного файла на главной ноде смотрим что у нас есть в наличии
-[gpadmin@client8 .ssh]$ cd $GPHOME/docs/cli_help/gpconfigs
-[gpadmin@client8 gpconfigs]$ ls -l
+cd $GPHOME/docs/cli_help/gpconfigs
+ls -l
 total 52
 -rw-r--r-- 1 root root 2422 May  5 00:13 gpinitsystem_config
 -rw-r--r-- 1 root root 4511 May  5 00:13 gpinitsystem_singlenode
@@ -383,6 +409,8 @@ cp $GPHOME/docs/cli_help/gpconfigs/gpinitsystem_config /home/gpadmin/gpinitsyste
 vim /home/gpadmin/gpinitsystem_config
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+описание параметров:
+
 указываю мой файл с хостами
 MACHINE_LIST_FILE=/home/gpadmin/.hosts
 
@@ -404,7 +432,9 @@ MASTER_DIRECTORY=/home/gpadmin/data
 declare -a MIRROR_DATA_DIRECTORY=(/home/gpadmin/data_mirror /home/gpadmin/data_mirror /home/gpadmin/data_mirror)
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+#### инициализируем кластер создаем рабочуую среду
 1.15)
+
 инициализируем кластер создаем рабочуую среду
 gpinitsystem -c /home/gpadmin/gpinitsystem_config
 gpinitsystem -c /home/gpadmin/gpinitsystem_config
@@ -571,10 +601,10 @@ server shutting down
 20230612:18:28:52:002464 gpinitsystem:gp1:gpadmin-[INFO]:-Use gpinitstandby to create a Standby Master
 20230612:18:28:52:002464 gpinitsystem:gp1:gpadmin-[WARN]:-*******************************************************
 
-
+#### проверил логи проверил директории с данными на обоих нодах успешно заполнены дефолтными данными все ок 
 1.16)
-#проверил логи проверил директории с данными на обоих нодах успешно заполнены дефолтными данными все ок 
-#обычно ечли чтото у нас не получается надо смотреть сюда тут ворох логов в котором можно найти нашу закавырку если такая имеется 
+
+обычно ечли чтото у нас не получается надо смотреть сюда тут ворох логов в котором можно найти нашу закавырку если такая имеется 
 [gpadmin@gp1 ~]$ ls -l /home/gpadmin/gpAdminLogs
 total 216
 -rw-rw-r-- 1 gpadmin gpadmin    539 Jun 12 18:28 backout_gpinitsystem_gpadmin_20230612_182750
@@ -584,9 +614,10 @@ total 216
 -rw-rw-r-- 1 gpadmin gpadmin   2575 Jun 12 18:28 gpstart_20230612.log
 -rw-rw-r-- 1 gpadmin gpadmin   2265 Jun 12 18:28 gpstop_20230612.log
 
-
+#### проверка сегментов
 1.17)
-#проверяем на мастере что были созданы три рабочих сегмента  и один главный сегмент
+
+проверяем на мастере что были созданы три рабочих сегмента  и один главный сегмент
 [gpadmin@gp1 ~]$ ls -l /home/gpadmin/data
 total 16
 drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg0
@@ -595,16 +626,17 @@ drwx------ 22 gpadmin gpadmin 4096 Jun 12 18:28 gpseg-1
 drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg2
 
 
-#проверяем на ноде
+#проверка сегментов проверяем на ноде
 [gpadmin@gp2 ~]$ ls -l /home/gpadmin/data
 total 12
 drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg3
 drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg4
 drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg5
 
-
+#### описание главный сегмент
 1.18)
-#главный сегмент в названии будет отрицательное число в нашем случае -1
+
+главный сегмент в названии будет отрицательное число в нашем случае -1
 [gpadmin@gp1 ~]$ ls -l /home/gpadmin/data/gpseg-1
 total 72
 drwx------ 5 gpadmin gpadmin    41 Jun 12 18:28 base
@@ -638,12 +670,12 @@ drwx------ 3 gpadmin gpadmin    60 Jun 12 18:28 pg_xlog
 -rw------- 1 gpadmin gpadmin    95 Jun 12 18:28 postmaster.opts
 -rw------- 1 gpadmin gpadmin    76 Jun 12 18:28 postmaster.pid
 
-
+#### пременая для главного сегмента
 1.19)
-#настраиваем пременную для главного сегмента на мастере
+
+настраиваем пременную для главного сегмента на мастере
 vim /home/gpadmin/.bashrc
 export MASTER_DATA_DIRECTORY=/home/gpadmin/data/gpseg-1
-
 
 пререлогиневаемся и проверяем
 exit
@@ -652,8 +684,9 @@ su - gpadmin
 [gpadmin@client8 ~]$ echo $MASTER_DATA_DIRECTORY
 /home/gpadmin/data/gpsne-1
 
-
+#### connect
 1.20)
+
 подключаемся к gp
 [gpadmin@gp1 ~]$ psql -U gpadmin postgres
 psql (9.4.26)
@@ -687,8 +720,9 @@ postgres=# \l
 (4 rows)
 
 
-
+#### смотрим конфигурацию gp
 1.21)
+
 смотрим конфигурацию gp эта ключевая таблица в которой описываются метаданные нашего кластера
 сдесь показаны рабочие узлы  все окей кластер развернули
 \c test
@@ -705,9 +739,10 @@ test=# select * from gp_segment_configuration;
 (7 rows)
 
 
-
+#### тестовые данные
 1.22)
-#генерируем числа от одного до миллиона и помещаем в нашу таблицу
+
+генерируем числа от одного до миллиона и помещаем в нашу таблицу
 create table t1 as select generate_series(1,1000000) as colA distributed by (colA);
 
 
@@ -728,8 +763,9 @@ test=# EXPLAIN(ANALYZE) select count(*) from t1;
 (10 rows)
 
 
-
+#### EXPLAIN(ANALYZE) select sum(colA) from t1
 1.23)
+
 test=# EXPLAIN(ANALYZE) select sum(colA) from t1;
                                                            QUERY PLAN
 --------------------------------------------------------------------------------------------------------------------------------
@@ -747,8 +783,9 @@ test=# EXPLAIN(ANALYZE) select sum(colA) from t1;
 
 
 
-
+#### режим распространения зеркала
 1.24)
+
 Режим распространения зеркала:
 (режим распространения, первое зеркало хоста находится на следующем хосте, второе зеркало находится на следующем хосте, а третье зеркало находится на следующем хосте...) 
 Выполните команду инициализации: gpinitsystem plus – S, узел Способ распределения раскидистый
@@ -756,8 +793,9 @@ test=# EXPLAIN(ANALYZE) select sum(colA) from t1;
 gpinitsystem -c gpinitsystem_config -h /home/gpadmin/.hosts -s gp1.ru-central1.internal –S
 
 
-
+#### если надо удалить кластер gp
 1.25)
+
 если надо удалить кластер gp
 gpdeletesystem
 
