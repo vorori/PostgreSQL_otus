@@ -642,10 +642,9 @@ drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg0
 drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg1
 drwx------ 22 gpadmin gpadmin 4096 Jun 12 18:28 gpseg-1
 drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg2
-</pre>
 
-#проверка сегментов проверяем на ноде
-<pre>
+
+проверка сегментов проверяем на ноде
 [gpadmin@gp2 ~]$ ls -l /home/gpadmin/data
 total 12
 drwx------ 21 gpadmin gpadmin 4096 Jun 12 18:28 gpseg3
@@ -857,9 +856,351 @@ total 0
 #### Загрузить в неё данные (от 10 до 100 Гб)
 
 <pre>
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------загружаем данные --------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
 </pre>
 
-#### 3)
+
+#### данные
+<pre>
+1)
+
+данные
+https://console.cloud.google.com/storage/browser/chicago10;tab=objects?prefix=&forceOnObjectsSortingFiltering=false
+https://console.cloud.google.com/storage/browser/chicago10;tab=objects?prefix=&forceOnObjectsSortingFiltering=false
+https://console.cloud.google.com/storage/browser/chicago10;tab=objects?prefix=&forceOnObjectsSortingFiltering=false
+</pre>
+
+
+#### создать бакет
+<pre>
+1.2)
+
+создать бакет
+https://console.cloud.yandex.ru/folders/b1g4ll61pn5hi287rrrc/storage/create-bucket
+https://console.cloud.yandex.ru/folders/b1g4ll61pn5hi287rrrc/storage/buckets
+
+name myotus
+name myotus
+name myotus
+</pre>
+
+
+#### Загрузил файлы CSV в бакет
+<pre>
+1.3)
+
+Загрузил файлы CSV, предварительно скаченные с https://console.cloud.google.com/storage/browser/chicago10
+</pre>
+
+#### инструкция как пользоваться Как пользоваться S3 API
+<pre>
+1.4)
+
+инструкция как пользоваться Как пользоваться S3 API
+https://cloud.yandex.ru/docs/storage/s3/?from=int-console-empty-state
+</pre>
+
+#### создаю сервисный аакаунт
+<pre>
+1.5)
+
+создаю сервисный аакаунт myvorori
+https://console.cloud.yandex.ru/folders/b1g4ll61pn5hi287rrrc?section=service-accounts
+https://console.cloud.yandex.ru/folders/b1g4ll61pn5hi287rrrc/storage/buckets
+</pre>
+
+#### создаю ключ
+<pre>
+1.6)
+
+создаю ключ по инструкции
+https://cloud.yandex.ru/docs/iam/operations/sa/create-access-key
+
+для доступа сервисного аккаунта создаю сервисный ключ mykey
+Идентификатор ключа:
+YCAJEGmWpeoKgY6bwncE9rtJs
+
+Ваш секретный ключ:
+YCMrCVoA8TpR3dCg8-p4RraHSmuzy0Dp_iClfTBU
+Сохраните идентификатор и ключ. После закрытия диалога значение ключа будет недоступно.
+</pre>
+
+#### рава доступа к моему бакету
+<pre>
+1.7)
+
+добавил права доступа к моему бакету myotus для моего сервисного аакаунта myvorori
+</pre>
+
+#### s3fs-fuse
+<pre>
+1.8) 
+
+создаю каталог для данных и устанавливаю s3fs-fuse
+yum install s3fs-fuse
+mkdir /home/gpadmin/taxi
+cd /home/gpadmin/taxi
+</pre>
+
+#### .passwd-s3fs
+<pre>
+1.9)
+
+добавляю ранее созданный индификатор,двоеточие и сервисный ключ
+/home/gpadmin/.passwd-s3fs
+echo YCAJEGmWpeoKgY6bwncE9rtJs:YCMrCVoA8TpR3dCg8-p4RraHSmuzy0Dp_iClfTBU > /home/gpadmin/.passwd-s3fs
+echo YCAJEGmWpeoKgY6bwncE9rtJs:YCMrCVoA8TpR3dCg8-p4RraHSmuzy0Dp_iClfTBU > /home/gpadmin/.passwd-s3fs
+echo YCAJEGmWpeoKgY6bwncE9rtJs:YCMrCVoA8TpR3dCg8-p4RraHSmuzy0Dp_iClfTBU > /home/gpadmin/.passwd-s3fs
+
+
+ПРОВЕРЯЮ!!!!!!!!!
+cat /home/gpadmin/.passwd-s3fs
+YCAJEGmWpeoKgY6bwncE9rtJs:YCMrCVoA8TpR3dCg8-p4RraHSmuzy0Dp_iClfTBU
+</pre>
+
+#### монтирую бакет при помощи s3fs 
+<pre>
+1.10)
+
+монтирую при помощи s3fs 
+s3fs myotus /home/gpadmin/taxi -o passwd_file=/home/gpadmin/.passwd-s3fs -o url=https://storage.yandexcloud.net -o use_path_request_style -o dbglevel=info -f -o curldbg
+s3fs myotus /home/gpadmin/taxi -o passwd_file=/home/gpadmin/.passwd-s3fs -o url=https://storage.yandexcloud.net -o use_path_request_style -o dbglevel=info -f -o curldbg
+s3fs myotus /home/gpadmin/taxi -o passwd_file=/home/gpadmin/.passwd-s3fs -o url=https://storage.yandexcloud.net -o use_path_request_style -o dbglevel=info -f -o curldbg
+
+
+----------------------------------------------------------------------------------------
+Umask работает как вычитатель, поэтому со всеми нулями он устанавливает значение 777. 
+Когда я открываю свое ведро с помощью скрипта, который я сделал, я теперь вижу следующее:
+s3fs myotus /home/gpadmin/taxi -o passwd_file=/home/gpadmin/.passwd-s3fs -o url=https://storage.yandexcloud.net -o umask=0000
+s3fs myotus /home/gpadmin/taxi -o passwd_file=/home/gpadmin/.passwd-s3fs -o url=https://storage.yandexcloud.net -o umask=0000
+s3fs myotus /home/gpadmin/taxi -o passwd_file=/home/gpadmin/.passwd-s3fs -o url=https://storage.yandexcloud.net -o umask=0000
+----------------------------------------------------------------------------------------
+
+исходная команда монтирования
+s3fs <имя_бакета> $HOME/s3fs -o passwd_file=$HOME/.passwd-s3fs -o url=https://storage.yandexcloud.net -o use_path_request_style -o dbglevel=info -f -o curldbg
+s3fs <имя_бакета> $HOME/s3fs -o passwd_file=$HOME/.passwd-s3fs -o url=https://storage.yandexcloud.net -o use_path_request_style -o dbglevel=info -f -o curldbg
+s3fs <имя_бакета> $HOME/s3fs -o passwd_file=$HOME/.passwd-s3fs -o url=https://storage.yandexcloud.net -o use_path_request_style -o dbglevel=info -f -o curldbg
+</pre>
+
+#### проверяю
+<pre>
+1.11)
+проверяю ура !!!появился новый подключенный раздел s3fs            4.0G     0  4.0G   0% /home/gpadmin/taxi:
+[gpadmin@gp1 taxi]$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        1.9G     0  1.9G   0% /dev
+tmpfs           1.9G   56K  1.9G   1% /dev/shm
+tmpfs           1.9G  760K  1.9G   1% /run
+tmpfs           1.9G     0  1.9G   0% /sys/fs/cgroup
+/dev/vda2        20G  3.0G   18G  15% /
+tmpfs           379M     0  379M   0% /run/user/1000
+tmpfs           379M     0  379M   0% /run/user/997
+s3fs            4.0G     0  4.0G   0% /home/gpadmin/taxi
+</pre>
+
+#### проверяю данные
+<pre>
+1.12) 
+
+видим наши данные в нашем подгруженном бакете
+[gpadmin@gp1 ~]$ cd /home/gpadmin/taxi
+[gpadmin@gp1 taxi]$ ls -l
+total 6782364
+-rw-r----- 1 gpadmin gpadmin 267363203 Jun 15 11:52 taxi.csv.000000000000
+-rw-r----- 1 gpadmin gpadmin 267344607 Jun 16 01:17 taxi.csv.000000000001
+-rw-r----- 1 gpadmin gpadmin 267390243 Jun 16 11:36 taxi.csv.000000000002
+-rw-r----- 1 gpadmin gpadmin 267417696 Jun 16 01:17 taxi.csv.000000000003
+-rw-r----- 1 gpadmin gpadmin 266371749 Jun 16 11:35 taxi.csv.000000000004
+-rw-r----- 1 gpadmin gpadmin 266233035 Jun 17 02:26 taxi.csv.000000000005
+-rw-r----- 1 gpadmin gpadmin 266219968 Jun 16 00:35 taxi.csv.000000000006
+-rw-r----- 1 gpadmin gpadmin 267380379 Jun 17 02:27 taxi.csv.000000000007
+-rw-r----- 1 gpadmin gpadmin 267367985 Jun 16 11:36 taxi.csv.000000000008
+-rw-r----- 1 gpadmin gpadmin 267278191 Jun 16 11:36 taxi.csv.000000000009
+-rw-r----- 1 gpadmin gpadmin 267389474 Jun 17 02:27 taxi.csv.000000000010
+-rw-r----- 1 gpadmin gpadmin 267331103 Jun 17 10:08 taxi.csv.000000000011
+-rw-r----- 1 gpadmin gpadmin 266153465 Jun 16 01:17 taxi.csv.000000000012
+-rw-r----- 1 gpadmin gpadmin 267368711 Jun 16 01:17 taxi.csv.000000000013
+-rw-r----- 1 gpadmin gpadmin 265622273 Jun 16 11:34 taxi.csv.000000000014
+-rw-r----- 1 gpadmin gpadmin 267319434 Jun 17 02:27 taxi.csv.000000000015
+-rw-r----- 1 gpadmin gpadmin 267311996 Jun 17 02:27 taxi.csv.000000000016
+-rw-r----- 1 gpadmin gpadmin 267325169 Jun 17 10:08 taxi.csv.000000000017
+-rw-r----- 1 gpadmin gpadmin 267373075 Jun 17 02:27 taxi.csv.000000000018
+-rw-r----- 1 gpadmin gpadmin 267377563 Jun 17 10:07 taxi.csv.000000000019
+-rw-r----- 1 gpadmin gpadmin 267374748 Jun 17 10:08 taxi.csv.000000000020
+-rw-r----- 1 gpadmin gpadmin 267391164 Jun 17 10:08 taxi.csv.000000000021
+-rw-r----- 1 gpadmin gpadmin 267335900 Jun 16 11:36 taxi.csv.000000000022
+-rw-r----- 1 gpadmin gpadmin 267348008 Jun 16 00:24 taxi.csv.000000000023
+-rw-r----- 1 gpadmin gpadmin 267374332 Jun 17 14:08 taxi.csv.000000000024
+-rw-r----- 1 gpadmin gpadmin 267369255 Jun 17 13:26 taxi.csv.000000000025
+</pre>
+
+#### создаем тестовую бд и таблицу
+<pre>
+1.13) 
+
+создаем бд и таблицу
+Загрузим данные в Постгрес, предварительно создав БД taxi:
+psql -U gpadmin postgres -p 5432 -h gp1.ru-central1.internal
+psql -U gpadmin postgres -p 5432 -h gp1.ru-central1.internal
+psql -U gpadmin postgres -p 5432 -h gp1.ru-central1.internal
+
+CREATE DATABASE taxi;
+\c taxi
+
+Чтобы обеспечить равномерное распределение данных, вы хотите выбрать ключ распределения, уникальный для каждой записи, или, если это 
+невозможно, выберите РАСПРЕДЕЛЕНИЕ СЛУЧАЙНО. Например:
+
+CREATE TABLE taxi_trips(unique_key text
+,taxi_id text
+,trip_start_timestamp timestamp
+,trip_end_timestamp timestamp
+,trip_seconds bigint
+,trip_miles float
+,pickup_census_tract bigint
+,dropoff_census_tract bigint
+,pickup_community_area bigint
+,dropoff_community_area bigint
+,fare float
+,tips float
+,tolls float
+,extras float
+,trip_total float
+,payment_type text
+,company text
+,pickup_latitude float
+,pickup_longitude float
+,pickup_location text
+,dropoff_latitude float
+,dropoff_longitude float
+,dropoff_location text)
+DISTRIBUTED RANDOMLY;
+
+
+create table taxi_trips (
+unique_key text, 
+taxi_id text, 
+trip_start_timestamp TIMESTAMP, 
+trip_end_timestamp TIMESTAMP, 
+trip_seconds bigint, 
+trip_miles numeric, 
+pickup_census_tract bigint, 
+dropoff_census_tract bigint, 
+pickup_community_area bigint, 
+dropoff_community_area bigint, 
+fare numeric, 
+tips numeric, 
+tolls numeric, 
+extras numeric, 
+trip_total numeric, 
+payment_type text, 
+company text, 
+pickup_latitude numeric, 
+pickup_longitude numeric, 
+pickup_location text, 
+dropoff_latitude numeric, 
+dropoff_longitude numeric, 
+dropoff_location text
+);
+</pre>
+
+#### команда на загрузку данных в цикле 
+<pre>
+1.14) 
+
+команда на загрузку данных в цикле 
+for f in *.csv*; do psql -U gpadmin -p 5432 -h gp1.ru-central1.internal -d taxi -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
+for f in *.csv*; do psql -U gpadmin -p 5432 -h gp1.ru-central1.internal -d taxi -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
+for f in *.csv*; do psql -U gpadmin -p 5432 -h gp1.ru-central1.internal -d taxi -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
+COPY 668818
+COPY 669331
+COPY 668352
+COPY 669666
+COPY 667789
+COPY 628731
+COPY 635790
+COPY 669381
+COPY 670047
+COPY 672486
+COPY 669053
+COPY 681872
+COPY 662644
+COPY 669215
+COPY 919506
+COPY 671838
+COPY 671997
+COPY 672941
+COPY 669019
+COPY 669107
+COPY 668928
+COPY 669285
+COPY 670989
+COPY 671264
+COPY 669396
+COPY 670978
+</pre>
+
+#### выполняем заливку при пормощи  gpfdist
+<pre>
+1.15) 
+
+выполняем заливку при пормощи  gpfdist
+https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/utility_guide-ref-gpfdist.html
+
+psql -U gpadmin -p 5432 -h gp1.ru-central1.internal -d taxi
+select * from taxi_trips2;
+
+заускаем gpfdist
+gpfdist -d /home/gpadmin/taxi -p 8081 > gpfdist.log 2>&1 &
+gpfdist -d /home/gpadmin/taxi -p 8081 > gpfdist.log 2>&1 &
+gpfdist -d /home/gpadmin/taxi -p 8081 > gpfdist.log 2>&1 &
+</pre>
+
+#### если надо остановить gpfdist
+<pre>
+1.16)
+
+если надо остановить gpfdist
+Чтобы остановить gpfdist, когда он работает в фоновом режиме:
+Сначала найдите его идентификатор процесса:
+$ ps -ef | grep gpfdist
+Затем остановите процесс, например (где 3456 — это идентификатор процесса в этом примере):
+$ kill 3456
+</pre>
+
+#### status gpfdist
+<pre>
+1.17)
+
+проверяем лог что gpfdist работает и все ок 
+[gpadmin@gp1 ~]$ cat gpfdist.log
+2023-06-19 15:34:27 1984 INFO Before opening listening sockets - following listening sockets are available:
+2023-06-19 15:34:27 1984 INFO IPV6 socket: [::]:8081
+2023-06-19 15:34:27 1984 INFO IPV4 socket: 0.0.0.0:8081
+2023-06-19 15:34:27 1984 INFO Trying to open listening socket:
+2023-06-19 15:34:27 1984 INFO IPV6 socket: [::]:8081
+2023-06-19 15:34:27 1984 INFO Opening listening socket succeeded
+2023-06-19 15:34:27 1984 INFO Trying to open listening socket:
+2023-06-19 15:34:27 1984 INFO IPV4 socket: 0.0.0.0:8081
+2023-06-19 15:34:27 1984 INFO Opening listening socket succeeded
+Serving HTTP on port 8081, directory /home/gpadmin/taxi
+</pre>
+
+#### создаем внешнюю/внешнюю веб-таблицу и заливаем из нее данные в нашу
+<pre>
+1.18)
+
+создаем внешнюю/внешнюю веб-таблицу и заливаем из нее данные в нашу
+CREATE READABLE EXTERNAL TABLE taxi_trips_ext (like taxi_trips2)
+LOCATION('gpfdist://127.0.0.1:8081/taxi.csv.000000000000')
+FORMAT 'csv' (header)
+LOG ERRORS SEGMENT REJECT LIMIT 50 rows;
+
+INSERT INTO taxi_trips2  SELECT * FROM taxi_trips_ext;
+INSERT 0 668818
+</pre>
 
 #### Сравнить скорость выполнения запросов на PosgreSQL и выбранной СУБД
 
