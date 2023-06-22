@@ -22,6 +22,8 @@ su - postgres
 /usr/pgsql-15/bin/pg_autoctl show state
 ===========================================================================================================================
 
+
+<pre> 
 Выбрать один из вариантов и развернуть кластер. Описать что и как делали и с какими проблемами столкнулись
 Вариант 1
 • How to Deploy PostgreSQL for High Availability
@@ -31,7 +33,9 @@ failover and high-availability in PostgreSQL
 Для гурманов
 • Настройка Active/Passive PostgreSQL Cluster с использованием
 Pacemaker, Corosync, и DRBD (CentOS 5,5)
+</pre> 
 
+<pre> 
 Задание повышенной сложности*
 Создать два кластера GKE в разных регионах
 Установить на первом Patroni HA кластер
@@ -40,9 +44,11 @@ Pacemaker, Corosync, и DRBD (CentOS 5,5)
 Сделать в каждом регионе по клиентской ВМ
 Проверить как ходит трафик с клиентской ВМ
 Описать что и как делали и с какими проблемами столкнулись
-
+</pre> 
 
 #### настраиваем Вариант 2 на pg_auto_failover
+
+<pre> 
 sudo yum -y install epel-release
 yum install -y htop mc vim wget telnet
 
@@ -52,11 +58,14 @@ sudo yum install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-
 
 sudo yum -y repolist
 sudo yum install postgresql15-contrib
+</pre> 
 
 
-Приложение > HAproxy keepalive cluster > проверка мастера xinetd > Pgbouncer > PostgreSQL (pg_autoctl)
-
+<pre> 
 P.S это был увлекательный атракцион...
+
+настраиваю по схеме:
+Приложение > HAproxy keepalive cluster > проверка мастера xinetd > Pgbouncer > PostgreSQL (pg_autoctl)
 
 что настраиваем:
 pg1.ru-central1.internal       —> основной узел  PostgreSQL(pg_auto_failover) 1 + pgbouncer + служба xinetd проверка мастера xinetd
@@ -64,7 +73,7 @@ pg2.ru-central1.internal       —> вторичный узел PostgreSQL(pg_au
 pgmonitor.ru-central1.internal —> узел монитора pg_auto_failover который действует как свидетель и оркестратор.
 haproxi1.ru-central1.internal  —> узел 1 haproxi c сервисом keepalive
 haproxi2.ru-central1.internal  —> узел 2 haproxi c сервисом keepalive
-
+</pre> 
 
 настроим монитор (только на pgmonitor):
 Нам нужно сначала настроить pgmonitor, так как он будет периодически контролировать узлы БД и следить за их здоровьем. 
