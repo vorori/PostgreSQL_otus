@@ -1,3 +1,4 @@
+<pre>
 #### 0)
 
 
@@ -25,10 +26,6 @@ su - postgres
 
 #### 0) Для ДЗ
 
-
-
-
- 
 Задание повышенной сложности*
 Создать два кластера GKE в разных регионах
 Установить на первом Patroni HA кластер
@@ -48,10 +45,12 @@ su - postgres
 #### Вариант 3: Для гурманов Настройка Active/Passive PostgreSQL Cluster с использованием Pacemaker, Corosync, и DRBD (CentOS 5,5)
 
 
-#### Настраиваю high-availability in PostgreSQL на pg_auto_failover
 
-1
+# 1)
+
+#### Настраиваю high-availability in PostgreSQL на pg_auto_failover Вариант 2
 <pre> 
+11
 sudo yum -y install epel-release
 yum install -y htop mc vim wget telnet
 
