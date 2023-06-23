@@ -46,36 +46,39 @@ su - postgres
 
 
 
-# 1)
+
+### 1)
 
 #### Настраиваю high-availability in PostgreSQL на pg_auto_failover Вариант 2
+
+
+#### подготовительные мероприятия 
 <pre> 
-11
+1.1) 
+
 sudo yum -y install epel-release
 yum install -y htop mc vim wget telnet
 
 sudo yum install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm && yum -y repolist && yum -y install postgresql15-contrib
-
-или
-
-sudo yum -y repolist
-sudo yum install postgresql15-contrib
 </pre> 
 
-
+#### настраиваю по схеме:
 <pre> 
 настраиваю по схеме:
-Приложение > HAproxy keepalive cluster > проверка мастера xinetd > Pgbouncer > PostgreSQL (pg_autoctl)
+Приложение > HAproxy(keepalive) > проверка мастера xinetd > Pgbouncer > PostgreSQL (pg_auto_failover)
 
 что настраиваем:
-pg1.ru-central1.internal       —> основной узел  PostgreSQL(pg_auto_failover) 1 + pgbouncer + служба xinetd проверка мастера xinetd
-pg2.ru-central1.internal       —> вторичный узел PostgreSQL(pg_auto_failover) 2 + pgbouncer + служба xinetd проверка мастера xinetd
+pg1.ru-central1.internal       —> основной узел  PostgreSQL(pg_auto_failover) + pgbouncer + служба xinetd проверка мастера xinetd(
+pg2.ru-central1.internal       —> вторичный узел PostgreSQL(pg_auto_failover) + pgbouncer + служба xinetd проверка мастера xinetd
 pgmonitor.ru-central1.internal —> узел монитора pg_auto_failover который действует как свидетель и оркестратор.
 haproxi1.ru-central1.internal  —> узел 1 haproxi c сервисом keepalive
 haproxi2.ru-central1.internal  —> узел 2 haproxi c сервисом keepalive
 </pre> 
 
-настроим монитор (только на pgmonitor):
+#### настроим монитор (только на pgmonitor):
+<pre> 
+1.2)
+
 Нам нужно сначала настроить pgmonitor, так как он будет периодически контролировать узлы БД и следить за их здоровьем. 
 Для полной настройки мы будем использовать команды pg_autoctl вместе с подкомандами для соответствующих операций.
 
@@ -93,22 +96,23 @@ chown -R postgres:postgres  /var/lib/pgsql/15/data
 yum install pg_auto_failover_15
 yum install pg_auto_failover_15
 yum install pg_auto_failover_15
+</pre> 
 
+####  выполняем приведенную ниже команду, чтобы create monitor
+<pre> 
+1.3) 
 
-выполняем приведенную ниже команду, чтобы настроить монитор.
-/usr/pgsql-15/bin/pg_autoctl create monitor --auth trust --ssl-self-signed --pgdata /var/lib/pgsql/15/data/ --pgctl /usr/pgsql-15/bin/pg_ctl
-/usr/pgsql-15/bin/pg_autoctl create monitor --auth trust --ssl-self-signed --pgdata /var/lib/pgsql/15/data/ --pgctl /usr/pgsql-15/bin/pg_ctl
 /usr/pgsql-15/bin/pg_autoctl create monitor --auth trust --ssl-self-signed --pgdata /var/lib/pgsql/15/data/ --pgctl /usr/pgsql-15/bin/pg_ctl
 
 Где:
 pgdata —> Абсолютный путь к каталогу данных
 pgctl  —> Абсолютный путь к бинарному файлу pg_ctl
 
-под postgres
+
 su - postgres
--bash-4.2$ /usr/pgsql-15/bin/pg_autoctl create monitor --auth trust --ssl-self-signed --pgdata /var/lib/pgsql/15/data/ --pgctl /usr/pgsql-15/bin/pg_ctl
--bash-4.2$ /usr/pgsql-15/bin/pg_autoctl create monitor --auth trust --ssl-self-signed --pgdata /var/lib/pgsql/15/data/ --pgctl /usr/pgsql-15/bin/pg_ctl
--bash-4.2$ /usr/pgsql-15/bin/pg_autoctl create monitor --auth trust --ssl-self-signed --pgdata /var/lib/pgsql/15/data/ --pgctl /usr/pgsql-15/bin/pg_ctl
+/usr/pgsql-15/bin/pg_autoctl create monitor --auth trust --ssl-self-signed --pgdata /var/lib/pgsql/15/data/ --pgctl /usr/pgsql-15/bin/pg_ctl
+/usr/pgsql-15/bin/pg_autoctl create monitor --auth trust --ssl-self-signed --pgdata /var/lib/pgsql/15/data/ --pgctl /usr/pgsql-15/bin/pg_ctl
+/usr/pgsql-15/bin/pg_autoctl create monitor --auth trust --ssl-self-signed --pgdata /var/lib/pgsql/15/data/ --pgctl /usr/pgsql-15/bin/pg_ctl
 
 08:12:57 9478 INFO  Using default --ssl-mode "require"
 08:12:57 9478 INFO  Using --ssl-self-signed: pg_autoctl will create self-signed certificates, allowing for encrypted network traffic
@@ -147,7 +151,7 @@ su - postgres
 /usr/pgsql-15/bin/postgres -D /var/lib/pgsql/15/data -p 5432 -h * &
 /usr/pgsql-15/bin/postgres -D /var/lib/pgsql/15/data -p 5432 -h * &
 
-проверяем войдя в службу PostgreSQL (пользователем postgres)
+проверяем подключаемся к PostgreSQL (пользователем postgres)
 psql -d pg_auto_failover
 
 Где:
@@ -177,12 +181,14 @@ psql -d pg_auto_failover
 08:24:28 10381 INFO  The version of extension "pgautofailover" is "2.0" on the monitor
 08:24:28 10381 INFO  Contacting the monitor to LISTEN to its events.
 
-
+заметка:
 --------------------------------------------------------------------------------------------------------------------
 добавим разрешающее подключение для серверов кластера на сервере мониторе pgmonitor.ru-central1.internal в pg_hba.conf
 host    pg_auto_failover  autoctl_node             ip_pg1.ru-central1.internal            md5/SCRAM-SHA-256
 host    pg_auto_failover  autoctl_node             ip_pg2.ru-central1.internal            md5/SCRAM-SHA-256
 --------------------------------------------------------------------------------------------------------------------
+</pre> 
+
 
 
 После успешной настройки сервера монитора переходим к настройке сервера БД.
