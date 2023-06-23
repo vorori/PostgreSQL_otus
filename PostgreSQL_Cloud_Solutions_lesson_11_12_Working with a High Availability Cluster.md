@@ -23,19 +23,12 @@ su - postgres
 ===========================================================================================================================
 
 
-<pre> 
-Выбрать один из вариантов и развернуть кластер. Описать что и как делали и с какими проблемами столкнулись
-Вариант 1
-• How to Deploy PostgreSQL for High Availability
-Вариант 2
-• Introducing pg_auto_failover: Open source extension for automated
-failover and high-availability in PostgreSQL
-Для гурманов
-• Настройка Active/Passive PostgreSQL Cluster с использованием
-Pacemaker, Corosync, и DRBD (CentOS 5,5)
-</pre> 
+#### 0) Для ДЗ
 
-<pre> 
+
+
+
+ 
 Задание повышенной сложности*
 Создать два кластера GKE в разных регионах
 Установить на первом Patroni HA кластер
@@ -44,10 +37,25 @@ Pacemaker, Corosync, и DRBD (CentOS 5,5)
 Сделать в каждом регионе по клиентской ВМ
 Проверить как ходит трафик с клиентской ВМ
 Описать что и как делали и с какими проблемами столкнулись
-</pre> 
+</pre>
 
-#### настраиваем Вариант 2 на pg_auto_failover
 
+
+
+#### Выбрать один из вариантов и развернуть кластер. Описать что и как делали и с какими проблемами столкнулись
+#### Вариант 1
+#### • How to Deploy PostgreSQL for High Availability
+#### Вариант 2
+#### • Introducing pg_auto_failover: Open source extension for automated
+#### failover and high-availability in PostgreSQL
+#### Для гурманов
+#### • Настройка Active/Passive PostgreSQL Cluster с использованием
+#### Pacemaker, Corosync, и DRBD (CentOS 5,5)
+
+
+#### Настраиваю high-availability in PostgreSQL на pg_auto_failover
+
+1
 <pre> 
 sudo yum -y install epel-release
 yum install -y htop mc vim wget telnet
@@ -62,8 +70,6 @@ sudo yum install postgresql15-contrib
 
 
 <pre> 
-P.S это был увлекательный атракцион...
-
 настраиваю по схеме:
 Приложение > HAproxy keepalive cluster > проверка мастера xinetd > Pgbouncer > PostgreSQL (pg_autoctl)
 
