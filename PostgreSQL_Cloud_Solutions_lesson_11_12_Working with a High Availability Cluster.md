@@ -758,7 +758,7 @@ sudo netstat -lntup | grep ":5001"
 sudo netstat -lntup | grep ":5000"
 
 
-Для подключения только для чтения и записи мы должны иметь доступ к порту 5001:
+Для подключения только для чтения и записи мы должны иметь доступ к порту 5000:
 [root@haproxi1 vorori]# psql -h localhost -p 5000 -U vorori -d postgres
 Password for user vorori:
 psql (15.3)
