@@ -20,7 +20,7 @@ gpgcheck=0
 
 
 yum repolist
-yum -y install docker-ce
+yum -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 systemctl start docker
 systemctl enable docker
 systemctl status docker
