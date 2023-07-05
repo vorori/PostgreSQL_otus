@@ -66,7 +66,7 @@ Connecting to binaries.cockroachdb.com (binaries.cockroachdb.com)|34.149.102.43|
 HTTP request sent, awaiting response... 200 OK
 Length: 81628493 (78M) [binary/octet-stream]
 Saving to: ‘cockroach-v21.1.21.linux-amd64.tgz’
-100%[=======================================================================================================================================================>] 81,628,493  6.50MB/s   in 33s
+100%[======================================================================================>] 81,628,493  6.50MB/s   in 33s
 2023-07-03 21:08:14 (2.39 MB/s) - ‘cockroach-v21.1.21.linux-amd64.tgz’ saved [81628493/81628493]
 
 
@@ -445,11 +445,12 @@ systemctl status postgresql-15.service
 systemctl restart postgresql-15.service
 </pre>
 
+
 #### 10)
 
-#### подтюнил postgres 15
-
 <pre>
+подтюнил postgres 15
+
 10.1) 
 
 создал и установил с подтюнил postgres 15 озу 3 gb CPU 2 диск ssd
