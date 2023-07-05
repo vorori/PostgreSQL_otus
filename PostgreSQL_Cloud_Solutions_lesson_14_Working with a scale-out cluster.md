@@ -19,15 +19,19 @@ https://www.centlinux.com/2020/11/install-cockroachdb-secure-cluster-on-centos-8
 #### создеем vm-ки и устанвливаем настраиваем доп пакеты
 
 <pre>
+
+1.1)
 создал vm 3 vm
 2 cpu 3 озу  диск ssd
 kub1 192.168.2.11
 kub2 192.168.2.12
 kub3 192.168.2.13
 
+1.2)
 подключаю Репозиторий EPEL 
 sudo yum install epel-release
 
+1.3)
 выполняю настройку синхронизации времени на серверах:
 yum install -y chrony
 yum install -y chrony
@@ -37,6 +41,7 @@ enable --now chronyd.service
 enable --now chronyd.service
 enable --now chronyd.service
 
+1.4)
 yum install -y glibc ncurses-libs tzdata
 yum install -y glibc ncurses-libs tzdata
 yum install -y glibc ncurses-libs tzdata
@@ -49,6 +54,9 @@ yum install -y glibc ncurses-libs tzdata
 
 
 <pre>
+
+2.1)
+
 wget https://binaries.cockroachdb.com/cockroach-v21.1.21.linux-amd64.tgz
 wget https://binaries.cockroachdb.com/cockroach-v21.1.21.linux-amd64.tgz
 
@@ -60,21 +68,27 @@ Length: 81628493 (78M) [binary/octet-stream]
 Saving to: ‘cockroach-v21.1.21.linux-amd64.tgz’
 100%[=======================================================================================================================================================>] 81,628,493  6.50MB/s   in 33s
 2023-07-03 21:08:14 (2.39 MB/s) - ‘cockroach-v21.1.21.linux-amd64.tgz’ saved [81628493/81628493]
-</pre>
 
-<pre>
+
+2.2)
+
 подготовительные мероприятия для cockroachdb
 извлекаем загруженный архив 
 tar xf cockroach-v21.1.21.linux-amd64.tgz
+
+2.3)
 
 создаем каталоги для программного обеспечения CockroachDB и связанных файлов.
 mkdir -p /opt/cockroachdb/{bin,certs,private}
 mkdir -p /opt/cockroachdb/{bin,certs,private}
 mkdir -p /opt/cockroachdb/{bin,certs,private}
 
+2.4)
+
 копируем извлеченные файлы в каталог /opt/cockroachdb/bin .
 cp -i cockroach-v21.1.21.linux-amd64/cockroach /opt/cockroachdb/bin/
 
+2.5)
 проверяем права доступа к файлу таракана .
 ls -al /opt/cockroachdb/bin/
 total 180568
@@ -82,14 +96,17 @@ drwxr-xr-x. 2 cockroach cockroach        23 Jul  3 21:18 .
 drwxr-xr-x. 5 cockroach cockroach        45 Jul  3 21:13 ..
 -rwxr-xr-x. 1 root      root      184898616 Jul  3 21:18 cockroach
 
+2.6)
 создаем пользователя чтобы владеть программным обеспечением и процессами CockroachDB. 
 Также предоставьте право собственности на файлы этому пользователю.
 useradd -r cockroach
 chown -R cockroach.cockroach /opt/cockroachdb/
 
+2.7)
 создаем ссылку на файл тараканов в каталоге /usr/local/bin/
 ln -s /opt/cockroachdb/bin/cockroach /usr/local/bin/cockroach
 
+2.8)
 проверяю версию
 cockroach version
 Build Tag:        v21.1.21
@@ -131,12 +148,14 @@ Build Type:       release
 
 
 <pre>
+
+4.1)
 создаем центр сертификации
 cockroach cert create-ca \
 --certs-dir=/opt/cockroachdb/certs \
 --ca-key=/opt/cockroachdb/private/ca.key
 
-
+4.2)
 создаем сертификат SSL/TLS для нашего первого узла CockroachDB (kub1) с помощью следующей команды.
 cockroach cert create-node \
 192.168.2.11 \
@@ -146,6 +165,7 @@ localhost \
 --ca-key=/opt/cockroachdb/private/ca.key
 
 
+4.3)
 создаем сертификат SSL/TLS для клиента CockroachDB, выполнив следующую команду.
 cockroach cert create-client \
 root \
@@ -153,20 +173,23 @@ root \
 --ca-key=/opt/cockroachdb/private/ca.key
 
 
+4.4)
 копирую сертификаты SSL/TLS на другие узлы кластера баз данных.
+
 scp /opt/cockroachdb/certs/* \
 root@kub2:/opt/cockroachdb/certs/
-
 
 scp /opt/cockroachdb/certs/* \
 root@kub3:/opt/cockroachdb/certs/
 
 
+4.5)
 копирую ключ центра сертификации на другие узлы, чтобы мы могли создать SSL/TLS на этих узлах.
 scp /opt/cockroachdb/private/* root@kub2:/opt/cockroachdb/private/
 scp /opt/cockroachdb/private/* root@kub3:/opt/cockroachdb/private/
 
 
+4.6)
 подключаюсь к kub2 и  kub3 
 удаляю сертификат/ключ узла, который мы сгенерировали на узле kub1
 rm -f /opt/cockroachdb/certs/node.*
@@ -188,7 +211,7 @@ localhost \
 --certs-dir=/opt/cockroachdb/certs \
 --ca-key=/opt/cockroachdb/private/ca.key
 
-
+4.7)
 ОБЯЗАТЕЛЬНО ПРАВА НА СЕРТИФИКАТЫ!!!!!
 chown cockroach:cockroach /opt/cockroachdb/certs/ -R
 chown cockroach:cockroach /opt/cockroachdb/certs/ -R
@@ -202,11 +225,15 @@ chown cockroach:cockroach /opt/cockroachdb/certs/ -R
 ### создаем сервисную единицу Systemd
 
 <pre>
+
+5.1)
+
 Чтобы включить автозапуск сервера CockroachDB во время запуска Linux, вам необходимо создать сервисную единицу systemd.
 создаю файл сервисной единицы systemd с помощью редактора vim
 ВАЖНО!!!!!!!!!!!!!!
 НЕОБХОДИМО заменить --advertise-addr на имя хоста узла CockroachDB, на создаю эту службу systemd.
 
+5.2)
 vim /etc/systemd/system/cockroachdb.service
 
 ---------------------------------------------------------------
@@ -239,6 +266,8 @@ WantedBy=default.target
 #### запускаем кластер
 
 <pre>
+
+6.1)
 преред запуском настраиваем брандмауэр Linux:
 открываем порты
 firewall-cmd --permanent --add-port={8080,26257}/tcp 
@@ -247,6 +276,7 @@ firewall-cmd --reload
 где:
 Сервисные порты CockroachDB по умолчанию: 8080/tcp для пользовательского интерфейса веб-администратора, 26257/tcp для интерфейса SQL.
 
+6.2)
 добавляем в автозапуск и проверяем
 systemctl enable --now cockroachdb.service
 systemctl status cockroachdb.service
@@ -273,18 +303,18 @@ Jul 03 22:16:20 kub1 cockroach[1833]: * If problems persist, please see https://
 Jul 03 22:16:20 kub1 cockroach[1833]: *
 
 
-
+6.3)
 проверяю порты службы CockroachDB, чтобы убедиться, что служба CockroachDB запускается без ошибок.
 ss -tulpn | grep cockroach
 tcp    LISTEN     0      128    [::]:8080               [::]:*                   users:(("cockroach",pid=1809,fd=20))
 tcp    LISTEN     0      128    [::]:26257              [::]:*                   users:(("cockroach",pid=1809,fd=21))
 
-
+6.4)
 Инициализировать кластер CockroachDB
 на любом узле CockroachDB выполняем для инициализации кластера.
 cockroach init --certs-dir=/opt/cockroachdb/certs --host=kub1:26257
 
-
+6.5)
 cockroach init --certs-dir=/opt/cockroachdb/certs --host=kub1:26257
 Cluster successfully initialized
 </pre>
@@ -295,6 +325,8 @@ Cluster successfully initialized
 ### проверка работоспособности
 
 <pre>
+
+7.1)
 Смотрим статус
 cockroach node status --certs-dir=/opt/cockroachdb/certs
   id |  address   | sql_address |  build   |         started_at         |         updated_at         | locality | is_available | is_live
@@ -305,11 +337,11 @@ cockroach node status --certs-dir=/opt/cockroachdb/certs
 (3 rows)
 
 
+7.2)
 подключаемся
 cockroach sql --certs-dir=/opt/cockroachdb/certs --host=kub1:26257
 cockroach sql --certs-dir=/opt/cockroachdb/certs --host=kub2:26257
 cockroach sql --certs-dir=/opt/cockroachdb/certs --host=kub3:26257
-
 
 
 cockroach sql --certs-dir=/opt/cockroachdb/certs --host=kub1:26257
@@ -347,11 +379,14 @@ root@kub1:26257/defaultdb>
 </pre>
 
 
-#### 1)
+#### 8)
 
 ### подготовительные мероприятия для загрузки данных в cockroachdb
 
 <pre>
+
+8.1)
+
 Создаем базу
 cockroach sql --certs-dir=/opt/cockroachdb/certs --host=kub1:26257
 SHOW DATABASES;
@@ -393,9 +428,11 @@ root@kub1:26257/test>
 </pre>
 
 
-#### 1)
+#### 9)
 
 ### Поднимаем кластер на ванильном Postgre
+
+<pre>
 
 sudo yum -y install epel-release
 sudo yum install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
@@ -406,13 +443,14 @@ sudo /usr/pgsql-15/bin/postgresql-15-setup initdb
 systemctl enable postgresql-15.service
 systemctl status postgresql-15.service
 systemctl restart postgresql-15.service
+</pre>
 
-#### 2)
+#### 10)
 
 #### подтюнил postgres 15
 
 <pre>
-2.1) 
+10.1) 
 
 создал и установил с подтюнил postgres 15 озу 3 gb CPU 2 диск ssd
 влил тот же объем данных что и на кластер cockroachdb
@@ -455,11 +493,12 @@ ALTER SYSTEM SET
 
 
 
-2.2)
+#### 11)
 
 #### заливаем данные
 
 <pre>
+11.1)
 
 create database test;
 
