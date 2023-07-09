@@ -595,7 +595,7 @@ pickup_location,
 dropoff_latitude,
 dropoff_longitude,
 dropoff_location) 
-csv data ('userfile:///taxi.csv.000000000***');
+csv data ('userfile:///taxi.csv.000000000***') with skip = '1', nullif = '';
 
 #пример для загрузки одного dataset taxi
 import into taxi_trips (unique_key,
@@ -620,7 +620,9 @@ pickup_location,
 dropoff_latitude,
 dropoff_longitude,
 dropoff_location) 
-csv data ('userfile:///taxi.csv.000000000002');
+csv data ('userfile:///taxi.csv.000000000002') with skip = '1', nullif = '';
+
+
 
 
 
