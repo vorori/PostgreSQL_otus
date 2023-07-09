@@ -544,6 +544,20 @@ cockroach userfile upload /tmp/taxi/taxi.csv.000000000024 /taxi.csv.000000000024
 cockroach userfile upload /tmp/taxi/taxi.csv.000000000025 /taxi.csv.000000000025 --certs-dir=/opt/cockroachdb/certs
 
 
+или
+
+установить клиент psql 
+CREATE USER vorori WITH LOGIN PASSWORD 'my_pass';
+altet user vorori WITH CREATEDB;
+psql -p 26257 -h 192.168.2.11 -U vorori -d test
+GRANT ALL ON DATABASE test TO vorori;
+
+test=> \COPY taxi_trips2 FROM '/tmp/taxi/taxi.csv.000000000000' DELIMITER ',' CSV;
+test=> \COPY taxi_trips2 FROM '/tmp/taxi/taxi.csv.000000000001' DELIMITER ',' CSV;
+test=> \COPY taxi_trips2 FROM '/tmp/taxi/taxi.csv.000000000002' DELIMITER ',' CSV;
+test=> \COPY taxi_trips2 FROM '/tmp/taxi/taxi.csv.000000000003' DELIMITER ',' CSV;
+и т. д.
+
 8.7)
 
 #если надо удалить delete
