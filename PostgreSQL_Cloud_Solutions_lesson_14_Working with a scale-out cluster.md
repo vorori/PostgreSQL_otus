@@ -729,7 +729,7 @@ select sum(colA) from t1;
                                                                              postgres            CockroachDB   
 время выполнение основного запроса для taxi_trips                            02 min 01.60 sec    51.257 sec
 время запроса count(*) талица taxi_trips                                     03 min 20 sec       20.7  sec
-время запроса count(unique_key) талица taxi_trips с индексом(unique_key)     7.37  sec           7.06  sec																			 
+время запроса count(unique_key) талица taxi_trips с индексом(unique_key)     01 min 40 sec       89.767 sec																			 
 тестовая генерация данных для таблицы t1                                     2.850 sec           2.840 sec
 посчитали сумму sum(colA) для таблицы t1                                     1.372 sec           395 ms
 
@@ -752,4 +752,7 @@ select sum(colA) from t1;
 траблошутил служба cockroach не стартовала столкнулся c неверными правами доступа на сертификатах
 следом вылезла проблема с параметром  AllowZoneDrifting в  конфиге /etc/firewalld/firewalld.conf 
 cockroach не запустилась пока не поменял параметр с yes на no.
+часов 5 убил на то чтобы исправить загрузку данных датасетев такси в CockroachDB 
+( ERROR:  parsing as type timestamp: could not parse "trip_start_timestamp" ) и тд... очень много проводил эксерементов с настройкой разных клиентов, 
+менял структуру таблицы, перелопатил документацию по TIMESTAMP / TIMESTAMPTZ но всетаки победил..
 </pre>
