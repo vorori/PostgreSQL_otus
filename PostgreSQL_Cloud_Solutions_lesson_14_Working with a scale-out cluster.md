@@ -1,7 +1,3 @@
-https://www.centlinux.com/2020/11/install-cockroachdb-secure-cluster-on-centos-8.html
-https://www.centlinux.com/2020/11/install-cockroachdb-secure-cluster-on-centos-8.html
-https://www.centlinux.com/2020/11/install-cockroachdb-secure-cluster-on-centos-8.html
-
 
 <pre>
 ---------------------------------------------------------------------------------------------------------------------------------------
@@ -474,7 +470,7 @@ dropoff_location text
 
 <pre>
 
-8.4 )
+8.4)
  
 cockroach userfile upload /tmp/taxi/taxi.csv.000000000000 /taxi.csv.000000000000 --certs-dir=/opt/cockroachdb/certs
 successfully uploaded to userfile://defaultdb.public.userfiles_root/taxi.csv.000000000000
@@ -510,13 +506,15 @@ total 6782408
 -rwxrwxrwx. 1 root root 267369255 Jun 15 18:04 taxi.csv.000000000025
 
 
-1.2)
+8.5)
+
 #Загрузить весь список наших файлов действие 1
 cockroach userfile list '*.csv.*' --certs-dir=/opt/cockroachdb/certs
 cockroach userfile list '*.csv.*' --certs-dir=/opt/cockroachdb/certs
 cockroach userfile list '*.csv.*' --certs-dir=/opt/cockroachdb/certs
 
-1.3)
+8.6)
+
 #Загрузить весь список наших файлов действие 2
 cockroach userfile upload /tmp/taxi/taxi.csv.000000000000 /taxi.csv.000000000000 --certs-dir=/opt/cockroachdb/certs
 cockroach userfile upload /tmp/taxi/taxi.csv.000000000001 /taxi.csv.000000000001 --certs-dir=/opt/cockroachdb/certs
@@ -546,13 +544,15 @@ cockroach userfile upload /tmp/taxi/taxi.csv.000000000024 /taxi.csv.000000000024
 cockroach userfile upload /tmp/taxi/taxi.csv.000000000025 /taxi.csv.000000000025 --certs-dir=/opt/cockroachdb/certs
 
 
-1.4)
+8.7)
+
 #если надо удалить delete
 cockroach userfile delete /taxi.csv.0000000000** --certs-dir=/opt/cockroachdb/certs
 cockroach userfile delete /taxi.csv.0000000000** --certs-dir=/opt/cockroachdb/certs
 cockroach userfile delete /taxi.csv.0000000000** --certs-dir=/opt/cockroachdb/certs
 
-3)
+8.8)
+
 cockroach sql --certs-dir=/opt/cockroachdb/certs --host=kub1:26257 --database=test
 cockroach sql --certs-dir=/opt/cockroachdb/certs --host=kub1:26257 --database=test
 cockroach sql --certs-dir=/opt/cockroachdb/certs --host=kub1:26257 --database=test
@@ -625,6 +625,8 @@ select count(*) from taxi_trips;
 ---------------------------------------------------------------------------------------------------------------------------------------
 </pre>
 
+### 9)
+
 #### создал и установил postgres 15 подтюнил оснровные настройки PGTune под озу 4 gb CPU 2 диск ssd
 
 <pre>
@@ -677,7 +679,7 @@ for f in *.csv*; do psql -U postgres -d test -c "\\COPY taxi_trips FROM PROGRAM 
 
 
 
-#Выполнил тестовые запросы
+### Выполнил тестовые запросы
 
 <pre>
 ---------------------------------------------------------------------------------------------------------------------------------------
@@ -732,6 +734,9 @@ select sum(colA) from t1;
 ---------------------------------------------------------------------------------------------------------------------------------------
 </pre>
 
+
+<pre>
 траблошутил служба cockroach не стартовала столкнулся неверных прав доступа на сертификатах
 следом вылезла проблема с параметром  AllowZoneDrifting в  конфиге /etc/firewalld/firewalld.conf 
 cockroach не запустилась пока не поменял параметр с yes на no.
+</pre>
