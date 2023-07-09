@@ -140,7 +140,7 @@ Build Type:       release
 
 #### 4) 
 
-### работа с сертификатами
+#### работа с сертификатами
 
 
 <pre>
@@ -218,7 +218,7 @@ chown cockroach:cockroach /opt/cockroachdb/certs/ -R
 
 #### 5)
 
-### создаем сервисную единицу Systemd
+#### создаем сервисную единицу Systemd
 
 <pre>
 
@@ -318,7 +318,7 @@ Cluster successfully initialized
 
 #### 7)
 
-### проверка работоспособности
+#### проверка работоспособности
 
 <pre>
 
@@ -377,7 +377,7 @@ root@kub1:26257/defaultdb>
 
 ### 8)
 
-### connect
+#### connect
 
 <pre>
 8.1)
@@ -387,7 +387,7 @@ cockroach sql --certs-dir=/opt/cockroachdb/certs --host=kub1:26257 --database=te
 </pre>
 
 
-### Создаем базу
+#### Создаем базу
 
 <pre>
 
@@ -422,12 +422,12 @@ root@kub1:26257/test>
 
 
 
-### подготовка к загрузке
+#### подготовка к загрузке
 
 <pre>
 8.3)
 
-### документация
+#### документация
 https://www.cockroachlabs.com/docs/v21.1/use-userfile-for-bulk-operations
 https://www.cockroachlabs.com/docs/v21.1/use-userfile-for-bulk-operations
 https://www.cockroachlabs.com/docs/v21.1/use-userfile-for-bulk-operations
@@ -466,7 +466,7 @@ dropoff_location text
 
 
 
-### выполняем загрузку данных
+#### выполняем загрузку данных
 
 <pre>
 
@@ -706,7 +706,7 @@ select sum(colA) from t1;
 </pre>
 
 
-### ИТОГО Сравнение производительности запросов к БД в кластере CockroachDB и БД на одном инстансе PostgreSQL
+#### ИТОГО Сравнение производительности запросов к БД в кластере CockroachDB и БД на одном инстансе PostgreSQL
 
 <pre>
                                                                              postgres            CockroachDB   
