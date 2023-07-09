@@ -709,6 +709,7 @@ select count(*) from taxi_trips;
 
 ------
 select count(unique_key) from taxi_trips;
+create index unique_key_idx on taxi_trips(unique_key);
 ------
 
 ------
@@ -726,8 +727,8 @@ select sum(colA) from t1;
 
 <pre>
                                                                              postgres            CockroachDB   
-время выполнение основного запроса для taxi_trips                            02 min 01.60 sec    01 min 10.60 sec
-время запроса count(*) талица taxi_trips                                     15.3  sec           15.7  sec
+время выполнение основного запроса для taxi_trips                            02 min 01.60 sec    51.257 sec
+время запроса count(*) талица taxi_trips                                     03 min 20 sec       20.7  sec
 время запроса count(unique_key) талица taxi_trips с индексом(unique_key)     7.37  sec           7.06  sec																			 
 тестовая генерация данных для таблицы t1                                     2.850 sec           2.840 sec
 посчитали сумму sum(colA) для таблицы t1                                     1.372 sec           395 ms
