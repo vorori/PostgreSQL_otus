@@ -321,17 +321,14 @@ The key's randomart image is:
 <pre>
 #после генерации мне надо предать этот публичный ключ на все сервера
 ssh-copy-id -i /home/gpadmin/.ssh/id_rsa.pub gpadmin@gp1.ru-central1.internal -p 22
-ssh-copy-id -i ~/.ssh/id_rsa.pub gpadmin@gp2.ru-central1.internal -p 22
-ssh-copy-id -i ~/.ssh/id_rsa.pub gpadmin@gp3.ru-central1.internal -p 22
-
-
-
+ssh-copy-id -i /home/gpadmin/.ssh/id_rsa.pub gpadmin@gp2.ru-central1.internal -p 22
+ssh-copy-id -i /home/gpadmin/.ssh/id_rsa.pub gpadmin@gp3.ru-central1.internal -p 22
 
 
 #проверяем что можем подключиться
+ssh gpadmin@gp1.ru-central1.internal
 ssh gpadmin@gp2.ru-central1.internal
-ssh gpadmin@gp2.ru-central1.internal
-ssh gpadmin@gp2.ru-central1.internal
+ssh gpadmin@gp3.ru-central1.internal
 </pre>
 
 
@@ -353,6 +350,11 @@ touch /home/gpadmin/.ssh/authorized_keys
 cat /home/gpadmin/.ssh/id_rsa.pub                # копирую публичный ключ пользователя gpadmin сервера с которого буду подключаться
 vim /home/gpadmin/.ssh/authorized_keys           # вставляю
 chmod 600 /home/gpadmin/.ssh/authorized_keys     # выдаю правельные разрешения
+
+#проверяем что можем подключиться
+ssh gpadmin@gp1.ru-central1.internal
+ssh gpadmin@gp2.ru-central1.internal
+ssh gpadmin@gp3.ru-central1.internal
 --------------------------------------------------------------------------
 </pre>
 
@@ -372,14 +374,14 @@ https://docs.vmware.com/en/VMware-Greenplum/6/greenplum-database/utility_guide-r
 [ERROR]: Failed to ssh to gpadmin@gp2.ru-central1.internal. No ECDSA host key is known for gpadmin@gp2.ru-central1.internal and you have requested strict checking.
 Host key verification failed.
 
-подключаемся к ноде по ssh gpadmin@gp2.ru-central1.internal
+#проверяем что можем подключиться
+ssh gpadmin@gp1.ru-central1.internal
 ssh gpadmin@gp2.ru-central1.internal
-ssh gpadmin@gp2.ru-central1.internal
-ssh gpadmin@gp2.ru-central1.internal
+ssh gpadmin@gp3.ru-central1.internal
 -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-выполняем на главном gpadmin@gp1.ru-central1.internal
+выполняем на главном gpmaster.ru-central1.internal
 gpssh-exkeys -f /home/gpadmin/.hosts
 gpssh-exkeys -f /home/gpadmin/.hosts
 gpssh-exkeys -f /home/gpadmin/.hosts
@@ -399,12 +401,16 @@ gpssh-exkeys -f /home/gpadmin/.hosts
 [STEP 2 of 5] keyscan all hosts and update known_hosts file
 
 [STEP 3 of 5] retrieving credentials from remote hosts
+  ... send to gp1.ru-central1.internal
   ... send to gp2.ru-central1.internal
+  ... send to gp3.ru-central1.internal
 
 [STEP 4 of 5] determine common authentication file content
 
 [STEP 5 of 5] copy authentication files to all remote hosts
+  ... finished key exchange with gp1.ru-central1.internal
   ... finished key exchange with gp2.ru-central1.internal
+  ... finished key exchange with gp3.ru-central1.internal
 
 [INFO] completed successfully
 
@@ -417,15 +423,16 @@ gpssh-exkeys -f /home/gpadmin/.hosts
 на сервере ноде ДОЛДЖНЫ ПОЯВИТЬСЯ ВСЕ КЛЮЧИ!
 появятся вот эти файлы причем и на ноде которую мы подключили
 ls -l /home/gpadmin/.ssh
+ls -l /home/gpadmin/.ssh
 
-[gpadmin@gp2 ~]$ ls -l /home/gpadmin/.ssh
+[gpadmin@gp2 greenplum-db-6.24.3]$ ls -l /home/gpadmin/.ssh
 total 16
--rw------- 1 gpadmin gpadmin  758 Jun 12 18:11 authorized_keys
--rw-r--r-- 1 gpadmin gpadmin    0 Jun 12 18:11 config
--rw-r--r-- 1 gpadmin gpadmin    0 Jun 12 18:11 iddummy.pub
--rw------- 1 gpadmin gpadmin 3243 Jun 12 18:11 id_rsa
--rw-r--r-- 1 gpadmin gpadmin  758 Jun 12 18:11 id_rsa.pub
--rw-rw-r-- 1 gpadmin gpadmin 1403 Jun 12 18:11 known_hosts
+-rw------- 1 gpadmin gpadmin  763 Jul 10 14:36 authorized_keys
+-rw-r--r-- 1 gpadmin gpadmin    0 Jul 10 14:36 config
+-rw-r--r-- 1 gpadmin gpadmin    0 Jul 10 14:36 iddummy.pub
+-rw------- 1 gpadmin gpadmin 3243 Jul 10 14:36 id_rsa
+-rw-r--r-- 1 gpadmin gpadmin  763 Jul 10 14:36 id_rsa.pub
+-rw-rw-r-- 1 gpadmin gpadmin 2615 Jul 10 14:36 known_hosts
 </pre>
 
 #### создаю директорию для будующих данных
@@ -441,20 +448,25 @@ gpssh -f /home/gpadmin/.hosts
 mkdir /home/gpadmin/data
 mkdir /home/gpadmin/data_mirror
 
-[gpadmin@gp1 ~]$ gpssh -f /home/gpadmin/.hosts
+------------------------------------------------------------------
+[gpadmin@gpmaster .ssh]$ gpssh -f /home/gpadmin/.hosts
 => mkdir /home/gpadmin/data
-[gp1.ru-central1.internal]
-[gp2.ru-central1.internal]
+[     gp3.ru-central1.internal]
+[     gp2.ru-central1.internal]
+[     gp1.ru-central1.internal]
+[gpmaster.ru-central1.internal]
 => mkdir /home/gpadmin/data_mirror
-[gp1.ru-central1.internal]
-[gp2.ru-central1.internal]
+[     gp3.ru-central1.internal]
+[     gp2.ru-central1.internal]
+[     gp1.ru-central1.internal]
+[gpmaster.ru-central1.internal]
+------------------------------------------------------------------
 
-
-на ноде и на мастере появятся каталоги
-[gpadmin@gp2 ~]$ ls -l /home/gpadmin
+проверяю созданые каталоги на серверах
+ls -l /home/gpadmin
 total 0
-drwxrwxr-x 2 gpadmin gpadmin 6 Jun 12 18:16 data
-drwxrwxr-x 2 gpadmin gpadmin 6 Jun 12 18:16 data_mirror
+drwxrwxr-x 2 gpadmin gpadmin 6 Jul 10 14:41 data
+drwxrwxr-x 2 gpadmin gpadmin 6 Jul 10 14:42 data_mirror
 </pre>
 
 #### настройка конфигурационного файла на главной ноде
