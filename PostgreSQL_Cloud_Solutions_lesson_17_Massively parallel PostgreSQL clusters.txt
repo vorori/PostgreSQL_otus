@@ -1,74 +1,3 @@
-#### 0)
-
-#### ссылки на почитать
-
-<pre>
----------------------------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------------------------
--------------------------------------------------мануалы на изучение-------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------------------------
-</pre>
-
-<pre>
-https://www.youtube.com/watch?v=-T3zl7aE0Yk
-https://www.youtube.com/watch?v=-T3zl7aE0Yk
-https://www.youtube.com/watch?v=-T3zl7aE0Yk
-https://www.youtube.com/watch?v=-T3zl7aE0Yk
-
-https://github.com/greenplum-db/gpdb/releases
-https://github.com/greenplum-db/gpdb/releases
-https://github.com/greenplum-db/gpdb/releases
-
-
-http://dbaselife.com/doc/1636/
-http://dbaselife.com/doc/1636/
-http://dbaselife.com/doc/1636/
-
-
-https://www.youtube.com/watch?v=qpwA1z3s4uA
-https://www.youtube.com/watch?v=qpwA1z3s4uA
-https://www.youtube.com/watch?v=qpwA1z3s4uA
-
-
-https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/admin_guide-managing-startstop.html
-https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/admin_guide-managing-startstop.html
-https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/admin_guide-managing-startstop.html
-
-
-создание таблиц и распределение данных в gp
-Объявление ключей распределения в Greenplum 
-http://www.dbaref.com/declaring-distribution-keys-in-greenplum
-http://www.dbaref.com/declaring-distribution-keys-in-greenplum
-http://www.dbaref.com/declaring-distribution-keys-in-greenplum
-
-
-на почитать для gp чтобы разобраться в терменалогии
-https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/admin_guide-intro-arch_overview.html
-https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/admin_guide-intro-arch_overview.html
-https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/admin_guide-intro-arch_overview.html
-
-https://github.com/greenplum-db/gpdb/wiki/Greenplum-Architecture
-https://github.com/greenplum-db/gpdb/wiki/Greenplum-Architecture
-https://github.com/greenplum-db/gpdb/wiki/Greenplum-Architecture
-
-https://bigdataschool.ru/blog/greenplum-architecture.html
-https://bigdataschool.ru/blog/greenplum-architecture.html
-https://bigdataschool.ru/blog/greenplum-architecture.html
-
-
-запуск gp 
-gpstart
-gpstart
-gpstart
-
-gpstop
-gpstop
-gpstop
-
-</pre>
-
-
-
 
 #### 1)
 
@@ -77,7 +6,7 @@ gpstop
 <pre>
 ---------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
-----------------------------------мануал создания мастер + три ноды  = шесть сегментов  START--------------------------------------------------
+----------------------------------мануал создания мастер + три ноды  = 12 segment START--------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
 </pre>
 
@@ -147,9 +76,6 @@ kernel.sem = 250 2048000 200 8192
 EOF
 
 sysctl --system
-
-
-
 
 
 #### создать столько файлов и процессов вплодь до этого числа
@@ -290,6 +216,8 @@ gp3.ru-central1.internal
 su - gpadmin
 [gpadmin@gpmaster ~]$ ssh-keygen -t rsa
                       ssh-keygen -t rsa -b 4096
+					  ssh-keygen -t rsa -b 4096
+					  ssh-keygen -t rsa -b 4096
                       
 Generating public/private rsa key pair.
 Enter file in which to save the key (/home/gpadmin/.ssh/id_rsa):
@@ -1026,16 +954,17 @@ https://console.cloud.yandex.ru/folders/b1g4ll61pn5hi287rrrc/storage/buckets
 создаю ключ по инструкции
 https://cloud.yandex.ru/docs/iam/operations/sa/create-access-key
 
-для доступа сервисного аккаунта создаю сервисный ключ mykey
+new
 Идентификатор ключа:
-YCAJEGmWpeoKgY6bwncE9rtJs
+YCAJEUqYD2tU3jgU2_jXoYImx
 
 Ваш секретный ключ:
-YCMrCVoA8TpR3dCg8-p4RraHSmuzy0Dp_iClfTBU
+YCPQB68gMTtEmWhj-UQNp7HvY85KZFkBYdWL1lHP
 Сохраните идентификатор и ключ. После закрытия диалога значение ключа будет недоступно.
+
 </pre>
 
-#### рава доступа к моему бакету
+#### права доступа к моему бакету
 <pre>
 2.7)
 
@@ -1048,6 +977,7 @@ YCMrCVoA8TpR3dCg8-p4RraHSmuzy0Dp_iClfTBU
 
 создаю каталог для данных и устанавливаю s3fs-fuse
 yum install s3fs-fuse
+su - gpadmin
 mkdir /home/gpadmin/taxi
 cd /home/gpadmin/taxi
 </pre>
@@ -1058,14 +988,16 @@ cd /home/gpadmin/taxi
 
 добавляю ранее созданный индификатор,двоеточие и сервисный ключ
 /home/gpadmin/.passwd-s3fs
-echo YCAJEGmWpeoKgY6bwncE9rtJs:YCMrCVoA8TpR3dCg8-p4RraHSmuzy0Dp_iClfTBU > /home/gpadmin/.passwd-s3fs
-echo YCAJEGmWpeoKgY6bwncE9rtJs:YCMrCVoA8TpR3dCg8-p4RraHSmuzy0Dp_iClfTBU > /home/gpadmin/.passwd-s3fs
-echo YCAJEGmWpeoKgY6bwncE9rtJs:YCMrCVoA8TpR3dCg8-p4RraHSmuzy0Dp_iClfTBU > /home/gpadmin/.passwd-s3fs
+echo YCAJEUqYD2tU3jgU2_jXoYImx:YCPQB68gMTtEmWhj-UQNp7HvY85KZFkBYdWL1lHP > /home/gpadmin/.passwd-s3fs
 
 
 ПРОВЕРЯЮ!!!!!!!!!
 cat /home/gpadmin/.passwd-s3fs
-YCAJEGmWpeoKgY6bwncE9rtJs:YCMrCVoA8TpR3dCg8-p4RraHSmuzy0Dp_iClfTBU
+YCAJEUqYD2tU3jgU2_jXoYImx:YCPQB68gMTtEmWhj-UQNp7HvY85KZFkBYdWL1lHP
+
+chmod 600 /home/gpadmin/.passwd-s3fs
+chmod 600 /home/gpadmin/.passwd-s3fs
+chmod 600 /home/gpadmin/.passwd-s3fs
 </pre>
 
 #### монтирую бакет при помощи s3fs 
@@ -1076,6 +1008,8 @@ YCAJEGmWpeoKgY6bwncE9rtJs:YCMrCVoA8TpR3dCg8-p4RraHSmuzy0Dp_iClfTBU
 s3fs myotus /home/gpadmin/taxi -o passwd_file=/home/gpadmin/.passwd-s3fs -o url=https://storage.yandexcloud.net -o use_path_request_style -o dbglevel=info -f -o curldbg
 s3fs myotus /home/gpadmin/taxi -o passwd_file=/home/gpadmin/.passwd-s3fs -o url=https://storage.yandexcloud.net -o use_path_request_style -o dbglevel=info -f -o curldbg
 s3fs myotus /home/gpadmin/taxi -o passwd_file=/home/gpadmin/.passwd-s3fs -o url=https://storage.yandexcloud.net -o use_path_request_style -o dbglevel=info -f -o curldbg
+
+
 
 
 ----------------------------------------------------------------------------------------
@@ -1095,53 +1029,52 @@ s3fs <имя_бакета> $HOME/s3fs -o passwd_file=$HOME/.passwd-s3fs -o url=h
 #### проверяю
 <pre>
 2.11)
-проверяю ура !!!появился новый подключенный раздел s3fs            4.0G     0  4.0G   0% /home/gpadmin/taxi:
-[gpadmin@gp1 taxi]$ df -h
+проверяю появился новый подключенный раздел s3fs          
+[gpadmin@gpmaster taxi]$ df -h
 Filesystem      Size  Used Avail Use% Mounted on
 devtmpfs        1.9G     0  1.9G   0% /dev
 tmpfs           1.9G   56K  1.9G   1% /dev/shm
-tmpfs           1.9G  760K  1.9G   1% /run
+tmpfs           1.9G  720K  1.9G   1% /run
 tmpfs           1.9G     0  1.9G   0% /sys/fs/cgroup
-/dev/vda2        20G  3.0G   18G  15% /
+/dev/vda2        20G  2.9G   18G  15% /
 tmpfs           379M     0  379M   0% /run/user/1000
 tmpfs           379M     0  379M   0% /run/user/997
+tmpfs           379M     0  379M   0% /run/user/0
 s3fs            4.0G     0  4.0G   0% /home/gpadmin/taxi
-</pre>
 
 #### проверяю данные
 <pre>
 2.12) 
 
 видим наши данные в нашем подгруженном бакете
-[gpadmin@gp1 ~]$ cd /home/gpadmin/taxi
-[gpadmin@gp1 taxi]$ ls -l
+[gpadmin@gpmaster taxi]$ ls -l /home/gpadmin/taxi
 total 6782364
--rw-r----- 1 gpadmin gpadmin 267363203 Jun 15 11:52 taxi.csv.000000000000
--rw-r----- 1 gpadmin gpadmin 267344607 Jun 16 01:17 taxi.csv.000000000001
--rw-r----- 1 gpadmin gpadmin 267390243 Jun 16 11:36 taxi.csv.000000000002
--rw-r----- 1 gpadmin gpadmin 267417696 Jun 16 01:17 taxi.csv.000000000003
--rw-r----- 1 gpadmin gpadmin 266371749 Jun 16 11:35 taxi.csv.000000000004
--rw-r----- 1 gpadmin gpadmin 266233035 Jun 17 02:26 taxi.csv.000000000005
--rw-r----- 1 gpadmin gpadmin 266219968 Jun 16 00:35 taxi.csv.000000000006
--rw-r----- 1 gpadmin gpadmin 267380379 Jun 17 02:27 taxi.csv.000000000007
--rw-r----- 1 gpadmin gpadmin 267367985 Jun 16 11:36 taxi.csv.000000000008
--rw-r----- 1 gpadmin gpadmin 267278191 Jun 16 11:36 taxi.csv.000000000009
--rw-r----- 1 gpadmin gpadmin 267389474 Jun 17 02:27 taxi.csv.000000000010
--rw-r----- 1 gpadmin gpadmin 267331103 Jun 17 10:08 taxi.csv.000000000011
--rw-r----- 1 gpadmin gpadmin 266153465 Jun 16 01:17 taxi.csv.000000000012
--rw-r----- 1 gpadmin gpadmin 267368711 Jun 16 01:17 taxi.csv.000000000013
--rw-r----- 1 gpadmin gpadmin 265622273 Jun 16 11:34 taxi.csv.000000000014
--rw-r----- 1 gpadmin gpadmin 267319434 Jun 17 02:27 taxi.csv.000000000015
--rw-r----- 1 gpadmin gpadmin 267311996 Jun 17 02:27 taxi.csv.000000000016
--rw-r----- 1 gpadmin gpadmin 267325169 Jun 17 10:08 taxi.csv.000000000017
--rw-r----- 1 gpadmin gpadmin 267373075 Jun 17 02:27 taxi.csv.000000000018
--rw-r----- 1 gpadmin gpadmin 267377563 Jun 17 10:07 taxi.csv.000000000019
--rw-r----- 1 gpadmin gpadmin 267374748 Jun 17 10:08 taxi.csv.000000000020
--rw-r----- 1 gpadmin gpadmin 267391164 Jun 17 10:08 taxi.csv.000000000021
--rw-r----- 1 gpadmin gpadmin 267335900 Jun 16 11:36 taxi.csv.000000000022
--rw-r----- 1 gpadmin gpadmin 267348008 Jun 16 00:24 taxi.csv.000000000023
--rw-r----- 1 gpadmin gpadmin 267374332 Jun 17 14:08 taxi.csv.000000000024
--rw-r----- 1 gpadmin gpadmin 267369255 Jun 17 13:26 taxi.csv.000000000025
+-rw-r----- 1 gpadmin gpadmin 267363203 Jul 10 19:25 taxi.csv.000000000000
+-rw-r----- 1 gpadmin gpadmin 267344607 Jul 10 19:49 taxi.csv.000000000001
+-rw-r----- 1 gpadmin gpadmin 267390243 Jul 10 19:35 taxi.csv.000000000002
+-rw-r----- 1 gpadmin gpadmin 267417696 Jul 10 19:49 taxi.csv.000000000003
+-rw-r----- 1 gpadmin gpadmin 266371749 Jul 10 19:43 taxi.csv.000000000004
+-rw-r----- 1 gpadmin gpadmin 266233035 Jul 10 19:48 taxi.csv.000000000005
+-rw-r----- 1 gpadmin gpadmin 266219968 Jul 10 19:25 taxi.csv.000000000006
+-rw-r----- 1 gpadmin gpadmin 267380379 Jul 10 19:25 taxi.csv.000000000007
+-rw-r----- 1 gpadmin gpadmin 267367985 Jul 10 19:38 taxi.csv.000000000008
+-rw-r----- 1 gpadmin gpadmin 267278191 Jul 10 19:35 taxi.csv.000000000009
+-rw-r----- 1 gpadmin gpadmin 267389474 Jul 10 19:25 taxi.csv.000000000010
+-rw-r----- 1 gpadmin gpadmin 267331103 Jul 10 19:25 taxi.csv.000000000011
+-rw-r----- 1 gpadmin gpadmin 266153465 Jul 10 19:37 taxi.csv.000000000012
+-rw-r----- 1 gpadmin gpadmin 267368711 Jul 10 19:35 taxi.csv.000000000013
+-rw-r----- 1 gpadmin gpadmin 265622273 Jul 10 19:38 taxi.csv.000000000014
+-rw-r----- 1 gpadmin gpadmin 267319434 Jul 10 19:49 taxi.csv.000000000015
+-rw-r----- 1 gpadmin gpadmin 267311996 Jul 10 19:30 taxi.csv.000000000016
+-rw-r----- 1 gpadmin gpadmin 267325169 Jul 10 19:44 taxi.csv.000000000017
+-rw-r----- 1 gpadmin gpadmin 267373075 Jul 10 19:49 taxi.csv.000000000018
+-rw-r----- 1 gpadmin gpadmin 267377563 Jul 10 19:48 taxi.csv.000000000019
+-rw-r----- 1 gpadmin gpadmin 267374748 Jul 10 19:44 taxi.csv.000000000020
+-rw-r----- 1 gpadmin gpadmin 267391164 Jul 10 19:43 taxi.csv.000000000021
+-rw-r----- 1 gpadmin gpadmin 267335900 Jul 10 19:17 taxi.csv.000000000022
+-rw-r----- 1 gpadmin gpadmin 267348008 Jul 10 19:38 taxi.csv.000000000023
+-rw-r----- 1 gpadmin gpadmin 267374332 Jul 10 19:30 taxi.csv.000000000024
+-rw-r----- 1 gpadmin gpadmin 267369255 Jul 10 19:30 taxi.csv.000000000025
 </pre>
 
 #### создаем тестовую бд и таблицу
@@ -1149,18 +1082,18 @@ total 6782364
 2.13) 
 
 создаем бд и таблицу
-Загрузим данные в Постгрес, предварительно создав БД taxi:
-psql -U gpadmin postgres -p 5432 -h gp1.ru-central1.internal
-psql -U gpadmin postgres -p 5432 -h gp1.ru-central1.internal
-psql -U gpadmin postgres -p 5432 -h gp1.ru-central1.internal
+Загрузим данные в БД test:
+psql -U gpadmin postgres -p 5432 -h gpmaster.ru-central1.internal
+psql -U gpadmin postgres -p 5432 -h gpmaster.ru-central1.internal
+psql -U gpadmin postgres -p 5432 -h gpmaster.ru-central1.internal
 
-CREATE DATABASE taxi;
-\c taxi
+
+\c test
 
 Чтобы обеспечить равномерное распределение данных, вы хотите выбрать ключ распределения, уникальный для каждой записи, или, если это 
 невозможно, выберите РАСПРЕДЕЛЕНИЕ СЛУЧАЙНО. Например:
 
-CREATE TABLE taxi_trips(unique_key text
+CREATE TABLE taxi_trips0(unique_key text
 ,taxi_id text
 ,trip_start_timestamp timestamp
 ,trip_end_timestamp timestamp
@@ -1186,7 +1119,33 @@ CREATE TABLE taxi_trips(unique_key text
 DISTRIBUTED RANDOMLY;
 
 
-create table taxi_trips (
+CREATE TABLE taxi_trips(unique_key text
+,taxi_id text
+,trip_start_timestamp timestamp
+,trip_end_timestamp timestamp
+,trip_seconds bigint
+,trip_miles float
+,pickup_census_tract bigint
+,dropoff_census_tract bigint
+,pickup_community_area bigint
+,dropoff_community_area bigint
+,fare float
+,tips float
+,tolls float
+,extras float
+,trip_total float
+,payment_type text
+,company text
+,pickup_latitude float
+,pickup_longitude float
+,pickup_location text
+,dropoff_latitude float
+,dropoff_longitude float
+,dropoff_location text)
+DISTRIBUTED BY (unique_key);
+
+
+create table taxi_trips2 (
 unique_key text, 
 taxi_id text, 
 trip_start_timestamp TIMESTAMP, 
@@ -1211,6 +1170,7 @@ dropoff_latitude numeric,
 dropoff_longitude numeric, 
 dropoff_location text
 );
+
 </pre>
 
 #### команда на загрузку данных в цикле 
@@ -1218,9 +1178,10 @@ dropoff_location text
 2.14) 
 
 команда на загрузку данных в цикле 
-for f in *.csv*; do psql -U gpadmin -p 5432 -h gp1.ru-central1.internal -d taxi -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
-for f in *.csv*; do psql -U gpadmin -p 5432 -h gp1.ru-central1.internal -d taxi -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
-for f in *.csv*; do psql -U gpadmin -p 5432 -h gp1.ru-central1.internal -d taxi -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
+for f in *.csv*; do psql -U gpadmin -p 5432 -h gpmaster.ru-central1.internal -d test -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
+for f in *.csv*; do psql -U gpadmin -p 5432 -h gpmaster.ru-central1.internal -d test -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
+for f in *.csv*; do psql -U gpadmin -p 5432 -h gpmaster.ru-central1.internal -d test -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
+[gpadmin@gpmaster taxi]$ for f in *.csv*; do psql -U gpadmin -p 5432 -h gpmaster.ru-central1.internal -d test -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
 COPY 668818
 COPY 669331
 COPY 668352
@@ -1249,65 +1210,6 @@ COPY 669396
 COPY 670978
 </pre>
 
-#### выполняем заливку при пормощи  gpfdist
-<pre>
-2.15) 
-
-выполняем заливку при пормощи  gpfdist
-https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/utility_guide-ref-gpfdist.html
-
-psql -U gpadmin -p 5432 -h gp1.ru-central1.internal -d taxi
-select * from taxi_trips2;
-
-заускаем gpfdist
-gpfdist -d /home/gpadmin/taxi -p 8081 > gpfdist.log 2>&1 &
-gpfdist -d /home/gpadmin/taxi -p 8081 > gpfdist.log 2>&1 &
-gpfdist -d /home/gpadmin/taxi -p 8081 > gpfdist.log 2>&1 &
-</pre>
-
-#### если надо остановить gpfdist
-<pre>
-2.16)
-
-если надо остановить gpfdist
-Чтобы остановить gpfdist, когда он работает в фоновом режиме:
-Сначала найдите его идентификатор процесса:
-$ ps -ef | grep gpfdist
-Затем остановите процесс, например (где 3456 — это идентификатор процесса в этом примере):
-$ kill 3456
-</pre>
-
-#### status gpfdist
-<pre>
-2.17)
-
-проверяем лог что gpfdist работает и все ок 
-[gpadmin@gp1 ~]$ cat gpfdist.log
-2023-06-19 15:34:27 1984 INFO Before opening listening sockets - following listening sockets are available:
-2023-06-19 15:34:27 1984 INFO IPV6 socket: [::]:8081
-2023-06-19 15:34:27 1984 INFO IPV4 socket: 0.0.0.0:8081
-2023-06-19 15:34:27 1984 INFO Trying to open listening socket:
-2023-06-19 15:34:27 1984 INFO IPV6 socket: [::]:8081
-2023-06-19 15:34:27 1984 INFO Opening listening socket succeeded
-2023-06-19 15:34:27 1984 INFO Trying to open listening socket:
-2023-06-19 15:34:27 1984 INFO IPV4 socket: 0.0.0.0:8081
-2023-06-19 15:34:27 1984 INFO Opening listening socket succeeded
-Serving HTTP on port 8081, directory /home/gpadmin/taxi
-</pre>
-
-#### создаем внешнюю/внешнюю веб-таблицу и заливаем из нее данные в нашу
-<pre>
-2.18)
-
-создаем внешнюю/внешнюю веб-таблицу и заливаем из нее данные в нашу
-CREATE READABLE EXTERNAL TABLE taxi_trips_ext (like taxi_trips2)
-LOCATION('gpfdist://127.0.0.1:8081/taxi.csv.000000000000')
-FORMAT 'csv' (header)
-LOG ERRORS SEGMENT REJECT LIMIT 50 rows;
-
-INSERT INTO taxi_trips2  SELECT * FROM taxi_trips_ext;
-INSERT 0 668818
-</pre>
 
 
 
@@ -1378,22 +1280,21 @@ for f in *.csv*; do psql -U gpadmin  -d taxi -c "\\COPY taxi_trips FROM PROGRAM 
 </pre>
 
 
-#### прогнал запросы big:
+#### прогнал запросы 
+
 <pre>
 3.2)
-
 ---------------------------------------------------------------------------------------------------------------------------------------
-запрос 
-EXPLAIN(ANALYZE) SELECT payment_type, round(sum(tips)/sum(trip_total)*100, 0) + 0 as tips_percent, count(*) as c 
+EXPLAIN(ANALYZE) SELECT payment_type, round(sum(tips))/round(sum(trip_total)*100) + 0 as tips_percent, count(*) as c 
 FROM taxi_trips
 group by payment_type
 order by c;
 
-на gp 2 ноды  6 сегментов
-Execution time: 3629.583 ms
+на gp 
+Execution time: 36975.560 ms
 
-на ванильном Postgre
-Execution Time: 107498.652 ms
+на Postgre
+Execution Time: 208397.652 ms
 ---------------------------------------------------------------------------------------------------------------------------------------
 </pre>
 
@@ -1404,13 +1305,13 @@ Execution Time: 107498.652 ms
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 тестовая генерация данных:
-create table t1 as select generate_series(1,1000000) as colA distributed by (colA);
+EXPLAIN(ANALYZE) create table t14 as select generate_series(1,1000000) as colA distributed by (colA);
 
-на gp 2 ноды  6 сегментов
-Execution time: 1.583 ms
+на gp 
+Execution time: 804.079 ms
 
 на ванильном Postgre
-Execution time: 2.884 ms
+Execution time: 3.981 ms
 ---------------------------------------------------------------------------------------------------------------------------------------
 </pre>
 
@@ -1420,17 +1321,17 @@ Execution time: 2.884 ms
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 запрос:
-EXPLAIN(ANALYZE) select count(*) from t1;
+EXPLAIN(ANALYZE) select count(*) from t14;
 
-на gp 2 ноды  6 сегментов
-Execution time: 92.168 ms
+на gp
+Execution time: 182.096 ms
 
 на ванильном Postgre
-Execution Time: 84.369 ms
+Execution Time: 114.369 ms
 ---------------------------------------------------------------------------------------------------------------------------------------
 </pre>
 
-#### EXPLAIN(ANALYZE) select sum(colA) from t1;
+#### EXPLAIN(ANALYZE) select sum(colA) from t14;
 <pre>
 3.5)
 
@@ -1438,8 +1339,8 @@ Execution Time: 84.369 ms
 запрос:
 EXPLAIN(ANALYZE) select sum(colA) from t1;
 
-на gp 2 ноды  6 сегментов
-Execution time: 88.765 ms
+на gp
+Execution time: 79.044 ms
 
 на ванильном Postgre
 Execution Time: 102.372 ms
@@ -1465,3 +1366,7 @@ Execution Time: 102.372 ms
 были шероховатиости  в работе с бакетом и s3fs 
 потратил достаточно большое количество времени чтобы устранить ошибки подключения и доступа
 </pre>
+
+
+
+
