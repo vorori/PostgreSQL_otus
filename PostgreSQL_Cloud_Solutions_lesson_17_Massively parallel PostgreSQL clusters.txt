@@ -1311,7 +1311,7 @@ EXPLAIN(ANALYZE) create table t14 as select generate_series(1,1000000) as colA d
 Execution time: 804.079 ms
 
 на ванильном Postgre
-Execution time: 3.981 ms
+Execution time: 3.981 sec
 ---------------------------------------------------------------------------------------------------------------------------------------
 </pre>
 
