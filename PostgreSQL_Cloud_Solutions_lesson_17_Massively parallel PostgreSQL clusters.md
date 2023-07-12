@@ -1,3 +1,73 @@
+#### 0)
+
+#### ссылки на почитать
+
+<pre>
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------мануалы на изучение-------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+<pre>
+https://www.youtube.com/watch?v=-T3zl7aE0Yk
+https://www.youtube.com/watch?v=-T3zl7aE0Yk
+https://www.youtube.com/watch?v=-T3zl7aE0Yk
+https://www.youtube.com/watch?v=-T3zl7aE0Yk
+
+https://github.com/greenplum-db/gpdb/releases
+https://github.com/greenplum-db/gpdb/releases
+https://github.com/greenplum-db/gpdb/releases
+
+
+http://dbaselife.com/doc/1636/
+http://dbaselife.com/doc/1636/
+http://dbaselife.com/doc/1636/
+
+
+https://www.youtube.com/watch?v=qpwA1z3s4uA
+https://www.youtube.com/watch?v=qpwA1z3s4uA
+https://www.youtube.com/watch?v=qpwA1z3s4uA
+
+
+https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/admin_guide-managing-startstop.html
+https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/admin_guide-managing-startstop.html
+https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/admin_guide-managing-startstop.html
+
+
+создание таблиц и распределение данных в gp
+Объявление ключей распределения в Greenplum 
+http://www.dbaref.com/declaring-distribution-keys-in-greenplum
+http://www.dbaref.com/declaring-distribution-keys-in-greenplum
+http://www.dbaref.com/declaring-distribution-keys-in-greenplum
+
+
+на почитать для gp чтобы разобраться в терменалогии
+https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/admin_guide-intro-arch_overview.html
+https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/admin_guide-intro-arch_overview.html
+https://docs.vmware.com/en/VMware-Greenplum/7/greenplum-database/admin_guide-intro-arch_overview.html
+
+https://github.com/greenplum-db/gpdb/wiki/Greenplum-Architecture
+https://github.com/greenplum-db/gpdb/wiki/Greenplum-Architecture
+https://github.com/greenplum-db/gpdb/wiki/Greenplum-Architecture
+
+https://bigdataschool.ru/blog/greenplum-architecture.html
+https://bigdataschool.ru/blog/greenplum-architecture.html
+https://bigdataschool.ru/blog/greenplum-architecture.html
+
+
+запуск gp 
+gpstart
+gpstart
+gpstart
+
+gpstop
+gpstop
+gpstop
+
+</pre>
+
+
 #### 1)
 
 #### Устанаввливаю настраиваю Greenplum
