@@ -16,10 +16,10 @@ hostname && hostname -i
 
 1) добавляю на каждой ноде 
 sudo cat <<EOF>> /etc/hosts
-10.129.0.18 kubmaster.ru-central1.internal
-10.129.0.21 node1 kub1.ru-central1.internal
-10.129.0.19 node2 kub2.ru-central1.internal
-10.129.0.25 node3 kub3.ru-central1.internal
+10.129.0.12 masterkub.ru-central1.internal
+10.129.0.34 node1 kub1.ru-central1.internal
+10.129.0.28 node2 kub2.ru-central1.internal
+10.129.0.5 node3 kub3.ru-central1.internal
 EOF
 
 
@@ -52,6 +52,8 @@ cat <<EOF | > sudo tee /etc/modules-load.d/k8s.conf
 br_netfilter
 EOF
 
+cat /etc/modules-load.d/k8s.conf
+
 
 Скопируйте приведенное ниже содержимое в этот файл.. /etc/sysctl.d/k8s.conf 
 cat <<EOF | > sudo tee /etc/sysctl.d/k8s.conf
@@ -60,6 +62,8 @@ net.bridge.bridge-nf-call-iptables = 1
 net.ipv4.ip_forward = 1
 EOF
 
+cat /etc/sysctl.d/k8s.conf 
+
 
 sudo tee /etc/sysctl.d/kubernetes.conf <<EOF
 net.bridge.bridge-nf-call-ip6tables = 1
@@ -67,6 +71,7 @@ net.bridge.bridge-nf-call-iptables = 1
 net.ipv4.ip_forward = 1
 EOF
 
+cat /etc/sysctl.d/kubernetes.conf
 
 # Ensure you load modules
 sudo modprobe overlay && sudo modprobe br_netfilter && sudo sysctl --system
@@ -84,11 +89,6 @@ sudo yum install -y yum-utils
 3.c.. Настройте репозиторий Docker
 yum-config-manager  --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 
-cat <<EOF | > sudo tee /etc/yum.repos.d/docker.repo
-[docker]
-baseurl=https://download.docker.com/linux/centos/7/x86_64/stable/
-gpgcheck=0
-EOF
 
 3. d.. Установите Docker Engine, Docker CLI, Docker RUNTIME $ 
 yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
@@ -124,6 +124,10 @@ repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
 
+reboot -h now
+reboot -h now
+reboot -h now
+
 смотрим какие версии доступны для установки
 yum --showduplicates list kubeadm.x86_64
 yum --showduplicates list kubeadm.x86_64
@@ -140,9 +144,8 @@ https://github.com/citusdata/docker/blob/master/CHANGELOG.md
 https://github.com/citusdata/docker/blob/master/CHANGELOG.md
 
 Устанавливаем командой new!
-yum install -y kubelet-1.24.10-0.x86_64 kubeadm-1.24.10-0.x86_64 kubectl-1.24.10-0.x86_64
-yum install -y kubelet-1.24.10-0.x86_64 kubeadm-1.24.10-0.x86_64 kubectl-1.24.10-0.x86_64
-yum install -y kubelet-1.24.10-0.x86_64 kubeadm-1.24.10-0.x86_64 kubectl-1.24.10-0.x86_64
+yum install -y kubelet-1.26.1-0.x86_64 kubeadm-1.26.1-0.x86_64 kubectl-1.26.1-0.x86_64
+
 
 
 yum install -y kubelet-1.24.15-0.x86_64 kubeadm-1.24.15-0.x86_64 kubectl-1.24.15-0.x86_64
@@ -162,6 +165,12 @@ sudo systemctl enable --now kubelet && systemctl status kubelet
 sudo systemctl enable --now kubelet && systemctl status kubelet
 sudo systemctl enable --now kubelet && systemctl status kubelet
 
+
+tail -f /var/log/messages
+tail -f /var/log/messages
+tail -f /var/log/messages
+
+
 версия
 kubectl version
 kubectl version
@@ -173,7 +182,10 @@ kubeadm init --apiserver-advertise-address=10.129.0.18
 kubeadm init --apiserver-advertise-address=10.129.0.18
 kubeadm init --apiserver-advertise-address=10.129.0.18
 
-kubeadm init --pod-network-cidr=10.10.0.0/16 --apiserver-advertise-address=master_nodeIP
+kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=master_nodeIP
+kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=10.129.0.12
+
+
 kubeadm init --pod-network-cidr="10.10.0.0/16" --apiserver-advertise-address="10.128.0.20"
 kubeadm init --pod-network-cidr="10.10.0.0/16" --apiserver-advertise-address="10.128.0.20"
 или
