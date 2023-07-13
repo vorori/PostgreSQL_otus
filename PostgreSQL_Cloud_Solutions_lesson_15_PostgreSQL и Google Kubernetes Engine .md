@@ -1,3 +1,17 @@
+#### 0) на почитать
+
+Настройка кластера Kubernetes Centos 7
+https://www.youtube.com/watch?v=5JBLITD3u6I
+https://www.youtube.com/watch?v=5JBLITD3u6I
+https://www.youtube.com/watch?v=5JBLITD3u6I
+
+Kubernetes 1.26 — электрифицирующая установка релиза
+https://blog.kubesimplify.com/kubernetes-126
+https://blog.kubesimplify.com/kubernetes-126
+https://blog.kubesimplify.com/kubernetes-126
+
+
+
 #### 0)
 
 hostname masterkub ip  
@@ -22,6 +36,9 @@ sudo cat <<EOF>> /etc/hosts
 10.129.0.28 node2 kub2.ru-central1.internal
 10.129.0.5 node3 kub3.ru-central1.internal
 EOF
+
+cat /etc/hosts
+vim /etc/hosts
 
 Шаг 1: Предварительные требования 
 1.a.. Проверьте ОС, конфигурацию оборудования и Сетевое подключение 
@@ -112,6 +129,8 @@ sudo tee /etc/docker/daemon.json <<EOF
 }
 EOF
 
+cat /etc/docker/daemon.json
+
 sudo systemctl enable docker && sudo systemctl restart docker && sudo systemctl status docker
 sudo systemctl daemon-reload
 
@@ -126,6 +145,8 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
+
+cat /etc/yum.repos.d/kubernetes.repo
 
 reboot -h now
 reboot -h now
@@ -172,7 +193,6 @@ tail -f /var/log/messages
 ошибка:
 Jul 13 06:55:55 masterkub kubelet: E0713 06:55:55.831658    1708 run.go:74] "command failed" err="failed to validate kubelet flags: 
 the container runtime endpoint address was not specified or empty, use --container-runtime-endpoint to set"
-----------------------------------------------------------------------------------------------------------------------------
 
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
@@ -191,6 +211,13 @@ rm /etc/containerd/config.toml
 rm /etc/containerd/config.toml
 rm /etc/containerd/config.toml
 
+systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
+systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
+systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
+----------------------------------------------------------------------------------------------------------------------------
+
+
+
 ----------------------------------------------------------------------------------------------------------------------------
 Pull the images , извлекает образы для версии Kubernetes 1.26.
 sudo kubeadm config images pull --image-repository=registry.k8s.io --cri-socket unix:///run/containerd/containerd.sock --kubernetes-version v1.26.1
@@ -200,9 +227,6 @@ sudo kubeadm config images pull --image-repository=registry.k8s.io --cri-socket 
 
 ----------------------------------------------------------------------------------------------------------------------------
 запускаю команду инициализации kubeadm на узле плоскости управления.
-https://blog.kubesimplify.com/kubernetes-126
-https://blog.kubesimplify.com/kubernetes-126
-https://blog.kubesimplify.com/kubernetes-126
 Здесь CIDR сети pod зависит от CNI, который вы будете устанавливать позже, поэтому в этом случае я использую фланель 
 и --control-plane-endpoint буду общедоступным IP-адресом для экземпляра (это также может быть частный IP-адрес, 
 но если вы хотите получить доступ это из-за пределов узла с помощью Kubeconfig, тогда вам нужно указать общедоступный IP-адрес).
@@ -442,6 +466,10 @@ ip -4 addr show
 sudo ip link delete cni0;
 sudo ip link delete flannel.1;
 ---
+
+tail -f /var/log/messages
+tail -f /var/log/messages
+tail -f /var/log/messages
 ----------------------------------------------------------
 
 
@@ -485,6 +513,137 @@ kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       3
 
 
 
+пытаемся присоединиться к мастеру
+----------------------------------------------------------------------------------------------------------------------------
+rm /etc/containerd/config.toml
+rm /etc/containerd/config.toml
+rm /etc/containerd/config.toml
+
+systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
+systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
+systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
+
+
+kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33 --discovery-token-ca-cert-hash sha256:bbc69ceafaa3261fc3d7ce088f9f0837318d2e1dbc5f426b7de264f9c5bf64db
+
+
+---------------------------------
+[root@kub1 vorori]# kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33 \
+>         --discovery-token-ca-cert-hash sha256:bbc69ceafaa3261fc3d7ce088f9f0837318d2e1dbc5f426b7de264f9c5bf64db
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+---------------------------------
+
+---------------------------------
+[root@kub2 vorori]# kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33 --discovery-token-ca-cert-hash sha256:bbc69ceafaa3261fc3d7ce088f9f0837318d2e1dbc5f426b7de264f9c5bf64db
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+---------------------------------
+
+---------------------------------
+[root@kub3 vorori]# kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33 --discovery-token-ca-cert-hash sha256:bbc69ceafaa3261fc3d7ce088f9f0837318d2e1dbc5f426b7de264f9c5bf64db
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+---------------------------------
+
+
+
+можно скопировать файл kubeconfig с узла controlplane node управления (~/.kube/config ) 
+на локальный и экспортировать переменную KUBECONFIG или получить прямой доступ к кластеру с узла controlplane node.
+
+
+----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+проверяю на главном узле
+----------------------------------------------------------------------------------------------------------------------------
+[root@masterkub vorori]# kubectl get nodes
+NAME                             STATUS   ROLES           AGE     VERSION
+kub1.ru-central1.internal        Ready    <none>          35m     v1.26.1
+kub2.ru-central1.internal        Ready    <none>          35s     v1.26.1
+kub3.ru-central1.internal        Ready    <none>          16m     v1.26.1
+masterkub.ru-central1.internal   Ready    control-plane   4h30m   v1.26.1
+----------------------------------------------------------------------------------------------------------------------------
+
+
+важно! выделил  ---- ноды значения/наименования которых мы ввидем из разных команд
+----------------------------------------------------------------------------------------------------------------------------
+[root@masterkub vorori]# kubectl get nodes
+NAME                             STATUS   ROLES           AGE     VERSION
+----
+kub1.ru-central1.internal        Ready    <none>          37m     v1.26.1
+kub2.ru-central1.internal        Ready    <none>          3m16s   v1.26.1
+kub3.ru-central1.internal        Ready    <none>          18m     v1.26.1
+----
+masterkub.ru-central1.internal   Ready    control-plane   4h33m   v1.26.1
+[root@masterkub vorori]# kubectl get all -A
+NAMESPACE      NAME                                                         READY   STATUS    RESTARTS      AGE
+---
+kube-flannel   pod/kube-flannel-ds-7g8q2                                    1/1     Running   0             37m
+kube-flannel   pod/kube-flannel-ds-bsh77                                    1/1     Running   0             18m
+kube-flannel   pod/kube-flannel-ds-d82s6                                    1/1     Running   0             3m17s
+----
+kube-flannel   pod/kube-flannel-ds-rdp9t                                    1/1     Running   1 (63m ago)   4h30m
+kube-system    pod/coredns-787d4945fb-f98p8                                 1/1     Running   1 (63m ago)   4h33m
+kube-system    pod/coredns-787d4945fb-s78vs                                 1/1     Running   1 (63m ago)   4h33m
+kube-system    pod/etcd-masterkub.ru-central1.internal                      1/1     Running   2 (63m ago)   4h33m
+kube-system    pod/kube-apiserver-masterkub.ru-central1.internal            1/1     Running   2 (63m ago)   4h33m
+kube-system    pod/kube-controller-manager-masterkub.ru-central1.internal   1/1     Running   1 (63m ago)   4h33m
+kube-system    pod/kube-proxy-6knkk                                         1/1     Running   0             18m
+kube-system    pod/kube-proxy-8vf7j                                         1/1     Running   0             3m17s
+kube-system    pod/kube-proxy-9khtr                                         1/1     Running   1 (63m ago)   4h33m
+kube-system    pod/kube-proxy-n7xcg                                         1/1     Running   0             37m
+kube-system    pod/kube-scheduler-masterkub.ru-central1.internal            1/1     Running   2 (63m ago)   4h33m
+
+NAMESPACE     NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                  AGE
+default       service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP                  4h33m
+kube-system   service/kube-dns     ClusterIP   10.96.0.10   <none>        53/UDP,53/TCP,9153/TCP   4h33m
+
+NAMESPACE      NAME                             DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+kube-flannel   daemonset.apps/kube-flannel-ds   4         4         4       4            4           <none>                   4h30m
+kube-system    daemonset.apps/kube-proxy        4         4         4       4            4           kubernetes.io/os=linux   4h33m
+
+NAMESPACE     NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+kube-system   deployment.apps/coredns   2/2     2            2           4h33m
+
+NAMESPACE     NAME                                 DESIRED   CURRENT   READY   AGE
+kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       4h33m
+----------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -492,6 +651,17 @@ kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       3
 
 
 
+
+
+
+
+
+
+
+
+
+черновик 2
+----------------------------------------------------------------------------------------------------------------------------
 sudo systemctl enable --now kubelet && systemctl status kubelet
 
 kubectl apply -f https://raw.githubusercontent.com/techarkit/Linux_guides/master/kube-flannel.yml
@@ -533,6 +703,7 @@ id@machine:/# ip -4 addr show
 
 ip link delete cni0
 
+----------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -541,8 +712,7 @@ ip link delete cni0
 
 
 
-
-
+черновик 1:
 ----------------------------------------------------------------------------------------------------------------------------
 если надо сделать если вы уже создали предыдущий кластер
 kubeadm reset
@@ -550,7 +720,7 @@ kubeadm reset
 kubeadm reset
 
 
-черновик:
+
 kubeadm init
 kubeadm init --apiserver-advertise-address=10.129.0.36 --pod-network-cidr=192.168.0.0/16
 kubeadm init --apiserver-advertise-address=10.129.0.12
