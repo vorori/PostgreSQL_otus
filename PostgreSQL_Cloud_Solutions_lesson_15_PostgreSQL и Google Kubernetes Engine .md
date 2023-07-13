@@ -657,17 +657,104 @@ kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       4
 
 
 
+разворачиваем цитус
+----------------------------------------------------------------------------------------------------------------------------
+cd /tmp
+git clone https://github.com/docteurklein/citus-test.git
+git clone https://github.com/docteurklein/citus-test.git
+git clone https://github.com/docteurklein/citus-test.git
+
+
+
+k3d cluster create -c k3d.yaml
+
+kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.4/cert-manager.yaml
+
+-----------
+[root@masterkub citus-test]# kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.4/cert-manager.yaml
+customresourcedefinition.apiextensions.k8s.io/certificaterequests.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/certificates.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/challenges.acme.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/clusterissuers.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/issuers.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/orders.acme.cert-manager.io created
+namespace/cert-manager created
+serviceaccount/cert-manager-cainjector created
+serviceaccount/cert-manager created
+serviceaccount/cert-manager-webhook created
+clusterrole.rbac.authorization.k8s.io/cert-manager-cainjector created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-issuers created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-certificates created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-orders created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-challenges created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
+clusterrole.rbac.authorization.k8s.io/cert-manager-view created
+clusterrole.rbac.authorization.k8s.io/cert-manager-edit created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-approve:cert-manager-io created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-certificatesigningrequests created
+clusterrole.rbac.authorization.k8s.io/cert-manager-webhook:subjectaccessreviews created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-cainjector created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-issuers created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-certificates created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-orders created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-challenges created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-approve:cert-manager-io created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-certificatesigningrequests created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-webhook:subjectaccessreviews created
+role.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
+role.rbac.authorization.k8s.io/cert-manager:leaderelection created
+role.rbac.authorization.k8s.io/cert-manager-webhook:dynamic-serving created
+rolebinding.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
+rolebinding.rbac.authorization.k8s.io/cert-manager:leaderelection created
+rolebinding.rbac.authorization.k8s.io/cert-manager-webhook:dynamic-serving created
+service/cert-manager created
+service/cert-manager-webhook created
+deployment.apps/cert-manager-cainjector created
+deployment.apps/cert-manager created
+deployment.apps/cert-manager-webhook created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+-----------
+
+
+
+kubectl create secret generic citus-secrets --from-literal "password=$(openssl rand -base64 23)"
+kubectl apply -f k8s
+
+
+[root@masterkub citus-test]# kubectl apply -f k8s
+service/citus created
+statefulset.apps/citus created
+service/citus configured
+configmap/pg-hba created
+statefulset.apps/citus configured
+service/citus-coordinator-replica created
+statefulset.apps/citus-coordinator-replica created
+service/citus-coordinator created
+configmap/pg-hba unchanged
+statefulset.apps/citus-coordinator created
+service/citus-worker created
+statefulset.apps/citus-worker created
+resource mapping not found for name: "citus-issuer" namespace: "" from "k8s/tls.yaml": no matches for kind "Issuer" in version "cert-manager.io/v1"
+ensure CRDs are installed first
+resource mapping not found for name: "citus-cert" namespace: "" from "k8s/tls.yaml": no matches for kind "Certificate" in version "cert-manager.io/v1"
+ensure CRDs are installed first
+[root@masterkub citus-test]# kubectl get nodes
 
 
 
 
 
 
+kubectl exec -it sts/citus-coordinator -- psql -U postgres < sql/schema.sql
+kubectl exec -it sts/citus-coordinator -- psql -U postgres < sql/fixtures.sql
 
+https://masterkub.ru-central1.internal:8080
 
-
-
-
+----------------------------------------------------------------------------------------------------------------------------
 
 
 черновик 2
