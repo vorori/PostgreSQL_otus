@@ -10,6 +10,16 @@ https://blog.kubesimplify.com/kubernetes-126
 https://blog.kubesimplify.com/kubernetes-126
 https://blog.kubesimplify.com/kubernetes-126
 
+What is Citus?
+https://github.com/citusdata/citus
+https://github.com/citusdata/citus
+https://github.com/citusdata/citus
+
+
+manual Citusdata to GKE
+https://github.com/citusdata/citus/issues/425
+https://github.com/citusdata/citus/issues/425
+https://github.com/citusdata/citus/issues/425
 
 
 #### 0)
