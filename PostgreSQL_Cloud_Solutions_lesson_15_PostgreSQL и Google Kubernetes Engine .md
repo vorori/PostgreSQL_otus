@@ -5,6 +5,10 @@ https://www.youtube.com/watch?v=5JBLITD3u6I
 https://www.youtube.com/watch?v=5JBLITD3u6I
 https://www.youtube.com/watch?v=5JBLITD3u6I
 
+https://www.youtube.com/watch?v=XfWE7NqgbLE&list=PLmxqUDFl0XM6pr2y6tK51cHOFajhFsWG8&index=4
+https://www.youtube.com/watch?v=XfWE7NqgbLE&list=PLmxqUDFl0XM6pr2y6tK51cHOFajhFsWG8&index=4
+https://www.youtube.com/watch?v=XfWE7NqgbLE&list=PLmxqUDFl0XM6pr2y6tK51cHOFajhFsWG8&index=4 
+
 Kubernetes 1.26 — электрифицирующая установка релиза
 https://blog.kubesimplify.com/kubernetes-126
 https://blog.kubesimplify.com/kubernetes-126
@@ -21,6 +25,17 @@ https://github.com/citusdata/citus/issues/425
 https://github.com/citusdata/citus/issues/425
 https://github.com/citusdata/citus/issues/425
 
+
+Шпаргалка по kubectl
+https://kubernetes.io/ru/docs/reference/kubectl/cheatsheet/
+https://kubernetes.io/ru/docs/reference/kubectl/cheatsheet/
+https://kubernetes.io/ru/docs/reference/kubectl/cheatsheet/
+
+
+PVC. Как создать и привязать к поду
+https://support.edgecenter.ru/knowledge_base/item/289604
+https://support.edgecenter.ru/knowledge_base/item/289604
+https://support.edgecenter.ru/knowledge_base/item/289604
 
 #### 0)
 
@@ -425,6 +440,36 @@ kubectl get pods --all-namespaces -o wide
 kubectl get pods --all-namespaces -o wide
 kubectl get pods --all-namespaces -o wide
 
+#Это предоставит информацию обо всех deployments во всех namespaces
+kubectl get deployments --all-namespaces
+kubectl get deployments --all-namespaces
+kubectl get deployments --all-namespaces
+
+#Это предоставит информацию обо всех deployments в namespaces cert-manager
+kubectl get deployments -n cert-manager
+kubectl get deployments -n cert-manager
+kubectl get deployments -n cert-manager
+
+
+#Это предоставит информацию обо всех модулях, развертываниях, службах и заданиях в пространстве имен.
+kubectl get pods,services,deployments,jobs
+kubectl get pods,services,deployments,jobs
+kubectl get pods,services,deployments,jobs
+
+#Это предоставит информацию о сервисахесли
+kubectl get services
+kubectl get services
+kubectl get services
+
+#Это предоставит информацию о пространствах имен
+kubectl get namespace
+kubectl get namespace
+kubectl get namespace
+
+#Чтобы перечислить все развертывания:
+kubectl get deployments --all-namespaces
+kubectl get deployments --all-namespaces
+kubectl get deployments --all-namespaces
 
 kubectl get all
 kubectl get all
@@ -434,6 +479,11 @@ kubectl get all
 kubectl get all -A
 kubectl get all -A
 kubectl get all -A
+
+kubectl get all --all-namespaces
+kubectl get all --all-namespaces
+kubectl get all --all-namespaces
+
 
 kubectl get pods
 kubectl get pods
@@ -591,9 +641,56 @@ Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
 
 
 
+---------------------------------
+
 можно скопировать файл kubeconfig с узла controlplane node управления (~/.kube/config ) 
 на локальный и экспортировать переменную KUBECONFIG или получить прямой доступ к кластеру с узла controlplane node.
 
+cat /etc/kubernetes/admin.conf
+cat /etc/kubernetes/admin.conf
+cat /etc/kubernetes/admin.conf
+
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMvakNDQWVhZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJek1EY3hNekE1TXpnMU9Gb1hEVE16TURjeE1EQTVNemcxT0Zvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTmhaCk1rRnVWenEyOHVRcWZtRnphR2dCQWt3R1BNNEFJSkdudnZYSHBDVlNKM2tZU0dseXNuM1hjUExRTXlRRUpwVnIKbU5GOXMxdDI3V1BjQVBDZVM5RkNsZEFZamVJaENReEtUcXRGZjZwSjJoY2ZocGpIVjJaenBsTWlxNTBqU1FBagozcGZzYXlNWnJBODBxVmtGcS9Nb3JyNjloTkhHNE9NM0dMVmJiM2o1U0NHTDQvMFFHcEZkWmVPMXhtOTByVzZOCi9OY2l5ZlFrcVlHdXBBaEhqcGRCUkJvSnBJdXdmYUpwMDFYYUVxbkUvVkZ4SU1ETzNQUkVXR0xqRjRtT3NoNHgKc2YvNFRaMzRYb0Jta1V0cjh1cTh2WDhjM3ZGNXgzY045OXlmRlRWbFcrV2kxbWo0SUdKeXBzZ3NGNUcwUjVtdwpCWGRtcFkyVFdNVjNvSDlPa1Y4Q0F3RUFBYU5aTUZjd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0hRWURWUjBPQkJZRUZCS2RMcEgzWGsrYmhLdFVlWDZQSC9zcWtrck5NQlVHQTFVZEVRUU8KTUF5Q0NtdDFZbVZ5Ym1WMFpYTXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBRzVTYU9nQWNNV1lJTmNka2JlZQpRWjVQVzY3MVBRTWxFTTNOYUIrdEQ1REY3VmEyRTRNRTRlb2NkSy83TGZxa3prUGlsM0NvZWtTRVJvZW5CU3NCCk9reW1XaVpWdVJBWGs2QVdVdEMrRHVkNEpib2cwSXNFRCswYlZuZ1paZEsvQUl1Z1pEL01CTGMydTZnZVprb2QKU28xUXYzaGd3MVUrbzZNK2FBVWk3K2U0RjBESXR0VTNUNXgyZ3BwMUdkU1pIRzVtOXh6ZGpIeVpKM1hRb2R2Rwo5d0I0MG9GMGEzSkdYandSekRqU0s0Ri9oUmVsUndxenVaaEpVNXYycjBUVmdyVUszcUpnNDhGSFkzWmVtOWVUCjlKRGJteW1XYkorRmdHQi90NjBJUU1oS2pqOEZucXIyT1hsdmJuaVZjUXp1YVBTcENSOHVGM3ZXcEdOZU5Za1MKSjkwPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+    server: https://masterkub.ru-central1.internal:6443
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    user: kubernetes-admin
+  name: kubernetes-admin@kubernetes
+current-context: kubernetes-admin@kubernetes
+kind: Config
+preferences: {}
+users:
+- name: kubernetes-admin
+  user:
+    client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURJVENDQWdtZ0F3SUJBZ0lJTktFK3RRT1NLeFF3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TXpBM01UTXdPVE00TlRoYUZ3MHlOREEzTVRJd09UTTVNREZhTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXNaWVJZZE5CUHJZdXhDOTMKWk92eEJSSXU0S0F0U0g2bVlPelNZcTMzbEJCWkFJdUNpRjlGWnczMnZpSi9vbXhEZVlhMWw2czVsYndqNDNvUwpmSThxaS9mdDk3bUF3R2s5cThYQUVIUjRoMFo4QnRQR1VlSW11NUJtamJpS2VCQy9CQnpXUnYydTFHVCtRZlcyCnFXd0FaRS9VNUIwK1Z5VHJFeEEwbFE0WnU4d0VLTEtmczhXeFM2Y2RYK3Rkbi9Qams1OGZmTElyUXp5ZHM1Vm8KaGV4eVcxMHNwRkNjSDVwQktDT3JpUXRPL3RRWTBudjl2VzBVSEgydXNhL2c4eUF4N3JsejlYUU5NMENYc3ptSQpvRW9yeDNGRjkzcnBQaGNMRmJqR2kxWmlVakF4TWllZTltRnBWQStJSGpGdVBFck05UU0vanZDVUozalh1WHJvCkkvd2RzUUlEQVFBQm8xWXdWREFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RBWURWUjBUQVFIL0JBSXdBREFmQmdOVkhTTUVHREFXZ0JRU25TNlI5MTVQbTRTclZIbCtqeC83S3BKSwp6VEFOQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBWkI5MFFldmE0N2UrVUNYd2pmWkF3RzhwS1ZZdTBuODEzbko5CnFHamROZ0FJdm9SaGhoSFNXcERsUzVObGpWckorSWE4Zk50RC9HcTNxOG1kVmhmdDZLR2Mxa1FWUEFVMkNycXUKQjFYYUUraUxtSVZQUWRvS2R2MTR1WDQrTHQwQ0NORGNZWlNWd3hHT0xCZXcvakVXVitUa0ViSlJTbDlMOHlVSApsYitOOHNNOWtBOE5sdGhnNGFNcS8wb05Nek1xYm05bTQ3T3RwWXhGTkp0bGd5VDJxWXpWczJES1NkYm1ZdGVQCjZ3OS9PcHkwNGtqTUJHWTdxVnJudkY3OWhJeVlSUlNwb0tiR29ucFZPRkcxbTgrYmg3SEJuYmZtTGVQcmNnbWsKQ3hST2JVcEtRTThvNlJ2WjhxZlI2MGFMTWdVaTFjbVNVRllUYUFEclVpTHlsNkhobGc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+    client-key-data: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcEFJQkFBS0NBUUVBc1pZUllkTkJQcll1eEM5M1pPdnhCUkl1NEtBdFNINm1ZT3pTWXEzM2xCQlpBSXVDCmlGOUZadzMydmlKL29teERlWWExbDZzNWxid2o0M29TZkk4cWkvZnQ5N21Bd0drOXE4WEFFSFI0aDBaOEJ0UEcKVWVJbXU1Qm1qYmlLZUJDL0JCeldSdjJ1MUdUK1FmVzJxV3dBWkUvVTVCMCtWeVRyRXhBMGxRNFp1OHdFS0xLZgpzOFd4UzZjZFgrdGRuL1BqazU4ZmZMSXJRenlkczVWb2hleHlXMTBzcEZDY0g1cEJLQ09yaVF0Ty90UVkwbnY5CnZXMFVISDJ1c2EvZzh5QXg3cmx6OVhRTk0wQ1hzem1Jb0VvcngzRkY5M3JwUGhjTEZiakdpMVppVWpBeE1pZWUKOW1GcFZBK0lIakZ1UEVyTTlRTS9qdkNVSjNqWHVYcm9JL3dkc1FJREFRQUJBb0lCQUR6blJwYlNLTElsTU95LwppcWJsOUFiVk1aWi8ySWZnUjVjK0lQa095TFhTMVhOR1pVSDN5b21KVkhIb3l2VWRSQmJOaUVHM3kwdjY5aVB4Cm5aMXlUQmtzc2tRZkxuVE9vd1BpRWZpU3VUTkxqUVdhWTQxNWplY05vdDQveDkxZGdPVWNMckN5Rjk5bnMzdFQKbFkyTktLVSthN2kvL3IxTVFBS05zRHJlVnh6OFRDVFErVHZHQVdUUjVjSTRweWZsTkFyUkx5ZllRYyszL2Q4QQp6VWNUUmVQdWNFbkFoa2hrVkZ5N2ZyZjgvMFR2WlBGZXdDRkpVVVRzNCtWK2RSNWNEd3AzQlVwVjdNdEhMVm5oClA3WmZOYTBGTnlabDFXN3V2SS84N0VTM1NURmJZWE1OQXFDR1FlbnlEcGhrTHFObnV0VDBlMHZwemtTQ1c3SzgKSVQ3eC9uRUNnWUVBNlpzd3Iwd1hoaG5JcU9XaHhTZ0JuZTlabCtKNUVzalRRWkhXV2hPRGdyN1ExeTV2ZVdEcAo3Z1FqeEZ3ZVZSZ0hGcWwwY3VSQ3d3b21mM2R2M1ZCOVpWRjBkTENvWXdTRFJvZTFCSXRXTGVNb0NZT3dMRTFkCmozcFd4VVhhL3VCNTUrS2ppdjQzWWVVNzFYdnRBOU1jd2hFdnJhZFJ6c0thU3dUMm4wU3JDY3NDZ1lFQXdwd2UKbUhkY2p0am1JQTNmbTZiSEZRZDhsc01ZeG1FOStBeHdnaC9aZFJ4TE9meGN5TXl3LytRVXV1VzRGdjRCaEhQTAo0enZVeGFJbDRTZ1hLYmJDaWRjeXIxZHdQSUcwUGxkL3F5RitpYzJRZlZWd0h5aUlnd3czb2FzaGVqZDY3NGZCCkVEZE13Mmp6T0F6a0VXUlMxRTAyd0NTMEJjb0JOOXhLMVlhVE52TUNnWUFrQXhlTFBvaTExSTI1YzhUdmRzNWgKQVgvblNUTnU4T1NZVEJvbVFySFlXd0FvMi9DMVhucFJoZlBabG5YYW1seWxZclFmN2c1WXNOemtjNDRjS1FkYgpzaVhvd3o4Q0hMVDhEM21aWEwySlQyWmhxUnBraWZ5dFhLZTV1NTRhQXBMb2Eyall5WDNTS3B1QnVwdjhKZlJkCituWkdKL0FWbHF4Z2VrQm1weGhTNXdLQmdRQzNRZkNGdnBESWEzTjQ1OWVUYVYrN2E4dGs1Tjhsb0ZpTWhwcEQKenQ0bHE3a2pKNFB3Q3VENmRyc1dyRS9JUnZVQzExQTk4UStSOC9rYnAzYjRid09PYmJscTZEbm1vSFVzNTVSdgpnQ0Q2ZnpyNjYwT2o4N1ZwUWszNHpYKys2Uk81RCtzNzYvYzdaRTcwang4TlNaMitFZC9tM0NreDhtRm5TdWlsClhnNnZCUUtCZ1FDUHJGd095TGxobGc0cVZYbnY3eXRUVWVnS2NUQk9uSU93VVBEWXBBemJWaDIwWmlFbUhiZ3YKckY2YlhmK0hlcWZSRVpLWjl1RzM5ckZESVRFOC9IUDE2QWUvWlc0Z3M2VSt3dmU4WjdZc1BxZ2dadnE3RHRMOQoyQUgvQlVyS0pNTGhnVkl1TzluVzlTaDVhWERFWXhVeFhpTFcveVFIUjNzWmdEeVlYcmIwK1E9PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+
+
+vim $HOME/.kube/config
+vim $HOME/.kube/config
+vim $HOME/.kube/config
+
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+
+проверяем
+kubectl get nodes
+kubectl get nodes
+kubectl get nodes
+
+[root@kub1 vorori]# kubectl get nodes
+NAME                             STATUS   ROLES           AGE   VERSION
+kub1.ru-central1.internal        Ready    <none>          16h   v1.26.1
+kub2.ru-central1.internal        Ready    <none>          16h   v1.26.1
+kub3.ru-central1.internal        Ready    <none>          16h   v1.26.1
+masterkub.ru-central1.internal   Ready    control-plane   20h   v1.26.1
 
 ----------------------------------------------------------------------------------------------------------------------------
 
@@ -657,7 +754,548 @@ kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       4
 
 
 
-разворачиваем цитус
+разворачиваем цитус  time  1.08
+----------------------------------------------------------------------------------------------------------------------------
+mkdir /tmp/citus
+
+echo -n '2338484' | base64 
+echo -n '2338484' | base64 
+echo -n '2338484' | base64 
+
+-- пароль
+-- посмотреть 
+echo 'MjMzODQ4NA==' | base64 -d
+echo 'MjMzODQ4NA==' | base64 -d
+echo 'MjMzODQ4NA==' | base64 -d
+
+-------------
+vim /tmp/citus/postgres-storage.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-pv-claim
+  labels:
+    app: postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+-------------
+
+
+-------------
+vim /tmp/citus/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: citus-secrets
+type: Opaque
+data:
+  password: MjMzODQ4NA==
+-------------
+
+-------------
+vim /tmp/citus/master.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: citus-master-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: citus-master
+  labels:
+    app: citus-master
+spec:
+  selector:
+    app: citus-master
+  type: NodePort
+  ports:
+  - port: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: citus-master
+spec:
+  selector:
+    matchLabels:
+      app: citus-master
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: citus-master
+    spec:
+      containers:
+      - name: citus
+        image: citusdata/citus:7.3.0
+        ports:
+        - containerPort: 5432
+        env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: citus-secrets
+              key: password
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: citus-secrets
+              key: password
+        volumeMounts:
+        - name: storage
+          mountPath: /var/lib/postgresql/data
+        livenessProbe:
+          exec:
+            command:
+            - ./pg_healthcheck
+          initialDelaySeconds: 60
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: citus-master-pvc
+-------------
+
+        volumeMounts:
+        - name: postgredb
+          mountPath: /var/lib/postgresql/data
+          subPath: postgres
+  volumeClaimTemplates:
+  - metadata:
+      name: postgredb
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: standard
+      resources:
+        requests:
+          storage: 10Gi
+
+
+пример!!!!!!!!!!!!
+-------------
+vim /tmp/citus/master.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  type: NodePort
+  ports:
+   - port: 5432
+  selector:
+    app: postgres
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-statefulset
+spec:
+  serviceName: "postgres"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:latest
+        ports:
+        - containerPort: 5432
+          name: postgredb
+        env:
+          - name: POSTGRES_DB
+            value: myapp
+          - name: POSTGRES_USER
+            value: myuser
+          - name: POSTGRES_PASSWORD
+            value: passwd
+        volumeMounts:
+        - name: postgredb
+          mountPath: /var/lib/postgresql/data
+          subPath: postgres
+  volumeClaimTemplates:
+  - metadata:
+      name: postgredb
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: standard
+      resources:
+        requests:
+          storage: 1Gi
+
+-------------
+
+
+
+-------------
+vim /tmp/citus/workers.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: citus-workers
+  labels:
+    app: citus-workers
+spec:
+  selector:
+    app: citus-workers
+  clusterIP: None
+  ports:
+  - port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: citus-worker
+spec:
+  selector:
+    matchLabels:
+      app: citus-workers
+  serviceName: citus-workers
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: citus-workers
+    spec:
+      containers:
+      - name: citus-worker
+        image: citusdata/citus:10.1-pg12
+        lifecycle:
+          postStart:
+            exec:
+              command: 
+              - /bin/sh
+              - -c
+              - if [ ${POD_IP} ]; then psql --host=citus-master --username=postgres --command="SELECT * from master_add_node('${HOSTNAME}.citus-workers', 5432);" ; fi
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: citus-secrets
+              key: password
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: citus-secrets
+              key: password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: storage
+          mountPath: /var/lib/postgresql/data
+        livenessProbe:
+          exec:
+            command:
+            - ./pg_healthcheck
+          initialDelaySeconds: 60
+  volumeClaimTemplates:
+  - metadata:
+      name: storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
+-------------
+
+
+#выполняем
+kubectl apply -f /tmp/citus/postgres-storage.yaml
+kubectl get pvc -o wide
+kubectl get pv -o wide
+
+
+kubectl create -f /tmp/citus/secrets.yaml
+kubectl apply -f /tmp/citus/master.yaml
+kubectl apply -f /tmp/citus/workers.yaml
+
+kubectl get all
+kubectl get pods
+
+
+----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------------------
+
+-- настроим Citus руками в кубере
+-- вспоминаем, что с нодами кластера
+kubectl cluster-info
+kubectl get nodes
+
+!!!!!
+-- Citus в кубере нет, но один китаец таки смог:
+-- https://www.google.com/search?client=firefox-b-d&q=citus+kubernetes
+-- https://github.com/aeuge/citus-k8s
+-- образ старый 7.3.0, но не бесполезный
+-- посмотрим скрипты
+cd citus
+nano secrets.yaml
+nano master.yaml
+nano workers.yaml
+!!!!!
+
+
+time 1.10
+!!! не забываем указывать -n для переноса строки - посмотрим разницу
+!!! echo 'otus321$' | base64 -- худший!!!!!
+!!! echo 'otus321$' | base64 -- худший!!!!!
+!!! echo 'otus321$' | base64 -- худший!!!!!
+
+
+!!! echo -n 'otus321$' | base64   --- вот лучший способ при кодировании!!!!!!!!!!
+!!! echo -n 'otus321$' | base64   --- вот лучший способ при кодировании!!!!!!!!!!
+!!! echo -n 'otus321$' | base64   --- вот лучший способ при кодировании!!!!!!!!!!
+
+
+kubectl create -f secrets.yaml
+kubectl create -f master.yaml
+-- чуть позже запускаем, после создания мастера
+-- есть вероятность, что kubectl apply -f . не отработает
+kubectl get all
+kubectl create -f workers.yaml
+
+-- обратите внимание, что мастер имеет случайное название, на воркеры строго определенное
+kubectl get all
+
+kubectl exec -it pod/citus-master-5bff7bc99c-rxl5b -- bash
+psql -U postgres
+SELECT * FROM master_get_active_worker_nodes(); 
+create database test;
+
+-- Заапргейдим наш цитус, добавив лоад балансер и еще 1 ноду
+kubectl delete -f .
+kubectl get pvc
+kubectl get secrets
+gcloud compute disks list
+cd ../citus_LB
+kubectl create -f secrets.yaml
+nano master.yaml
+kubectl create -f master.yaml
+
+kubectl apply -f workers.yaml
+
+kubectl get all
+
+-- посмотреть секреты
+kubectl get secret citus-secrets -o yaml
+
+-- пароль otus321$
+-- посмотреть 
+echo 'b3R1czMyMSQ=' | base64 -d
+
+
+kubectl get service
+psql -h 34.31.239.206 -U postgres --password -p 5432
+-- почему нет БД test?
+
+SELECT * FROM master_get_active_worker_nodes();
+
+
+-- добавим еще 1 ноду, для этого просто отредактируем стейтфул сет
+nano workers.yaml
+kubectl apply -f workers.yaml
+
+
+kubectl get all
+psql -h 35.192.66.109 -U postgres --password -p 5432
+SELECT * FROM master_get_active_worker_nodes();
+
+-- удалим все
+kubectl delete all,ing,secrets,pvc,pv --all
+
+
+-- посмотрим на сборки Цитуса
+-- https://hub.docker.com/r/citusdata/citus/
+
+/* описание проблем
+
+-- если мы просто удалим наш деплоймент kubectl delete -f . , pvc все равно остануться
+
+-- после попыток развернуть 9.4.0 вернулся к 7.3.0
+-- kubectl logs pod/citus-master-68959cc849-btn9l
+-- 2020-08-18 10:26:24.838 UTC [1] FATAL:  DATABASE files are incompatible with server
+-- 2020-08-18 10:26:24.838 UTC [1] DETAIL:  The data directory was initialized by PostgreSQL version 12, which is not compatible with this version 10.3 (Debian 10.3-1.pgdg90+1).
+-- обязательно чистим pvc
+
+-- 8.0 у меня собрана нормально
+
+-- проблема в версии > 8.0.0 идет добавление по HOSTNAME, а там добавляется в образ хуки на постсоздание
+-- и они не видят кластер, а так как контенер без хуков не заканчивает сборку, hostname тоже не получается
+ if [ ${POD_IP} ]; then psql --host=citus-master --username=postgres 
+ --command="SELECT * FROM master_add_node('${HOSTNAME}.citus-workers', 5432);" ; fi 
+
+-- версия 9.3
+-- поэтому сделал версию с заменой HOSTNAME на POD_IP
+-- но нужно потом решить проблему со сменой ip - поменять имена нод
+
+
+*/
+
+-- потраим 10.1-pg12
+cd ../citus_10.1pg12
+kubectl create -f secrets.yaml
+-- версия мастера - старый образ citusdata/citus:7.3.0 
+nano master.yaml
+kubectl create -f master.yaml
+nano workers.yaml
+kubectl apply -f workers.yaml
+
+kubectl get all
+
+kubectl exec -it pod/citus-master-5bff7bc99c-hl559 -- bash
+psql -U postgres
+SELECT * FROM master_get_active_worker_nodes();
+-- psql (10.3 (Debian 10.3-1.pgdg90+1))
+
+
+
+-- варианты загрузки в citus - внутри контейнера
+mkdir /home/1
+chmod 777 /home/1
+cd /home/1
+apt-get update
+apt-get install wget
+wget https://storage.googleapis.com/postgres13/1000000SalesRecords.csv
+
+psql -U postgres
+CREATE TABLE test (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    Region VARCHAR(50),
+    Country VARCHAR(50),
+    ItemType VARCHAR(50),
+    SalesChannel VARCHAR(20),
+    OrderPriority VARCHAR(10),
+    OrderDate VARCHAR(10),
+    OrderID int,
+    ShipDate VARCHAR(10),
+    UnitsSold int,
+    UnitPrice decimal(12,2),
+    UnitCost decimal(12,2),
+    TotalRevenue decimal(12,2),
+    TotalCost decimal(12,2),
+    TotalProfit decimal(12,2)
+);
+-- 2 вариант -- до версии 9.5 (версия citus)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE TABLE test (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v1(),
+    Region VARCHAR(50),
+    Country VARCHAR(50),
+    ItemType VARCHAR(50),
+    SalesChannel VARCHAR(20),
+    OrderPriority VARCHAR(10),
+    OrderDate VARCHAR(10),
+    OrderID int,
+    ShipDate VARCHAR(10),
+    UnitsSold int,
+    UnitPrice decimal(12,2),
+    UnitCost decimal(12,2),
+    TotalRevenue decimal(12,2),
+    TotalCost decimal(12,2),
+    TotalProfit decimal(12,2)
+);
+
+\timing
+SELECT create_distributed_table('test', 'id');
+-- ERROR:  function public.uuid_generate_v1() does not exist
+kubectl exec -it pod/citus-worker-0 -- psql -U postgres -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
+kubectl exec -it pod/citus-worker-1 -- psql -U postgres -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
+kubectl exec -it pod/citus-worker-2 -- psql -U postgres -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
+
+copy test (Region,Country,ItemType,SalesChannel,OrderPriority,OrderDate,OrderID,ShipDate,UnitsSold,UnitPrice,UnitCost,TotalRevenue,TotalCost,TotalProfit) FROM '/home/1/1000000SalesRecords.csv' DELIMITER ',' CSV HEADER;
+-- или клиент сайд 
+-- \copy test (Region,Country,ItemType,SalesChannel,OrderPriority,OrderDate,OrderID,ShipDate,UnitsSold,UnitPrice,UnitCost,TotalRevenue,TotalCost,TotalProfit) FROM '/home/1/1000000SalesRecords.csv' DELIMITER ',' CSV HEADER;
+
+-- вариант с координатором на 10.1
+nano master2.yaml
+kubectl delete -f master.yaml
+kubectl apply -f master2.yaml
+
+kubectl get all
+
+kubectl exec -it pod/citus-master-6cb9c775c4-7sfxq -- bash
+psql -U postgres
+SELECT * FROM master_get_active_worker_nodes();
+SELECT * from master_add_node('citus-worker-0.citus-workers', 5432);
+SELECT * from master_add_node('citus-worker-1.citus-workers', 5432);
+SELECT * from master_add_node('citus-worker-2.citus-workers', 5432);
+SELECT rebalance_table_shards('test');
+
+-- зайдем на сегменты
+kubectl exec -it pod/citus-worker-0 -- bash
+psql -U postgres
+select * from test;
+\dt
+
+-- удалим все
+kubectl delete all,ing,secrets,pvc,pv --all
+
+
+-- посмотрим на версию от Алексея
+cd ../Alexey10.1pg12
+ls -l
+
+
+
+
+gcloud container clusters delete citus --zone us-central1-c
+--посмотрим, что осталось от кластера
+gcloud compute disks list
+----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+разворачиваем цитус черновик
 ----------------------------------------------------------------------------------------------------------------------------
 cd /tmp
 git clone https://github.com/docteurklein/citus-test.git
@@ -669,6 +1307,7 @@ git clone https://github.com/docteurklein/citus-test.git
 k3d cluster create -c k3d.yaml
 
 kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.4/cert-manager.yaml
+kubectl delete -f https://github.com/jetstack/cert-manager/releases/download/v1.5.4/cert-manager.yaml
 
 -----------
 [root@masterkub citus-test]# kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.4/cert-manager.yaml
@@ -802,12 +1441,251 @@ ip link delete cni0
 
 ----------------------------------------------------------------------------------------------------------------------------
 
+вспомогательные команды
+----------------------------------------------------------
+kubectl get pods --all-namespaces -o wide
+kubectl get pods --all-namespaces -o wide
+kubectl get pods --all-namespaces -o wide
+
+#Это предоставит информацию обо всех deployments во всех namespaces
+kubectl get deployments --all-namespaces
+kubectl get deployments --all-namespaces
+kubectl get deployments --all-namespaces
+
+#Это предоставит информацию обо всех deployments в namespaces cert-manager
+kubectl get deployments -n cert-manager
+kubectl get deployments -n cert-manager
+kubectl get deployments -n cert-manager
+
+
+#Это предоставит информацию обо всех модулях, развертываниях, службах и заданиях в пространстве имен.
+kubectl get pods,services,deployments,jobs
+kubectl get pods,services,deployments,jobs
+kubectl get pods,services,deployments,jobs
+
+#Это предоставит информацию о сервисахесли
+kubectl get services
+kubectl get services
+kubectl get services
+
+#Это предоставит информацию о пространствах имен
+kubectl get namespace
+kubectl get namespace
+kubectl get namespace
+
+#Чтобы перечислить все развертывания:
+kubectl get deployments --all-namespaces
+kubectl get deployments --all-namespaces
+kubectl get deployments --all-namespaces
+
+kubectl get all
+kubectl get all
+kubectl get all
+
+#показать все поды даже системные
+kubectl get all -A
+kubectl get all -A
+kubectl get all -A
+
+kubectl get all --all-namespaces
+kubectl get all --all-namespaces
+kubectl get all --all-namespaces
+
+
+kubectl get pods
+kubectl get pods
+kubectl get pods
+
+kubectl get nodes
+kubectl get nodes
+kubectl get nodes
+
+#А вот для проверки PV и PVC необходимо выполнить следующую команду :
+kubectl apply -f /tmp/citus/postgres-storage.yaml
+kubectl get pvc -o wide
+kubectl get pv -o wide
+
+kubectl get pv
+kubectl describe pv
+kubectl get pvc
+kubectl describe pvc
+kubectl get pv
+kubectl get all -o wide
+
+-- посмотрим дефолтный тип стораджа
+kubectl get storageclasses
+
+kubectl get pvc -o wide
+kubectl get pv -o wide
+
+
+#прозвонить pod
+kubectl describe pod -n kube-system etcd-masterkub.ru-central1.internal
+kubectl describe pod -n kube-system etcd-masterkub.ru-central1.internal
+kubectl describe pod -n kube-system etcd-masterkub.ru-central1.internal
+
+#логи pod
+kubectl logs --namespace kube-system etcd-masterkub.ru-central1.internal
+kubectl logs --namespace kube-system etcd-masterkub.ru-central1.internal
+kubectl logs --namespace kube-system etcd-masterkub.ru-central1.internal
+kubectl logs --namespace kube-system kube-flannel-ds-amd64-5fx2p
+kubectl logs --namespace kube-system kube-flannel-ds-amd64-5fx2p
+kubectl logs --namespace kube-system kube-flannel-ds-amd64-5fx2p
+
+kubectl logs pod_name(необязательно с -n namespace_name)
+kubectl logs pod_name(необязательно с -n namespace_name)
+kubectl logs pod_name(необязательно с -n namespace_name)
+
+kubectl logs citus-master-5bff7bc99c-5qw7g
+
+#Запустите команду ниже, чтобы получить события. Это покажет проблему (и все другие события), почему модуль не запланирован.
+kubectl get events
+kubectl get events
+kubectl get events
+
+0/4 nodes are available: pod has unbound immediate PersistentVolumeClaims. preemption: 0/4 nodes are available: 4 No preemption victims found for incoming pod..
+
+---
+смотрим интерфейсы
+ip -4 addr show
+ip -4 addr show
+ip -4 addr show
+
+Удалите интерфейс cni0и файлы flannel.1.
+sudo ip link delete cni0;
+sudo ip link delete flannel.1;
+---
+
+tail -f /var/log/messages
+tail -f /var/log/messages
+tail -f /var/log/messages
+----------------------------------------------------------
 
 
 
 
 
 
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------------------
+требуется удалить ненужные поды
+
+https://stackoverflow.com/questions/40686151/kubernetes-pod-gets-recreated-when-deleted
+https://stackoverflow.com/questions/40686151/kubernetes-pod-gets-recreated-when-deleted
+https://stackoverflow.com/questions/40686151/kubernetes-pod-gets-recreated-when-deleted
+
+
+------------
+kubectl delete -f k8s
+kubectl delete -f k8s
+kubectl delete -f k8s
+[root@masterkub citus-test]# kubectl delete -f k8s
+statefulset.apps "citus" deleted
+configmap "pg-hba" deleted
+statefulset.apps "citus-coordinator-replica" deleted
+statefulset.apps "citus-coordinator" deleted
+statefulset.apps "citus-worker" deleted
+------------
+
+------------
+kubectl delete all --all
+-- не забываем про:
+kubectl get pvc -o wide
+kubectl get pv -o wide
+kubectl get cm -o wide
+kubectl get secrets -o wide
+kubectl delete pvc --all
+kubectl delete cm --all
+kubectl delete secrets --all
+
+kubectl delete all --all && kubectl delete ing --all && kubectl delete secrets --all && kubectl delete pvc --all && kubectl delete pv --all
+kubectl delete all --all && kubectl delete ing --all && kubectl delete secrets --all && kubectl delete pvc --all && kubectl delete pv --all
+kubectl delete all --all && kubectl delete ing --all && kubectl delete secrets --all && kubectl delete pvc --all && kubectl delete pv --all
+
+-- ну или так)
+kubectl delete all,ing,secrets,pvc,pv --all
+kubectl delete all,ing,secrets,pvc,pv --all
+kubectl delete all,ing,secrets,pvc,pv --all
+
+-- удалим все
+kubectl delete all,ing,secrets,pvc,pv --all
+------------
+
+------------
+Это предоставит информацию обо всех модулях, развертываниях, службах и заданиях в пространстве имен.
+
+kubectl get pods,services,deployments,jobs
+kubectl get pods,services,deployments,jobs
+kubectl get pods,services,deployments,jobs
+
+модули могут быть созданы развертываниями или заданиями
+
+kubectl delete job [job_name]
+kubectl delete deployment [deployment_name]
+Если вы удалите развертывание или задание, перезапуск модулей может быть остановлен.
+------------
+
+------------
+[root@kub1 vorori]# kubectl get pods,services,deployments,jobs
+NAME                              READY   STATUS    RESTARTS   AGE
+pod/citus-0                       0/2     Pending   0          7m50s
+pod/citus-coordinator-0           0/2     Pending   0          7m50s
+pod/citus-coordinator-replica-0   0/2     Pending   0          7m50s
+pod/citus-worker-0                0/2     Pending   0          7m50s
+
+NAME                                TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)             AGE
+service/citus                       ClusterIP   None         <none>        5432/TCP,6432/TCP   16h
+service/citus-coordinator           ClusterIP   None         <none>        5432/TCP,6432/TCP   16h
+service/citus-coordinator-replica   ClusterIP   None         <none>        5432/TCP,6432/TCP   16h
+service/citus-worker                ClusterIP   None         <none>        6432/TCP,5432/TCP   16h
+service/kubernetes                  ClusterIP   10.96.0.1    <none>        443/TCP             21h
+------------
+
+------------
+[root@kub1 vorori]# kubectl get services
+NAME                        TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)             AGE
+citus                       ClusterIP   None         <none>        5432/TCP,6432/TCP   16h
+citus-coordinator           ClusterIP   None         <none>        5432/TCP,6432/TCP   16h
+citus-coordinator-replica   ClusterIP   None         <none>        5432/TCP,6432/TCP   16h
+citus-worker                ClusterIP   None         <none>        6432/TCP,5432/TCP   16h
+kubernetes                  ClusterIP   10.96.0.1    <none>        443/TCP             21h
+------------
+
+------------
+kubectl delete service citus citus-coordinator citus-coordinator-replica citus-worker
+kubectl delete service citus citus-coordinator citus-coordinator-replica citus-worker
+kubectl delete service citus citus-coordinator citus-coordinator-replica citus-worker
+------------
+
+------------
+kubectl delete pod citus-0 citus-coordinator-0 citus-coordinator-replica-0 citus-worker-0
+kubectl delete pod citus-0 citus-coordinator-0 citus-coordinator-replica-0 citus-worker-0
+kubectl delete pod citus-0 citus-coordinator-0 citus-coordinator-replica-0 citus-worker-0
+------------
+
+------------
+Теперь удалите все объекты, включая OLM, подписки, развертывания, наборы реплик и т. в namespace openshift-submariner:
+$ kubectl delete olm,svc,rs,rc,subs,deploy,jobs,pods --all -n openshift-submariner
+$ kubectl delete olm,svc,rs,rc,subs,deploy,jobs,pods --all -n openshift-submariner
+$ kubectl delete olm,svc,rs,rc,subs,deploy,jobs,pods --all -n openshift-submariner
+------------
+
+------------
+kubectl delete deploy,pods --all -n cert-manager
+deployment.apps "cert-manager" deleted
+deployment.apps "cert-manager-cainjector" deleted
+deployment.apps "cert-manager-webhook" deleted
+pod "cert-manager-6cf96f6d7f-x6c7c" deleted
+pod "cert-manager-cainjector-5fcd65b864-7gdvl" deleted
+pod "cert-manager-webhook-5bdcd8f47c-4s9lm" deleted
+------------
+
+
+----------------------------------------------------------------------------------------------------------------------------
 
 черновик 1:
 ----------------------------------------------------------------------------------------------------------------------------
