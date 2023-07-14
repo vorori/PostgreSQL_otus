@@ -37,6 +37,13 @@ https://support.edgecenter.ru/knowledge_base/item/289604
 https://support.edgecenter.ru/knowledge_base/item/289604
 https://support.edgecenter.ru/knowledge_base/item/289604
 
+
+
+добавить метку к узлу
+https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity/
+https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity/
+https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity/
+
 #### 0)
 
 hostname masterkub ip  
@@ -868,19 +875,148 @@ spec:
             claimName: citus-master-pvc
 -------------
 
-        volumeMounts:
-        - name: postgredb
-          mountPath: /var/lib/postgresql/data
-          subPath: postgres
-  volumeClaimTemplates:
-  - metadata:
-      name: postgredb
+
+my copy
+-------------
+vim /tmp/citus/master.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: citus-master-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: citus-master
+  labels:
+    app: citus-master
+spec:
+  selector:
+    app: citus-master
+  type: NodePort
+  ports:
+  - port: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: citus-master
+spec:
+  selector:
+    matchLabels:
+      app: citus-master
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: citus-master
     spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: standard
-      resources:
-        requests:
-          storage: 10Gi
+      containers:
+      - name: citus
+        image: citusdata/citus:7.3.0
+        ports:
+        - containerPort: 5432
+        env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: citus-secrets
+              key: password
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: citus-secrets
+              key: password
+        volumeMounts:
+        - name: storage-mycitus-master
+          mountPath: /var/pgsql-volume
+        livenessProbe:
+          exec:
+            command:
+            - ./pg_healthcheck
+          initialDelaySeconds: 60
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: citus-master-pvc
+-------------
+
+
+пример!!!!!!!!!!!!
+https://github.com/BigKAA/youtube/blob/d4a0099ef236546b4ac5cc900e9ac4c47fd6ae63/base/Crunchy%20PostgreSQL%20Operator/01-pv-pvc.yaml
+https://www.youtube.com/watch?v=kuTG8YGhJtY&t=1585s   time 21:32
+mkdir /var/pgsql-volume
+name: storage-main -- имя pv мастер
+name: storage-repl -- имя pv реплика
+- ReadWriteMany  -- доступ чтение запись
+storage: 8Gi -- сколко gb
+  local:     -- локальная файловая система
+    path: /var/pgsql-volume -- по этому пути которому мы сороздали
+  nodeAffinity: -- говорит нам о том что приземлять pv на ноде у которй есть лейбл  key: db равно  values: - pgsql-main
+  nodeAffinity: -- говорит нам о том что приземлять pv на ноде у которй есть лейбл  key: db равно  values: - pgsql-repl
+  
+  надо посмотреть видео посвешенное pv
+-------------
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: storage-main
+  labels:
+    storage: basemain
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 8Gi
+  local:
+    path: /var/pgsql-volume
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: db
+          operator: In
+          values:
+          - pgsql-main
+  persistentVolumeReclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: storage-repl
+  labels:
+    storage: baserepl
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 8Gi
+  local:
+    path: /var/pgsql-volume
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: db
+          operator: In
+          values:
+          - pgsql-repl
+  persistentVolumeReclaimPolicy: Retain
+-------------
+
+
+
+
+
 
 
 пример!!!!!!!!!!!!
@@ -1025,6 +1161,7 @@ spec:
 
 
 #выполняем
+kubectl apply -f /tmp/citus/mypv.yaml
 kubectl apply -f /tmp/citus/postgres-storage.yaml
 kubectl get pvc -o wide
 kubectl get pv -o wide
@@ -1611,6 +1748,8 @@ kubectl delete all,ing,secrets,pvc,pv --all
 kubectl delete all,ing,secrets,pvc,pv --all
 kubectl delete all,ing,secrets,pvc,pv --all
 
+kubectl delete pvc --all
+
 -- удалим все
 kubectl delete all,ing,secrets,pvc,pv --all
 ------------
@@ -1834,13 +1973,367 @@ sudo kubectl label node kb1.ru-central1.internal node-role.kubernetes.io/worker=
 
 
 
+1
+добавил метки 
+
+[root@masterkub vorori]# kubectl get nodes --show-labels
+NAME                             STATUS   ROLES           AGE   VERSION   LABELS
+kub1.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub1.ru-central1.internal,kubernetes.io/os=linux
+kub2.ru-central1.internal        Ready    <none>          29h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub2.ru-central1.internal,kubernetes.io/os=linux
+kub3.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub3.ru-central1.internal,kubernetes.io/os=linux
+masterkub.ru-central1.internal   Ready    control-plane   34h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=masterkub.ru-central1.internal,kubernetes.io/os=linux,node-role.kubernetes.io/control-plane=,node.kubernetes.io/exclude-from-external-load-balancers=
+[root@masterkub vorori]# kubectl label nodes kub1.ru-central1.internal disktype=citusmaster
+node/kub1.ru-central1.internal labeled
+[root@masterkub vorori]# kubectl get nodes --show-labels
+NAME                             STATUS   ROLES           AGE   VERSION   LABELS
+kub1.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusmaster,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub1.ru-central1.internal,kubernetes.io/os=linux
+kub2.ru-central1.internal        Ready    <none>          29h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub2.ru-central1.internal,kubernetes.io/os=linux
+kub3.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub3.ru-central1.internal,kubernetes.io/os=linux
+masterkub.ru-central1.internal   Ready    control-plane   34h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=masterkub.ru-central1.internal,kubernetes.io/os=linux,node-role.kubernetes.io/control-plane=,node.kubernetes.io/exclude-from-external-load-balancers=
+[root@masterkub vorori]# kubectl label nodes kub2.ru-central1.internal disktype=citusworker2
+node/kub2.ru-central1.internal labeled
+[root@masterkub vorori]# kubectl get nodes --show-labels
+NAME                             STATUS   ROLES           AGE   VERSION   LABELS
+kub1.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusmaster,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub1.ru-central1.internal,kubernetes.io/os=linux
+kub2.ru-central1.internal        Ready    <none>          29h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker2,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub2.ru-central1.internal,kubernetes.io/os=linux
+kub3.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub3.ru-central1.internal,kubernetes.io/os=linux
+masterkub.ru-central1.internal   Ready    control-plane   34h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=masterkub.ru-central1.internal,kubernetes.io/os=linux,node-role.kubernetes.io/control-plane=,node.kubernetes.io/exclude-from-external-load-balancers=
+[root@masterkub vorori]# kubectl label nodes kub3.ru-central1.internal disktype=citusworker3
+node/kub3.ru-central1.internal labeled
+[root@masterkub vorori]# kubectl get nodes --show-labels
+NAME                             STATUS   ROLES           AGE   VERSION   LABELS
+kub1.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusmaster,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub1.ru-central1.internal,kubernetes.io/os=linux
+kub2.ru-central1.internal        Ready    <none>          29h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker2,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub2.ru-central1.internal,kubernetes.io/os=linux
+kub3.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker3,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub3.ru-central1.internal,kubernetes.io/os=linux
+masterkub.ru-central1.internal   Ready    control-plane   34h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=masterkub.ru-central1.internal,kubernetes.io/os=linux,node-role.kubernetes.io/control-plane=,node.kubernetes.io/exclude-from-external-load-balancers=
+
+2)
+vim /tmp/citus/mypv.yaml
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: storage-citusmaster
+  labels:
+    storage: basemain1citusmaster1
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  local:
+    path: /var/pgsql-volume
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: disktype
+          operator: In
+          values:
+          - citusmaster
+  persistentVolumeReclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: storage-citusworker2
+  labels:
+    storage: baserepl2citusworker2
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  local:
+    path: /var/pgsql-volume
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: disktype
+          operator: In
+          values:
+          - citusworker2
+  persistentVolumeReclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: storage-citusworker3
+  labels:
+    storage: baserepl3citusworker3
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  local:
+    path: /var/pgsql-volume
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: disktype
+          operator: In
+          values:
+          - citusworker3
+  persistentVolumeReclaimPolicy: Retain
+
+3
+[root@masterkub citus]# kubectl apply -f /tmp/citus/mypv.yaml
+persistentvolume/storage-citusmaster created
+persistentvolume/storage-citusworker2 created
+persistentvolume/storage-citusworker3 created
+
+
+4
+[root@masterkub citus]# kubectl get pv
+NAME                   CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
+storage-citusmaster    10Gi       RWX            Retain           Available                                   9s
+storage-citusworker2   10Gi       RWX            Retain           Available                                   9s
+storage-citusworker3   10Gi       RWX            Retain           Available                                   9s
 
 
 
+5
+kubectl create -f /tmp/citus/secrets.yaml
+
+
+6
+https://coffee-web.ru/blog/getting-started-with-kubernetes-persistent-volumes/
+Создание заявки на постоянный том
+Создайте спецификацию PVC, открыв текстовый редактор и скопировав приведенный ниже код YA
+
+vim /tmp/citus/pvcmaster.yaml
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: citus-master-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: storage-citusmaster
+
+
+7
+kubectl apply -f /tmp/citus/pvcmaster.yaml
+kubectl get pvc -o wide
+
+
+8
+vim /tmp/citus/master.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: citus-master-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: citus-master
+  labels:
+    app: citus-master
+spec:
+  selector:
+    app: citus-master
+  type: NodePort
+  ports:
+  - port: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: citus-master
+spec:
+  selector:
+    matchLabels:
+      app: citus-master
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: citus-master
+    spec:
+      containers:
+      - name: citus
+        image: citusdata/citus:7.3.0
+        ports:
+        - containerPort: 5432
+        env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: citus-secrets
+              key: password
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: citus-secrets
+              key: password
+        volumeMounts:
+        - name: storage
+          mountPath: /var/lib/postgresql/data
+        livenessProbe:
+          exec:
+            command:
+            - ./pg_healthcheck
+          initialDelaySeconds: 60
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: citus-master-pvc
+			
+9			
+kubectl apply -f /tmp/citus/master.yaml
+
+
+10
+[root@masterkub citus]# kubectl get pods
+NAME                            READY   STATUS    RESTARTS   AGE
+citus-master-5bff7bc99c-9h6kf   1/1     Running   0          3m3s
 
 
 
+11
+[root@kub1 pgdata]# ls -l /var/pgsql-volume/pgdata
+total 56
+drwx------. 6 polkitd input    64 Jul 14 21:59 base
+drwx------. 2 polkitd input  4096 Jul 14 22:00 global
+drwx------. 2 polkitd input     6 Jul 14 21:51 pg_commit_ts
+drwx------. 2 polkitd input     6 Jul 14 21:51 pg_dynshmem
+drwx------. 3 polkitd input    20 Jul 14 21:51 pg_foreign_file
+-rw-------. 1 polkitd input  4535 Jul 14 21:51 pg_hba.conf
+-rw-------. 1 polkitd input  1636 Jul 14 21:51 pg_ident.conf
+drwx------. 4 polkitd input    68 Jul 14 22:04 pg_logical
+drwx------. 4 polkitd input    36 Jul 14 21:51 pg_multixact
+drwx------. 2 polkitd input    18 Jul 14 21:59 pg_notify
+drwx------. 2 polkitd input     6 Jul 14 21:51 pg_replslot
+drwx------. 2 polkitd input     6 Jul 14 21:51 pg_serial
+drwx------. 2 polkitd input     6 Jul 14 21:51 pg_snapshots
+drwx------. 2 polkitd input     6 Jul 14 21:59 pg_stat
+drwx------. 2 polkitd input    63 Jul 14 22:05 pg_stat_tmp
+drwx------. 2 polkitd input    18 Jul 14 21:51 pg_subtrans
+drwx------. 2 polkitd input     6 Jul 14 21:51 pg_tblspc
+drwx------. 2 polkitd input     6 Jul 14 21:51 pg_twophase
+-rw-------. 1 polkitd input     3 Jul 14 21:51 PG_VERSION
+drwx------. 3 polkitd input    60 Jul 14 21:51 pg_wal
+drwx------. 2 polkitd input    18 Jul 14 21:51 pg_xact
+-rw-------. 1 polkitd input    88 Jul 14 21:51 postgresql.auto.conf
+-rw-------. 1 polkitd input 22762 Jul 14 21:51 postgresql.conf
+-rw-------. 1 polkitd input    36 Jul 14 21:59 postmaster.opts
+-rw-------. 1 polkitd input   101 Jul 14 21:59 postmaster.pid
+
+
+12
+
+vim /tmp/citus/worker.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: citus-workers
+  labels:
+    app: citus-workers
+spec:
+  selector:
+    app: citus-workers
+  clusterIP: None
+  ports:
+  - port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: citus-worker
+spec:
+  selector:
+    matchLabels:
+      app: citus-workers
+  serviceName: citus-workers
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: citus-workers
+    spec:
+      containers:
+      - name: citus-worker
+        image: citusdata/citus:7.3.0
+        lifecycle:
+          postStart:
+            exec:
+              command: 
+              - /bin/sh
+              - -c
+              - if [ ${POD_IP} ]; then psql --host=citus-master --username=postgres --command="SELECT * from master_add_node('${HOSTNAME}.citus-workers', 5432);" ; fi
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: citus-secrets
+              key: password
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: citus-secrets
+              key: password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: storage
+          mountPath: /var/lib/postgresql/data
+        livenessProbe:
+          exec:
+            command:
+            - ./pg_healthcheck
+          initialDelaySeconds: 60
+  volumeClaimTemplates:
+  - metadata:
+      name: storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
+
+kubectl apply -f /tmp/citus/worker.yaml
+
+
+13 тут какая то хрень походу надо пределать основной диск на мастере мастеров чтобы все ноды работали
+root@masterkub citus]# kubectl get pods
+NAME                            READY   STATUS    RESTARTS   AGE
+citus-master-5bff7bc99c-9h6kf   1/1     Running   0          24m
+citus-worker-0                  1/1     Running   0          3m51s
+citus-worker-1                  1/1     Running   0          3m37s
+citus-worker-2                  0/1     Pending   0          3m19s
 
 
 
-
+14
+kubectl exec -it pod/citus-master-5bff7bc99c-9h6kf -- bash
+psql -U postgres
+SELECT * FROM master_get_active_worker_nodes(); 
+postgres=# SELECT * FROM master_get_active_worker_nodes();
+          node_name           | node_port
+------------------------------+-----------
+ citus-worker-0.citus-workers |      5432
+ citus-worker-1.citus-workers |      5432
+create database test;
