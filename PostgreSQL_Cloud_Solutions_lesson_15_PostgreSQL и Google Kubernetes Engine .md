@@ -2294,11 +2294,78 @@ select pg_reload_conf();
 kubectl port-forward pod/citus-master-5bff7bc99c-kd89l 5432:5432
 подключился c kub1.ru-central1.internal
 psql -U postgres -h 127.0.0.1
+create database test;
+CREATE EXTENSION citus;
 
 
+16
+создаю базу на всех воркерах
+kubectl exec -it pod/citus-worker-0 -- psql -U postgres -c 'create database test;'
+kubectl exec -it pod/citus-worker-1 -- psql -U postgres -c 'create database test;'
+kubectl exec -it pod/citus-worker-2 -- psql -U postgres -c 'create database test;'
 
-SELECT create_distributed_table('test', 'id');
--- ERROR:  function public.uuid_generate_v1() does not exist
-kubectl exec -it pod/citus-worker-0 -- psql -U postgres -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
-kubectl exec -it pod/citus-worker-1 -- psql -U postgres -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
-kubectl exec -it pod/citus-worker-2 -- psql -U postgres -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
+kubectl exec -it pod/citus-worker-0 -- psql -U postgres -d test -c 'CREATE EXTENSION citus;'
+kubectl exec -it pod/citus-worker-1 -- psql -U postgres -d test -c 'CREATE EXTENSION citus;'
+kubectl exec -it pod/citus-worker-2 -- psql -U postgres -d test -c 'CREATE EXTENSION citus;'
+
+
+-- активируем ноды на коммутаторе
+sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-1.citus-workers', 5432);"
+sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-0.citus-workers', 5432);"
+sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-2.citus-workers', 5432);"
+
+проверяем
+test=# SELECT * FROM master_get_active_worker_nodes();
+          node_name           | node_port
+------------------------------+-----------
+ citus-worker-2.citus-workers |      5432
+ citus-worker-0.citus-workers |      5432
+ citus-worker-1.citus-workers |      5432
+(3 rows)
+
+create table taxi_trips (
+unique_key text, 
+taxi_id text, 
+trip_start_timestamp TIMESTAMP, 
+trip_end_timestamp TIMESTAMP, 
+trip_seconds bigint, 
+trip_miles numeric, 
+pickup_census_tract bigint, 
+dropoff_census_tract bigint, 
+pickup_community_area bigint, 
+dropoff_community_area bigint, 
+fare numeric, 
+tips numeric, 
+tolls numeric, 
+extras numeric, 
+trip_total numeric, 
+payment_type text, 
+company text, 
+pickup_latitude numeric, 
+pickup_longitude numeric, 
+pickup_location text, 
+dropoff_latitude numeric, 
+dropoff_longitude numeric, 
+dropoff_location text
+);
+
+SELECT create_distributed_table('taxi_trips', 'unique_key');
+
+
+подключил бакет через s3fs-fuse
+mkdir /tmp/taxi
+cd /tmp/taxi
+su - postgres
+добавляю ранее созданный индификатор,двоеточие и сервисный ключ
+/home/postgres/.passwd-s3fs
+echo YCAJEUqYD2tU3jgU2_jXoYImx:YCPQB68gMTtEmWhj-UQNp7HvY85KZFkBYdWL1lHP > /home/postgres/.passwd-s3fs
+cat /home/postgres/.passwd-s3fs
+chmod 600 /home/postgres/.passwd-s3fs
+s3fs myotus /tmp/taxi -o passwd_file=/home/postgres/.passwd-s3fs -o url=https://storage.yandexcloud.net -o use_path_request_style -o dbglevel=info -f -o curldbg
+chown postgres:postgres /tmp/taxi -R
+
+
+вливаю
+kubectl port-forward pod/citus-master-5bff7bc99c-kd89l 5432:5432
+for f in *.csv*; do psql -U postgres -p 5432 -h localhost -d test -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
+\COPY taxi_trips FROM '/tmp/taxi/taxi.csv.000000000000' DELIMITER ',' CSV;
