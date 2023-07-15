@@ -1432,106 +1432,6 @@ gcloud compute disks list
 
 
 
-разворачиваем цитус черновик
-----------------------------------------------------------------------------------------------------------------------------
-cd /tmp
-git clone https://github.com/docteurklein/citus-test.git
-git clone https://github.com/docteurklein/citus-test.git
-git clone https://github.com/docteurklein/citus-test.git
-
-
-
-k3d cluster create -c k3d.yaml
-
-kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.4/cert-manager.yaml
-kubectl delete -f https://github.com/jetstack/cert-manager/releases/download/v1.5.4/cert-manager.yaml
-
------------
-[root@masterkub citus-test]# kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.4/cert-manager.yaml
-customresourcedefinition.apiextensions.k8s.io/certificaterequests.cert-manager.io created
-customresourcedefinition.apiextensions.k8s.io/certificates.cert-manager.io created
-customresourcedefinition.apiextensions.k8s.io/challenges.acme.cert-manager.io created
-customresourcedefinition.apiextensions.k8s.io/clusterissuers.cert-manager.io created
-customresourcedefinition.apiextensions.k8s.io/issuers.cert-manager.io created
-customresourcedefinition.apiextensions.k8s.io/orders.acme.cert-manager.io created
-namespace/cert-manager created
-serviceaccount/cert-manager-cainjector created
-serviceaccount/cert-manager created
-serviceaccount/cert-manager-webhook created
-clusterrole.rbac.authorization.k8s.io/cert-manager-cainjector created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-issuers created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-certificates created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-orders created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-challenges created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
-clusterrole.rbac.authorization.k8s.io/cert-manager-view created
-clusterrole.rbac.authorization.k8s.io/cert-manager-edit created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-approve:cert-manager-io created
-clusterrole.rbac.authorization.k8s.io/cert-manager-controller-certificatesigningrequests created
-clusterrole.rbac.authorization.k8s.io/cert-manager-webhook:subjectaccessreviews created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-cainjector created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-issuers created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-certificates created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-orders created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-challenges created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-approve:cert-manager-io created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-certificatesigningrequests created
-clusterrolebinding.rbac.authorization.k8s.io/cert-manager-webhook:subjectaccessreviews created
-role.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
-role.rbac.authorization.k8s.io/cert-manager:leaderelection created
-role.rbac.authorization.k8s.io/cert-manager-webhook:dynamic-serving created
-rolebinding.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
-rolebinding.rbac.authorization.k8s.io/cert-manager:leaderelection created
-rolebinding.rbac.authorization.k8s.io/cert-manager-webhook:dynamic-serving created
-service/cert-manager created
-service/cert-manager-webhook created
-deployment.apps/cert-manager-cainjector created
-deployment.apps/cert-manager created
-deployment.apps/cert-manager-webhook created
-mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
-validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
------------
-
-
-
-kubectl create secret generic citus-secrets --from-literal "password=$(openssl rand -base64 23)"
-kubectl apply -f k8s
-
-
-[root@masterkub citus-test]# kubectl apply -f k8s
-service/citus created
-statefulset.apps/citus created
-service/citus configured
-configmap/pg-hba created
-statefulset.apps/citus configured
-service/citus-coordinator-replica created
-statefulset.apps/citus-coordinator-replica created
-service/citus-coordinator created
-configmap/pg-hba unchanged
-statefulset.apps/citus-coordinator created
-service/citus-worker created
-statefulset.apps/citus-worker created
-resource mapping not found for name: "citus-issuer" namespace: "" from "k8s/tls.yaml": no matches for kind "Issuer" in version "cert-manager.io/v1"
-ensure CRDs are installed first
-resource mapping not found for name: "citus-cert" namespace: "" from "k8s/tls.yaml": no matches for kind "Certificate" in version "cert-manager.io/v1"
-ensure CRDs are installed first
-[root@masterkub citus-test]# kubectl get nodes
-
-
-
-
-
-
-kubectl exec -it sts/citus-coordinator -- psql -U postgres < sql/schema.sql
-kubectl exec -it sts/citus-coordinator -- psql -U postgres < sql/fixtures.sql
-
-https://masterkub.ru-central1.internal:8080
-
-----------------------------------------------------------------------------------------------------------------------------
-
 
 черновик 2
 ----------------------------------------------------------------------------------------------------------------------------
@@ -1655,6 +1555,9 @@ kubectl get storageclasses
 kubectl get pvc -o wide
 kubectl get pv -o wide
 
+#удалить все
+kubectl delete all,ing,secrets,pvc,pv --all
+kubectl delete all,ing,secrets,pvc,pv --all
 
 #прозвонить pod
 kubectl describe pod -n kube-system etcd-masterkub.ru-central1.internal
@@ -1971,43 +1874,34 @@ sudo kubectl label node kb1.ru-central1.internal node-role.kubernetes.io/worker=
 
 
 
-
-
 1
 добавил метки 
+kubectl label nodes masterkub.ru-central1.internal disktype=citusmaster
+kubectl label nodes kub1.ru-central1.internal disktype=citusworker1
+kubectl label nodes kub2.ru-central1.internal disktype=citusworker2
+kubectl label nodes kub3.ru-central1.internal disktype=citusworker3
+
+citusmaster
+citusworker1
+citusworker2
+citusworker3
+
 
 [root@masterkub vorori]# kubectl get nodes --show-labels
-NAME                             STATUS   ROLES           AGE   VERSION   LABELS
-kub1.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub1.ru-central1.internal,kubernetes.io/os=linux
-kub2.ru-central1.internal        Ready    <none>          29h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub2.ru-central1.internal,kubernetes.io/os=linux
-kub3.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub3.ru-central1.internal,kubernetes.io/os=linux
-masterkub.ru-central1.internal   Ready    control-plane   34h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=masterkub.ru-central1.internal,kubernetes.io/os=linux,node-role.kubernetes.io/control-plane=,node.kubernetes.io/exclude-from-external-load-balancers=
-[root@masterkub vorori]# kubectl label nodes kub1.ru-central1.internal disktype=citusmaster
-node/kub1.ru-central1.internal labeled
-[root@masterkub vorori]# kubectl get nodes --show-labels
-NAME                             STATUS   ROLES           AGE   VERSION   LABELS
-kub1.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusmaster,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub1.ru-central1.internal,kubernetes.io/os=linux
-kub2.ru-central1.internal        Ready    <none>          29h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub2.ru-central1.internal,kubernetes.io/os=linux
-kub3.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub3.ru-central1.internal,kubernetes.io/os=linux
-masterkub.ru-central1.internal   Ready    control-plane   34h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=masterkub.ru-central1.internal,kubernetes.io/os=linux,node-role.kubernetes.io/control-plane=,node.kubernetes.io/exclude-from-external-load-balancers=
-[root@masterkub vorori]# kubectl label nodes kub2.ru-central1.internal disktype=citusworker2
-node/kub2.ru-central1.internal labeled
-[root@masterkub vorori]# kubectl get nodes --show-labels
-NAME                             STATUS   ROLES           AGE   VERSION   LABELS
-kub1.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusmaster,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub1.ru-central1.internal,kubernetes.io/os=linux
-kub2.ru-central1.internal        Ready    <none>          29h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker2,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub2.ru-central1.internal,kubernetes.io/os=linux
-kub3.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub3.ru-central1.internal,kubernetes.io/os=linux
-masterkub.ru-central1.internal   Ready    control-plane   34h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=masterkub.ru-central1.internal,kubernetes.io/os=linux,node-role.kubernetes.io/control-plane=,node.kubernetes.io/exclude-from-external-load-balancers=
-[root@masterkub vorori]# kubectl label nodes kub3.ru-central1.internal disktype=citusworker3
-node/kub3.ru-central1.internal labeled
-[root@masterkub vorori]# kubectl get nodes --show-labels
-NAME                             STATUS   ROLES           AGE   VERSION   LABELS
-kub1.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusmaster,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub1.ru-central1.internal,kubernetes.io/os=linux
-kub2.ru-central1.internal        Ready    <none>          29h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker2,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub2.ru-central1.internal,kubernetes.io/os=linux
-kub3.ru-central1.internal        Ready    <none>          30h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker3,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub3.ru-central1.internal,kubernetes.io/os=linux
-masterkub.ru-central1.internal   Ready    control-plane   34h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=masterkub.ru-central1.internal,kubernetes.io/os=linux,node-role.kubernetes.io/control-plane=,node.kubernetes.io/exclude-from-external-load-balancers=
+NAME                             STATUS   ROLES           AGE     VERSION   LABELS
+kub1.ru-central1.internal        Ready    <none>          2d6h    v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker1,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub1.ru-central1.internal,kubernetes.io/os=linux
+kub2.ru-central1.internal        Ready    <none>          2d5h    v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker2,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub2.ru-central1.internal,kubernetes.io/os=linux
+kub3.ru-central1.internal        Ready    <none>          2d5h    v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker3,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub3.ru-central1.internal,kubernetes.io/os=linux
+masterkub.ru-central1.internal   Ready    control-plane   2d10h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusmaster,kubernetes.io/arch=amd64,kubernetes.io/hostname=masterkub.ru-central1.internal,kubernetes.io/os=
+
 
 2)
+создал директорию для мастера
+mkdir /var/pgsql-volume-master
+mkdir /var/pgsql-volume-master
+mkdir /var/pgsql-volume-master
+
+
 vim /tmp/citus/mypv.yaml
 
 apiVersion: v1
@@ -2022,6 +1916,29 @@ spec:
   capacity:
     storage: 10Gi
   local:
+    path: /var/pgsql-volume-master
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: disktype
+          operator: In
+          values:
+          - citusworker1
+  persistentVolumeReclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: storage-citusworker1
+  labels:
+    storage: baserepl1citusworker1
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  local:
     path: /var/pgsql-volume
   nodeAffinity:
     required:
@@ -2030,7 +1947,7 @@ spec:
         - key: disktype
           operator: In
           values:
-          - citusmaster
+          - citusworker1
   persistentVolumeReclaimPolicy: Retain
 ---
 apiVersion: v1
@@ -2079,24 +1996,36 @@ spec:
           - citusworker3
   persistentVolumeReclaimPolicy: Retain
 
+
+
 3
 [root@masterkub citus]# kubectl apply -f /tmp/citus/mypv.yaml
-persistentvolume/storage-citusmaster created
-persistentvolume/storage-citusworker2 created
-persistentvolume/storage-citusworker3 created
+persistentvolume/storage-citusworker1 created
 
-
-4
 [root@masterkub citus]# kubectl get pv
 NAME                   CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
-storage-citusmaster    10Gi       RWX            Retain           Available                                   9s
-storage-citusworker2   10Gi       RWX            Retain           Available                                   9s
-storage-citusworker3   10Gi       RWX            Retain           Available                                   9s
+storage-citusworker1   10Gi       RWO            Retain           Available                                   12s                         44s
 
+4
 
 
 5
+vim /tmp/citus/secrets.yaml
+
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: citus-secrets
+type: Opaque
+data:
+  password: MjMzODQ4NA==
+
 kubectl create -f /tmp/citus/secrets.yaml
+
+[root@masterkub citus]# [root@masterkub citus]# kubectl create -f /tmp/citus/secrets.yaml
+secret/citus-secrets created
+
 
 
 6
@@ -2122,6 +2051,13 @@ spec:
 7
 kubectl apply -f /tmp/citus/pvcmaster.yaml
 kubectl get pvc -o wide
+
+[root@masterkub citus]# [root@masterkub citus]# kubectl apply -f /tmp/citus/pvcmaster.yaml
+persistentvolumeclaim/citus-master-pvc created
+[root@masterkub citus]# kubectl get pvc -o wide
+NAME               STATUS   VOLUME                 CAPACITY   ACCESS MODES   STORAGECLASS   AGE   VOLUMEMODE
+citus-master-pvc   Bound    storage-citusworker1   10Gi       RWO                           12s   Filesystem
+
 
 
 8
@@ -2202,38 +2138,37 @@ kubectl apply -f /tmp/citus/master.yaml
 10
 [root@masterkub citus]# kubectl get pods
 NAME                            READY   STATUS    RESTARTS   AGE
-citus-master-5bff7bc99c-9h6kf   1/1     Running   0          3m3s
-
+citus-master-5bff7bc99c-kd89l   1/1     Running   0          41s
 
 
 11
-[root@kub1 pgdata]# ls -l /var/pgsql-volume/pgdata
+[root@kub1 pgsql-volume-master]# ls -l /var/pgsql-volume-master/pgdata
 total 56
-drwx------. 6 polkitd input    64 Jul 14 21:59 base
-drwx------. 2 polkitd input  4096 Jul 14 22:00 global
-drwx------. 2 polkitd input     6 Jul 14 21:51 pg_commit_ts
-drwx------. 2 polkitd input     6 Jul 14 21:51 pg_dynshmem
-drwx------. 3 polkitd input    20 Jul 14 21:51 pg_foreign_file
--rw-------. 1 polkitd input  4535 Jul 14 21:51 pg_hba.conf
--rw-------. 1 polkitd input  1636 Jul 14 21:51 pg_ident.conf
-drwx------. 4 polkitd input    68 Jul 14 22:04 pg_logical
-drwx------. 4 polkitd input    36 Jul 14 21:51 pg_multixact
-drwx------. 2 polkitd input    18 Jul 14 21:59 pg_notify
-drwx------. 2 polkitd input     6 Jul 14 21:51 pg_replslot
-drwx------. 2 polkitd input     6 Jul 14 21:51 pg_serial
-drwx------. 2 polkitd input     6 Jul 14 21:51 pg_snapshots
-drwx------. 2 polkitd input     6 Jul 14 21:59 pg_stat
-drwx------. 2 polkitd input    63 Jul 14 22:05 pg_stat_tmp
-drwx------. 2 polkitd input    18 Jul 14 21:51 pg_subtrans
-drwx------. 2 polkitd input     6 Jul 14 21:51 pg_tblspc
-drwx------. 2 polkitd input     6 Jul 14 21:51 pg_twophase
--rw-------. 1 polkitd input     3 Jul 14 21:51 PG_VERSION
-drwx------. 3 polkitd input    60 Jul 14 21:51 pg_wal
-drwx------. 2 polkitd input    18 Jul 14 21:51 pg_xact
--rw-------. 1 polkitd input    88 Jul 14 21:51 postgresql.auto.conf
--rw-------. 1 polkitd input 22762 Jul 14 21:51 postgresql.conf
--rw-------. 1 polkitd input    36 Jul 14 21:59 postmaster.opts
--rw-------. 1 polkitd input   101 Jul 14 21:59 postmaster.pid
+drwx------. 6 polkitd input    64 Jul 15 21:13 base
+drwx------. 2 polkitd input  4096 Jul 15 21:14 global
+drwx------. 2 polkitd input     6 Jul 15 21:13 pg_commit_ts
+drwx------. 2 polkitd input     6 Jul 15 21:13 pg_dynshmem
+drwx------. 3 polkitd input    20 Jul 15 21:13 pg_foreign_file
+-rw-------. 1 polkitd input  4535 Jul 15 21:13 pg_hba.conf
+-rw-------. 1 polkitd input  1636 Jul 15 21:13 pg_ident.conf
+drwx------. 4 polkitd input    68 Jul 15 21:13 pg_logical
+drwx------. 4 polkitd input    36 Jul 15 21:13 pg_multixact
+drwx------. 2 polkitd input    18 Jul 15 21:13 pg_notify
+drwx------. 2 polkitd input     6 Jul 15 21:13 pg_replslot
+drwx------. 2 polkitd input     6 Jul 15 21:13 pg_serial
+drwx------. 2 polkitd input     6 Jul 15 21:13 pg_snapshots
+drwx------. 2 polkitd input     6 Jul 15 21:13 pg_stat
+drwx------. 2 polkitd input    63 Jul 15 21:17 pg_stat_tmp
+drwx------. 2 polkitd input    18 Jul 15 21:13 pg_subtrans
+drwx------. 2 polkitd input     6 Jul 15 21:13 pg_tblspc
+drwx------. 2 polkitd input     6 Jul 15 21:13 pg_twophase
+-rw-------. 1 polkitd input     3 Jul 15 21:13 PG_VERSION
+drwx------. 3 polkitd input    60 Jul 15 21:13 pg_wal
+drwx------. 2 polkitd input    18 Jul 15 21:13 pg_xact
+-rw-------. 1 polkitd input    88 Jul 15 21:13 postgresql.auto.conf
+-rw-------. 1 polkitd input 22762 Jul 15 21:13 postgresql.conf
+-rw-------. 1 polkitd input    36 Jul 15 21:13 postmaster.opts
+-rw-------. 1 polkitd input   101 Jul 15 21:13 postmaster.pid
 
 
 12
@@ -2318,22 +2253,52 @@ kubectl apply -f /tmp/citus/worker.yaml
 
 
 13 тут какая то хрень походу надо пределать основной диск на мастере мастеров чтобы все ноды работали
-root@masterkub citus]# kubectl get pods
+[root@masterkub citus]# [root@masterkub citus]# kubectl apply -f /tmp/citus/worker.yaml
+service/citus-workers created
+statefulset.apps/citus-worker created
+[root@masterkub citus]# kubectl get pods
 NAME                            READY   STATUS    RESTARTS   AGE
-citus-master-5bff7bc99c-9h6kf   1/1     Running   0          24m
-citus-worker-0                  1/1     Running   0          3m51s
-citus-worker-1                  1/1     Running   0          3m37s
-citus-worker-2                  0/1     Pending   0          3m19s
-
+citus-master-5bff7bc99c-kd89l   1/1     Running   0          2m32s
+citus-worker-0                  1/1     Running   0          14s
+citus-worker-1                  1/1     Running   0          11s
+citus-worker-2                  1/1     Running   0          9s
 
 
 14
-kubectl exec -it pod/citus-master-5bff7bc99c-9h6kf -- bash
+kubectl exec -it pod/citus-master-5bff7bc99c-kd89l -- bash
 psql -U postgres
-SELECT * FROM master_get_active_worker_nodes(); 
 postgres=# SELECT * FROM master_get_active_worker_nodes();
           node_name           | node_port
 ------------------------------+-----------
+ citus-worker-2.citus-workers |      5432
  citus-worker-0.citus-workers |      5432
  citus-worker-1.citus-workers |      5432
-create database test;
+(3 rows)
+
+
+
+
+
+
+
+15
+установил  клиент psql
+yum install postgresql
+
+открыл доступ c 10.129.0.34 
+vim /var/pgsql-volume-master/pgdata/pg_hba.conf
+host    all             postgres           10.129.0.34/32            trust
+применил наcтройки:
+select pg_reload_conf();
+прокинул подключения контенера наружу
+kubectl port-forward pod/citus-master-5bff7bc99c-kd89l 5432:5432
+подключился c kub1.ru-central1.internal
+psql -U postgres -h 127.0.0.1
+
+
+
+SELECT create_distributed_table('test', 'id');
+-- ERROR:  function public.uuid_generate_v1() does not exist
+kubectl exec -it pod/citus-worker-0 -- psql -U postgres -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
+kubectl exec -it pod/citus-worker-1 -- psql -U postgres -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
+kubectl exec -it pod/citus-worker-2 -- psql -U postgres -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
