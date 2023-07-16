@@ -386,6 +386,10 @@ mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 export KUBECONFIG=/etc/kubernetes/admin.conf
+
+настройка сети
+kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
+kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
 kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
 ----------------------------------------------------------------------------------------------------------------------------
 
@@ -2365,7 +2369,35 @@ s3fs myotus /tmp/taxi -o passwd_file=/home/postgres/.passwd-s3fs -o url=https://
 chown postgres:postgres /tmp/taxi -R
 
 
+
 вливаю
 kubectl port-forward pod/citus-master-5bff7bc99c-kd89l 5432:5432
 for f in *.csv*; do psql -U postgres -p 5432 -h localhost -d test -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
-\COPY taxi_trips FROM '/tmp/taxi/taxi.csv.000000000000' DELIMITER ',' CSV;
+
+
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000000' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000001' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000002' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000003' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000004' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000005' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000006' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000007' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000008' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000009' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000010' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000011' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000012' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000013' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000014' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000015' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000016' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000017' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000018' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000019' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000020' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000021' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000022' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000023' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000024' DELIMITER ',' CSV HEADER;
+\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000025' DELIMITER ',' CSV HEADER;
