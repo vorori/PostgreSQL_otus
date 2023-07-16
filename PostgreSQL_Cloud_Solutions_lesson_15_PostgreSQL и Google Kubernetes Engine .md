@@ -644,6 +644,8 @@ Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
 #### 5.15)
 
 #### заметка пытаемся присоединиться к мастеру
+
+<pre>
 ---------------------------------
 можно скопировать файл kubeconfig с узла controlplane node управления (~/.kube/config ) 
 на локальный и экспортировать переменную KUBECONFIG или получить прямой доступ к кластеру с узла controlplane node.
@@ -671,18 +673,23 @@ users:
   user:
     client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURJVENDQWdtZ0F3SUJBZ0lJTktFK3RRT1NLeFF3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TXpBM01UTXdPVE00TlRoYUZ3MHlOREEzTVRJd09UTTVNREZhTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXNaWVJZZE5CUHJZdXhDOTMKWk92eEJSSXU0S0F0U0g2bVlPelNZcTMzbEJCWkFJdUNpRjlGWnczMnZpSi9vbXhEZVlhMWw2czVsYndqNDNvUwpmSThxaS9mdDk3bUF3R2s5cThYQUVIUjRoMFo4QnRQR1VlSW11NUJtamJpS2VCQy9CQnpXUnYydTFHVCtRZlcyCnFXd0FaRS9VNUIwK1Z5VHJFeEEwbFE0WnU4d0VLTEtmczhXeFM2Y2RYK3Rkbi9Qams1OGZmTElyUXp5ZHM1Vm8KaGV4eVcxMHNwRkNjSDVwQktDT3JpUXRPL3RRWTBudjl2VzBVSEgydXNhL2c4eUF4N3JsejlYUU5NMENYc3ptSQpvRW9yeDNGRjkzcnBQaGNMRmJqR2kxWmlVakF4TWllZTltRnBWQStJSGpGdVBFck05UU0vanZDVUozalh1WHJvCkkvd2RzUUlEQVFBQm8xWXdWREFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RBWURWUjBUQVFIL0JBSXdBREFmQmdOVkhTTUVHREFXZ0JRU25TNlI5MTVQbTRTclZIbCtqeC83S3BKSwp6VEFOQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBWkI5MFFldmE0N2UrVUNYd2pmWkF3RzhwS1ZZdTBuODEzbko5CnFHamROZ0FJdm9SaGhoSFNXcERsUzVObGpWckorSWE4Zk50RC9HcTNxOG1kVmhmdDZLR2Mxa1FWUEFVMkNycXUKQjFYYUUraUxtSVZQUWRvS2R2MTR1WDQrTHQwQ0NORGNZWlNWd3hHT0xCZXcvakVXVitUa0ViSlJTbDlMOHlVSApsYitOOHNNOWtBOE5sdGhnNGFNcS8wb05Nek1xYm05bTQ3T3RwWXhGTkp0bGd5VDJxWXpWczJES1NkYm1ZdGVQCjZ3OS9PcHkwNGtqTUJHWTdxVnJudkY3OWhJeVlSUlNwb0tiR29ucFZPRkcxbTgrYmg3SEJuYmZtTGVQcmNnbWsKQ3hST2JVcEtRTThvNlJ2WjhxZlI2MGFMTWdVaTFjbVNVRllUYUFEclVpTHlsNkhobGc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
     client-key-data: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcEFJQkFBS0NBUUVBc1pZUllkTkJQcll1eEM5M1pPdnhCUkl1NEtBdFNINm1ZT3pTWXEzM2xCQlpBSXVDCmlGOUZadzMydmlKL29teERlWWExbDZzNWxid2o0M29TZkk4cWkvZnQ5N21Bd0drOXE4WEFFSFI0aDBaOEJ0UEcKVWVJbXU1Qm1qYmlLZUJDL0JCeldSdjJ1MUdUK1FmVzJxV3dBWkUvVTVCMCtWeVRyRXhBMGxRNFp1OHdFS0xLZgpzOFd4UzZjZFgrdGRuL1BqazU4ZmZMSXJRenlkczVWb2hleHlXMTBzcEZDY0g1cEJLQ09yaVF0Ty90UVkwbnY5CnZXMFVISDJ1c2EvZzh5QXg3cmx6OVhRTk0wQ1hzem1Jb0VvcngzRkY5M3JwUGhjTEZiakdpMVppVWpBeE1pZWUKOW1GcFZBK0lIakZ1UEVyTTlRTS9qdkNVSjNqWHVYcm9JL3dkc1FJREFRQUJBb0lCQUR6blJwYlNLTElsTU95LwppcWJsOUFiVk1aWi8ySWZnUjVjK0lQa095TFhTMVhOR1pVSDN5b21KVkhIb3l2VWRSQmJOaUVHM3kwdjY5aVB4Cm5aMXlUQmtzc2tRZkxuVE9vd1BpRWZpU3VUTkxqUVdhWTQxNWplY05vdDQveDkxZGdPVWNMckN5Rjk5bnMzdFQKbFkyTktLVSthN2kvL3IxTVFBS05zRHJlVnh6OFRDVFErVHZHQVdUUjVjSTRweWZsTkFyUkx5ZllRYyszL2Q4QQp6VWNUUmVQdWNFbkFoa2hrVkZ5N2ZyZjgvMFR2WlBGZXdDRkpVVVRzNCtWK2RSNWNEd3AzQlVwVjdNdEhMVm5oClA3WmZOYTBGTnlabDFXN3V2SS84N0VTM1NURmJZWE1OQXFDR1FlbnlEcGhrTHFObnV0VDBlMHZwemtTQ1c3SzgKSVQ3eC9uRUNnWUVBNlpzd3Iwd1hoaG5JcU9XaHhTZ0JuZTlabCtKNUVzalRRWkhXV2hPRGdyN1ExeTV2ZVdEcAo3Z1FqeEZ3ZVZSZ0hGcWwwY3VSQ3d3b21mM2R2M1ZCOVpWRjBkTENvWXdTRFJvZTFCSXRXTGVNb0NZT3dMRTFkCmozcFd4VVhhL3VCNTUrS2ppdjQzWWVVNzFYdnRBOU1jd2hFdnJhZFJ6c0thU3dUMm4wU3JDY3NDZ1lFQXdwd2UKbUhkY2p0am1JQTNmbTZiSEZRZDhsc01ZeG1FOStBeHdnaC9aZFJ4TE9meGN5TXl3LytRVXV1VzRGdjRCaEhQTAo0enZVeGFJbDRTZ1hLYmJDaWRjeXIxZHdQSUcwUGxkL3F5RitpYzJRZlZWd0h5aUlnd3czb2FzaGVqZDY3NGZCCkVEZE13Mmp6T0F6a0VXUlMxRTAyd0NTMEJjb0JOOXhLMVlhVE52TUNnWUFrQXhlTFBvaTExSTI1YzhUdmRzNWgKQVgvblNUTnU4T1NZVEJvbVFySFlXd0FvMi9DMVhucFJoZlBabG5YYW1seWxZclFmN2c1WXNOemtjNDRjS1FkYgpzaVhvd3o4Q0hMVDhEM21aWEwySlQyWmhxUnBraWZ5dFhLZTV1NTRhQXBMb2Eyall5WDNTS3B1QnVwdjhKZlJkCituWkdKL0FWbHF4Z2VrQm1weGhTNXdLQmdRQzNRZkNGdnBESWEzTjQ1OWVUYVYrN2E4dGs1Tjhsb0ZpTWhwcEQKenQ0bHE3a2pKNFB3Q3VENmRyc1dyRS9JUnZVQzExQTk4UStSOC9rYnAzYjRid09PYmJscTZEbm1vSFVzNTVSdgpnQ0Q2ZnpyNjYwT2o4N1ZwUWszNHpYKys2Uk81RCtzNzYvYzdaRTcwang4TlNaMitFZC9tM0NreDhtRm5TdWlsClhnNnZCUUtCZ1FDUHJGd095TGxobGc0cVZYbnY3eXRUVWVnS2NUQk9uSU93VVBEWXBBemJWaDIwWmlFbUhiZ3YKckY2YlhmK0hlcWZSRVpLWjl1RzM5ckZESVRFOC9IUDE2QWUvWlc0Z3M2VSt3dmU4WjdZc1BxZ2dadnE3RHRMOQoyQUgvQlVyS0pNTGhnVkl1TzluVzlTaDVhWERFWXhVeFhpTFcveVFIUjNzWmdEeVlYcmIwK1E9PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+</pre>
 
-
+<pre>
 vim $HOME/.kube/config
 vim $HOME/.kube/config
 vim $HOME/.kube/config
+</pre>
 
+<pre>
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
+</pre>
 
+#### проверяем
 
-проверяем
+<pre>
 kubectl get nodes
 kubectl get nodes
 kubectl get nodes
@@ -694,11 +701,14 @@ kub2.ru-central1.internal        Ready    <none>          16h   v1.26.1
 kub3.ru-central1.internal        Ready    <none>          16h   v1.26.1
 masterkub.ru-central1.internal   Ready    control-plane   20h   v1.26.1
 ----------------------------------------------------------------------------------------------------------------------------
+</pre>
 
 
 #### 5.16)
 
 #### проверяю 
+
+<pre>
 ----------------------------------------------------------------------------------------------------------------------------
 [root@masterkub vorori]# kubectl get nodes
 NAME                             STATUS   ROLES           AGE     VERSION
@@ -707,10 +717,14 @@ kub2.ru-central1.internal        Ready    <none>          35s     v1.26.1
 kub3.ru-central1.internal        Ready    <none>          16m     v1.26.1
 masterkub.ru-central1.internal   Ready    control-plane   4h30m   v1.26.1
 ----------------------------------------------------------------------------------------------------------------------------
+</pre>
+
 
 #### 5.17)
 
 ### важно! выделил заметка для себя   ---- ноды значения/наименования которых мы ввидем из разных команд
+
+<pre>
 ----------------------------------------------------------------------------------------------------------------------------
 [root@masterkub vorori]# kubectl get nodes
 NAME                             STATUS   ROLES           AGE     VERSION
@@ -753,7 +767,7 @@ kube-system   deployment.apps/coredns   2/2     2            2           4h33m
 NAMESPACE     NAME                                 DESIRED   CURRENT   READY   AGE
 kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       4h33m
 ----------------------------------------------------------------------------------------------------------------------------
-
+</pre>
 
 
 <pre>
@@ -767,6 +781,8 @@ kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       4
 #### 1)
 
 #### добавил метки 
+
+<pre>
 kubectl label nodes masterkub.ru-central1.internal disktype=citusmaster
 kubectl label nodes kub1.ru-central1.internal disktype=citusworker1
 kubectl label nodes kub2.ru-central1.internal disktype=citusworker2
@@ -776,30 +792,36 @@ citusmaster
 citusworker1
 citusworker2
 citusworker3
+</pre>
 
 #### 1.2)
 
 #### проверяю
+
+<pre>
 [root@masterkub vorori]# kubectl get nodes --show-labels
 NAME                             STATUS   ROLES           AGE     VERSION   LABELS
 kub1.ru-central1.internal        Ready    <none>          2d6h    v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker1,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub1.ru-central1.internal,kubernetes.io/os=linux
 kub2.ru-central1.internal        Ready    <none>          2d5h    v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker2,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub2.ru-central1.internal,kubernetes.io/os=linux
 kub3.ru-central1.internal        Ready    <none>          2d5h    v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker3,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub3.ru-central1.internal,kubernetes.io/os=linux
 masterkub.ru-central1.internal   Ready    control-plane   2d10h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusmaster,kubernetes.io/arch=amd64,kubernetes.io/hostname=masterkub.ru-central1.internal,kubernetes.io/os=
-
+</pre>
 
 #### 1.3)
 
 #### создал директорию для мастера и worker
+
+<pre>
 mkdir /var/pgsql-volume-master
 mkdir /var/pgsql-volume
-
+</pre>
 
 
 #### 1.4)
 
 #### создал pv
 
+<pre>
 vim /tmp/citus/mypv.yaml
 
 apiVersion: v1
@@ -894,22 +916,26 @@ spec:
           - citusworker3
   persistentVolumeReclaimPolicy: Retain
 
-
+</pre>
 
 #### 1.5)
 
 #### проверяем 
+
+<pre>
 [root@masterkub citus]# kubectl apply -f /tmp/citus/mypv.yaml
 persistentvolume/storage-citusworker1 created
 [root@masterkub citus]# kubectl get pv
 NAME                   CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
 storage-citusworker1   10Gi       RWO            Retain           Available                                   12s                         44s
-
+</pre>
 
 
 #### 1.6)
 
 #### создал secrets
+
+<pre>
 vim /tmp/citus/secrets.yaml
 
 
@@ -920,18 +946,21 @@ metadata:
 type: Opaque
 data:
   password: MjMzODQ4NA==
+</pre>
 
+<pre>
 kubectl create -f /tmp/citus/secrets.yaml
 
 [root@masterkub citus]# [root@masterkub citus]# kubectl create -f /tmp/citus/secrets.yaml
 secret/citus-secrets created
-
+</pre>
 
 
 #### 1.7)
 
 #### создал PVC citus-master
 
+<pre>
 https://coffee-web.ru/blog/getting-started-with-kubernetes-persistent-volumes/
 Создание заявки на постоянный том
 Создайте спецификацию PVC, открыв текстовый редактор и скопировав приведенный ниже код YA
@@ -949,11 +978,13 @@ spec:
     requests:
       storage: 10Gi
   volumeName: storage-citusmaster
-
+</pre>
 
 #### 1.8)
 
 #### проверяем 
+
+<pre>
 kubectl apply -f /tmp/citus/pvcmaster.yaml
 kubectl get pvc -o wide
 [root@masterkub citus]# [root@masterkub citus]# kubectl apply -f /tmp/citus/pvcmaster.yaml
@@ -961,13 +992,14 @@ persistentvolumeclaim/citus-master-pvc created
 [root@masterkub citus]# kubectl get pvc -o wide
 NAME               STATUS   VOLUME                 CAPACITY   ACCESS MODES   STORAGECLASS   AGE   VOLUMEMODE
 citus-master-pvc   Bound    storage-citusworker1   10Gi       RWO                           12s   Filesystem
-
+</pre>
 
 
 #### 1.9)
 
 #### создаю master
 
+<pre>
 vim /tmp/citus/master.yaml
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -1037,20 +1069,22 @@ spec:
         - name: storage
           persistentVolumeClaim:
             claimName: citus-master-pvc
-			
+</pre>		
 
 #### 1.10)
 
 #### проверяю
 
+<pre>
 kubectl apply -f /tmp/citus/master.yaml
 [root@masterkub citus]# kubectl get pods
 NAME                            READY   STATUS    RESTARTS   AGE
 citus-master-5bff7bc99c-kd89l   1/1     Running   0          41s
-
+</pre>
 
 #### 1.11)
 
+<pre>
 [root@kub1 pgsql-volume-master]# ls -l /var/pgsql-volume-master/pgdata
 total 56
 drwx------. 6 polkitd input    64 Jul 15 21:13 base
@@ -1078,11 +1112,14 @@ drwx------. 2 polkitd input    18 Jul 15 21:13 pg_xact
 -rw-------. 1 polkitd input 22762 Jul 15 21:13 postgresql.conf
 -rw-------. 1 polkitd input    36 Jul 15 21:13 postmaster.opts
 -rw-------. 1 polkitd input   101 Jul 15 21:13 postmaster.pid
+</pre>
 
 
 #### 1.12)
 
 #### создаю worker
+
+<pre>
 vim /tmp/citus/worker.yaml
 
 apiVersion: v1
@@ -1158,12 +1195,14 @@ spec:
       resources:
         requests:
           storage: 10Gi
-
+</pre>
 
 
 #### 1.13)
 
 #### проверяю
+
+<pre>
 kubectl apply -f /tmp/citus/worker.yaml
 [root@masterkub citus]# [root@masterkub citus]# kubectl apply -f /tmp/citus/worker.yaml
 service/citus-workers created
@@ -1174,11 +1213,13 @@ citus-master-5bff7bc99c-kd89l   1/1     Running   0          2m32s
 citus-worker-0                  1/1     Running   0          14s
 citus-worker-1                  1/1     Running   0          11s
 citus-worker-2                  1/1     Running   0          9s
-
+</pre>
 
 #### 1.14)
 
 #### проверяю
+
+<pre>
 kubectl exec -it pod/citus-master-5bff7bc99c-kd89l -- bash
 psql -U postgres
 postgres=# SELECT * FROM master_get_active_worker_nodes();
@@ -1188,32 +1229,41 @@ postgres=# SELECT * FROM master_get_active_worker_nodes();
  citus-worker-0.citus-workers |      5432
  citus-worker-1.citus-workers |      5432
 (3 rows)
-
+</pre>
 
 
 
 #### 1.15)
 
 #### настройка подготовка к заливке данных
+
+<pre>
 установил  клиент psql
 yum install postgresql
+
 открыл доступ c 10.129.0.34 
 vim /var/pgsql-volume-master/pgdata/pg_hba.conf
+
 host    all             postgres           10.129.0.34/32            trust
+
 применил наcтройки:
 select pg_reload_conf();
+
 прокинул подключения контенера наружу
 kubectl port-forward pod/citus-master-5bff7bc99c-kd89l 5432:5432
+
 подключился c kub1.ru-central1.internal
 psql -U postgres -h 127.0.0.1
+
 create database test;
 CREATE EXTENSION citus;
-
+</pre>
 
 #### 1.16)
 
 #### создаю базу на всех воркерах
 
+<pre>
 kubectl exec -it pod/citus-worker-0 -- psql -U postgres -c 'create database test;'
 kubectl exec -it pod/citus-worker-1 -- psql -U postgres -c 'create database test;'
 kubectl exec -it pod/citus-worker-2 -- psql -U postgres -c 'create database test;'
@@ -1221,19 +1271,23 @@ kubectl exec -it pod/citus-worker-2 -- psql -U postgres -c 'create database test
 kubectl exec -it pod/citus-worker-0 -- psql -U postgres -d test -c 'CREATE EXTENSION citus;'
 kubectl exec -it pod/citus-worker-1 -- psql -U postgres -d test -c 'CREATE EXTENSION citus;'
 kubectl exec -it pod/citus-worker-2 -- psql -U postgres -d test -c 'CREATE EXTENSION citus;'
-
+</pre>
 
 #### 1.17)
 
 #### подключаю ноды
+
+<pre>
 sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-1.citus-workers', 5432);"
 sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-0.citus-workers', 5432);"
 sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-2.citus-workers', 5432);"
-
+</pre>
 
 #### 1.18)
 
 #### проверяю
+
+<pre>
 test=# SELECT * FROM master_get_active_worker_nodes();
           node_name           | node_port
 ------------------------------+-----------
@@ -1241,13 +1295,15 @@ test=# SELECT * FROM master_get_active_worker_nodes();
  citus-worker-0.citus-workers |      5432
  citus-worker-1.citus-workers |      5432
 (3 rows)
-
+</pre>
 
 
 
 #### 1.19)
 
 #### создание табл и заливка данных 
+
+<pre>
 create table taxi_trips (
 unique_key text, 
 taxi_id text, 
@@ -1273,18 +1329,23 @@ dropoff_latitude numeric,
 dropoff_longitude numeric, 
 dropoff_location text
 );
+</pre>
 
 #### 1.20)
 
 #### по unique_key
-SELECT create_distributed_table('taxi_trips', 'unique_key');
-SELECT create_distributed_table('taxi_trips', 'unique_key');
-SELECT create_distributed_table('taxi_trips', 'unique_key');
 
+<pre>
+SELECT create_distributed_table('taxi_trips', 'unique_key');
+SELECT create_distributed_table('taxi_trips', 'unique_key');
+SELECT create_distributed_table('taxi_trips', 'unique_key');
+</pre>
 
 #### 1.21)
 
 #### подключил бакет через s3fs-fuse
+
+<pre>
 mkdir /tmp/taxi
 cd /tmp/taxi
 su - postgres
@@ -1295,11 +1356,13 @@ cat /home/postgres/.passwd-s3fs
 chmod 600 /home/postgres/.passwd-s3fs
 s3fs myotus /tmp/taxi -o passwd_file=/home/postgres/.passwd-s3fs -o url=https://storage.yandexcloud.net -o use_path_request_style -o dbglevel=info -f -o curldbg
 chown postgres:postgres /tmp/taxi -R
-
+</pre>
 
 #### 1.22)
 
-#вливаю данные
+#### вливаю данные
+
+<pre>
 kubectl port-forward pod/citus-master-5bff7bc99c-kd89l 5432:5432
 for f in *.csv*; do psql -U postgres -p 5432 -h localhost -d test -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
 
@@ -1331,7 +1394,7 @@ for f in *.csv*; do psql -U postgres -p 5432 -h localhost -d test -c "\\COPY tax
 \COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000023' DELIMITER ',' CSV HEADER;
 \COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000024' DELIMITER ',' CSV HEADER;
 \COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000025' DELIMITER ',' CSV HEADER;
-
+</pre>
 
 
 <pre>
@@ -1348,15 +1411,25 @@ for f in *.csv*; do psql -U postgres -p 5432 -h localhost -d test -c "\\COPY tax
 большое количество времени потратил на осмысление материала и на практике оттачивал многие моменты чтобы было хоть какое понимание как же оно всетаки работает.
 паралельно собрал свой локальный домашний кластер правда его надо допилить хорошенько напильником...(всего инсталяций было около 4х) на яндекс в облако когда заходил в тупик
 убивл виртуалки и заного все разворачивал после того как наковырял исправления ошибок проблем на последующих шагах было еше больше....
+</pre>
 
-ошибок было больше вот некоторые из них:
-
+<pre>
+ошибок было намного больше вот некоторые из них:
+container
+-----------------------------------------------
 Jul 13 06:55:55 masterkub kubelet: E0713 06:55:55.831658    1708 run.go:74] "command failed" err="failed to validate kubelet flags: 
 the container runtime endpoint address was not specified or empty, use --container-runtime-endpoint to set"
+-----------------------------------------------
 
+не поднимался системный pod
+-----------------------------------------------
 kube-system   kube-flannel-ds-amd64-42rl7            0/1       CrashLoopBackOff
+-----------------------------------------------
 
+проблема с PersistentVolumeClaims
+-----------------------------------------------
 0/4 nodes are available: pod has unbound immediate PersistentVolumeClaims. preemption: 0/4 nodes are available: 4 No preemption victims found for incoming pod..
+-----------------------------------------------
 </pre>
 
 
