@@ -9,9 +9,9 @@
 
 #### подготовительные мероприятия нарезал vm установил необходимые пакеты
 
-<pre>
 #### получить данные vm
 
+<pre>
 hostname && hostname -i
 hostname && hostname -i
 hostname && hostname -i
@@ -81,10 +81,14 @@ sudo modprobe br_netfilter && lsmod | grep br_netfilter
 #### 2.b.. копирую приведенное ниже содержимое в этот файл.. /etc/modules-load.d/k8s.conf
 
 <pre>
+
 cat <<EOF | > sudo tee /etc/modules-load.d/k8s.conf
 br_netfilter
 EOF
 
+</pre>
+
+<pre>
 cat /etc/modules-load.d/k8s.conf
 cat /etc/modules-load.d/k8s.conf
 </pre>
