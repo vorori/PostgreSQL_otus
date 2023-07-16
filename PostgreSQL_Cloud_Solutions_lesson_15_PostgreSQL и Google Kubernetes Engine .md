@@ -15,11 +15,14 @@
 hostname && hostname -i
 hostname && hostname -i
 hostname && hostname -i
+</pre>
+
 
 #### 1) 
 
 ### добавляю на каждой ноде 
 
+<pre>
 sudo cat <<EOF>> /etc/hosts
 10.129.0.36 masterkub.ru-central1.internal
 10.129.0.34 node1 kub1.ru-central1.internal
@@ -34,6 +37,7 @@ sudo yum -y install epel-release && yum install -y htop mc vim wget telnet git
 sudo yum -y install epel-release && yum install -y htop mc vim wget telnet git
 sudo yum -y install epel-release && yum install -y htop mc vim wget telnet git
 
+</pre>
 
 ####  Шаг 1: Предварительные требования 
 
@@ -42,21 +46,26 @@ sudo yum -y install epel-release && yum install -y htop mc vim wget telnet git
 #### 1.b.. Отключите подкачку Disable SWAP и брандмауэр 
 
 #### Прежде чем приступить, нужно проверить сводную информацию об использовании и доступности подкачки на устройстве хранения. 
+
 #### С помощью команды swapon: (Если команда ничего не возвращает, значит файла подкачки не существует)
 
+<pre>
 swapon -s
 sudo sed -i '/swap/d' /etc/fstab && sudo swapoff -a 
 cat /etc/fstab
 sudo systemctl stop firewalld 
 sudo systemctl disable firewalld 
+</pre>
 
 ### 1.c Отключить Selinux 
 
+<pre>
 Контейнеры должны получить доступ к файловой системе хоста. SELinux должен быть
 установлен в разрешающий режим, который эффективно отключает его функции безопасности.
 
 sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config && sudo setenforce 0
 sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config && sudo setenforce 0
+</pre>
 
 #### 2)
 
@@ -64,20 +73,25 @@ sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config && s
 
 #### Включите мостовой трафик 
 
+<pre>
 sudo modprobe br_netfilter && lsmod | grep br_netfilter
 sudo modprobe br_netfilter && lsmod | grep br_netfilter
+</pre>
 
 #### 2.b.. копирую приведенное ниже содержимое в этот файл.. /etc/modules-load.d/k8s.conf
 
+<pre>
 cat <<EOF | > sudo tee /etc/modules-load.d/k8s.conf
 br_netfilter
 EOF
 
 cat /etc/modules-load.d/k8s.conf
 cat /etc/modules-load.d/k8s.conf
+</pre>
 
 #### копирую приведенное ниже содержимое в этот файл.. /etc/sysctl.d/k8s.conf 
 
+<pre>
 cat <<EOF | > sudo tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
@@ -86,7 +100,9 @@ EOF
 
 cat /etc/sysctl.d/k8s.conf 
 cat /etc/sysctl.d/k8s.conf 
+</pre>
 
+<pre>
 sudo tee /etc/sysctl.d/kubernetes.conf <<EOF
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
@@ -100,6 +116,7 @@ cat /etc/sysctl.d/kubernetes.conf
 sudo modprobe overlay && sudo modprobe br_netfilter && sudo sysctl --system
 sudo modprobe overlay && sudo modprobe br_netfilter && sudo sysctl --system
 sudo modprobe overlay && sudo modprobe br_netfilter && sudo sysctl --system
+</pre>
 
 #### 3)
 
@@ -107,28 +124,37 @@ sudo modprobe overlay && sudo modprobe br_netfilter && sudo sysctl --system
 
 ####  удаляю все старые версии если чтото было установлено
 
+<pre>
 sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
 sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
 sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
+</pre>
 
 #### 3. b.. устанавливаю утилиты Yum
 
+<pre>
 sudo yum install -y yum-utils
 sudo yum install -y yum-utils
 sudo yum install -y yum-utils
+</pre>
 
 ####  3.c.. настраиваю репозиторий Docker
 
+<pre>
 yum-config-manager  --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 yum-config-manager  --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+</pre>
 
 #### 3. d.. устанавливаю Docker Engine, Docker CLI, Docker RUNTIME 
 
+<pre>
 yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+</pre>
 
 #### для работы docker 4.b. копирую е приведенное ниже содержимое в этот файл.. /etc/docker/  
 
+<pre>
 sudo tee /etc/docker/daemon.json <<EOF
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
@@ -142,19 +168,24 @@ EOF
 
 cat /etc/docker/daemon.json
 cat /etc/docker/daemon.json
+</pre>
 
 #### 4)
 
 ### стартуем с автозагрузкой
 
+<pre>
 sudo systemctl daemon-reload
 sudo systemctl enable docker && sudo systemctl restart docker && sudo systemctl status docker
 sudo systemctl enable docker && sudo systemctl restart docker && sudo systemctl status docker
 sudo systemctl daemon-reload
+</pre>
 
 #### 5)
 
 ####  Шаг 5. устанавливаем kubeadm, kubectl, kubelet копирую в этот файл приведенное ниже содержимое.. /etc/yum.repos.d/kubernetes.repo
+
+<pre>
 cat <<EOF | > sudo tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -167,6 +198,7 @@ EOF
 
 cat /etc/yum.repos.d/kubernetes.repo
 cat /etc/yum.repos.d/kubernetes.repo
+</pre>
 
 #### 5.2)
 
