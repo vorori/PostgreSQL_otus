@@ -203,21 +203,26 @@ cat /etc/yum.repos.d/kubernetes.repo
 #### 5.2)
 
 #### контрольный ребут
+
+<pre>
 reboot -h now
 reboot -h now
 reboot -h now
+</pre>
 
 #### 5.3)
 
 #### если нужно установить определенную версию kubernetes смотрим какие версии доступны для установки
 
+<pre>
 yum --showduplicates list kubeadm.x86_64
 yum --showduplicates list kubeadm.x86_64
 yum --showduplicates list kubeadm.x86_64
-
+</pre>
 
 #### примеры инсталяции и деинсталяции
 
+<pre>
 #### Устанавливаем командой new!
 yum install -y kubelet-1.26.1-0.x86_64 kubeadm-1.26.1-0.x86_64 kubectl-1.26.1-0.x86_64
 yum install -y kubelet-1.26.1-0.x86_64 kubeadm-1.26.1-0.x86_64 kubectl-1.26.1-0.x86_64
@@ -230,23 +235,32 @@ yum install -y kubelet-1.21.0-0.x86_64 kubeadm-1.21.0-0.x86_64 kubectl-1.21.0-0.
 
 yum install -y kubelet-1.16.2-0.x86_64 kubeadm-1.16.2-0.x86_64 kubectl-1.16.2-0.x86_64
 yum install -y kubelet-1.16.2-0.x86_64 kubeadm-1.16.2-0.x86_64 kubectl-1.16.2-0.x86_64
+</pre>
 
 #### 5.4)
 
 #### добавляем в автозагрузку и стартуем
+
+<pre>
 sudo systemctl enable --now kubelet && systemctl status kubelet
 sudo systemctl enable --now kubelet && systemctl status kubelet
 sudo systemctl enable --now kubelet && systemctl status kubelet
+</pre>
 
 #### 5.5)
 
 #### смотрим ошибки
+
+<pre>
 tail -f /var/log/messages
 tail -f /var/log/messages
 tail -f /var/log/messages
+</pre>
 
 
 ### ловим ошибку containerd
+
+<pre>
 ----------------------------------------------------------------------------------------------------------------------------
 ловим ошибку:
 Jul 13 06:55:55 masterkub kubelet: E0713 06:55:55.831658    1708 run.go:74] "command failed" err="failed to validate kubelet flags: 
@@ -273,19 +287,25 @@ systemctl restart containerd && sudo systemctl enable --now containerd && system
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
 ----------------------------------------------------------------------------------------------------------------------------
+</pre>
 
 #### 5.6)
 
 ### Pull the images , извлекает образы для версии Kubernetes 1.26.
+
+<pre>
 ----------------------------------------------------------------------------------------------------------------------------
 sudo kubeadm config images pull --image-repository=registry.k8s.io --cri-socket unix:///run/containerd/containerd.sock --kubernetes-version v1.26.1
 sudo kubeadm config images pull --image-repository=registry.k8s.io --cri-socket unix:///run/containerd/containerd.sock --kubernetes-version v1.26.1
 sudo kubeadm config images pull --image-repository=registry.k8s.io --cri-socket unix:///run/containerd/containerd.sock --kubernetes-version v1.26.1
 ----------------------------------------------------------------------------------------------------------------------------
+</pre>
 
 #### 5.7)
 
-### запускаю команду инициализации kubeadm на узле управления.
+#### запускаю команду инициализации kubeadm на узле управления.
+
+<pre>
 ----------------------------------------------------------------------------------------------------------------------------
 Здесь CIDR сети pod зависит от CNI, который вы будете устанавливать позже, поэтому в этом случае я использую фланель 
 и --control-plane-endpoint буду общедоступным IP-адресом для экземпляра (это также может быть частный IP-адрес, 
@@ -295,10 +315,13 @@ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
 ----------------------------------------------------------------------------------------------------------------------------
+</pre>
 
 #### 5.8)
 
-### проверяю
+#### проверяю
+
+<pre>
 ----------------------------------------------------------------------------------------------------------------------------
 kubectl version
 kubectl version
@@ -315,10 +338,13 @@ hostname -i
 hostname -i
 hostname -i
 ----------------------------------------------------------------------------------------------------------------------------
+</pre>
 
 #### 5.9)
 
 #### выполняю init
+
+<pre>
 ----------------------------------------------------------------------------------------------------------------------------
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
@@ -408,10 +434,14 @@ Then you can join any number of worker nodes by running the following on each as
 kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33 \
         --discovery-token-ca-cert-hash sha256:bbc69ceafaa3261fc3d7ce088f9f0837318d2e1dbc5f426b7de264f9c5bf64db
 ----------------------------------------------------------------------------------------------------------------------------
+</pre>
+
 
 #### 5.10)
 
 #### основные конфиги
+
+<pre>
 ----------------------------------------------------------------------------------------------------------------------------
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
@@ -423,10 +453,13 @@ kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube
 kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
 kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
 ----------------------------------------------------------------------------------------------------------------------------
+</pre>
 
 #### 5.11)
 
 #### ловим ошибку CrashLoopBackOff
+
+<pre>
 ----------------------------------------------------------------------------------------------------------------------------
 https://stackoverflow.com/questions/52098214/kube-flannel-in-crashloopbackoff-status
 https://stackoverflow.com/questions/52098214/kube-flannel-in-crashloopbackoff-status
@@ -475,19 +508,25 @@ systemctl restart containerd;
 
 Это обеспечит правильную работу вашего Core-DNS.
 ----------------------------------------------------------------------------------------------------------------------------
+</pre>
 
 #### 5.12)
 
 #### смотрим что все работает 1
+
+<pre>
 ----------------------------------------------------------------------------------------------------------------------------
 root@masterkub vorori]# kubectl get nodes
 NAME                             STATUS   ROLES           AGE     VERSION
 masterkub.ru-central1.internal   Ready    control-plane   4m27s   v1.26.1
 ----------------------------------------------------------------------------------------------------------------------------
+</pre>
 
 #### 5.13)
 
 #### смотрим что все работает 2
+
+<pre>
 ----------------------------------------------------------------------------------------------------------------------------
 [root@masterkub ~]# kubectl get all -A
 NAMESPACE      NAME                                                         READY   STATUS    RESTARTS   AGE
@@ -514,11 +553,13 @@ kube-system   deployment.apps/coredns   2/2     2            2           3m39s
 NAMESPACE     NAME                                 DESIRED   CURRENT   READY   AGE
 kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       3m28s
 ----------------------------------------------------------------------------------------------------------------------------
-
+</pre>
 
 #### 5.14)
 
 #### пытаемся присоединиться к мастеру
+
+<pre>
 ----------------------------------------------------------------------------------------------------------------------------
 rm /etc/containerd/config.toml
 rm /etc/containerd/config.toml
@@ -581,6 +622,8 @@ This node has joined the cluster:
 
 Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
 ---------------------------------
+</pre>
+
 
 #### 5.15)
 
