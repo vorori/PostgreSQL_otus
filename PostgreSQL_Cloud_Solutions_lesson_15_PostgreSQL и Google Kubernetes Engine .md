@@ -117,9 +117,6 @@ net.ipv4.ip_forward = 1
 EOF
 
 
-
-
-
 cat /etc/sysctl.d/kubernetes.conf
 cat /etc/sysctl.d/kubernetes.conf
 
@@ -172,7 +169,8 @@ yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker
 #### для работы docker 4.b. копирую е приведенное ниже содержимое в этот файл.. /etc/docker/  
 
 <pre>
-sudo tee /etc/docker/daemon.json <<EOF
+
+cat <<EOF | > sudo tee /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
   "log-driver": "json-file",
@@ -182,6 +180,7 @@ sudo tee /etc/docker/daemon.json <<EOF
   "storage-driver": "overlay2"
 }
 EOF
+
 
 cat /etc/docker/daemon.json
 cat /etc/docker/daemon.json
