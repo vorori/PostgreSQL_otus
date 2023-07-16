@@ -7,10 +7,6 @@
 
 
 
-
-
-
-
 #### подготовительные мероприятия нарезал vm установил необходимые пакеты
 
 <pre>
@@ -1066,7 +1062,6 @@ postgres=# SELECT * FROM master_get_active_worker_nodes();
 #### настройка подготовка к заливке данных
 установил  клиент psql
 yum install postgresql
-
 открыл доступ c 10.129.0.34 
 vim /var/pgsql-volume-master/pgdata/pg_hba.conf
 host    all             postgres           10.129.0.34/32            trust
@@ -1080,8 +1075,10 @@ create database test;
 CREATE EXTENSION citus;
 
 
-16
-создаю базу на всех воркерах
+#### 12)
+
+#### создаю базу на всех воркерах
+
 kubectl exec -it pod/citus-worker-0 -- psql -U postgres -c 'create database test;'
 kubectl exec -it pod/citus-worker-1 -- psql -U postgres -c 'create database test;'
 kubectl exec -it pod/citus-worker-2 -- psql -U postgres -c 'create database test;'
@@ -1091,12 +1088,16 @@ kubectl exec -it pod/citus-worker-1 -- psql -U postgres -d test -c 'CREATE EXTEN
 kubectl exec -it pod/citus-worker-2 -- psql -U postgres -d test -c 'CREATE EXTENSION citus;'
 
 
--- активируем ноды на коммутаторе
+#### 13)
+
+#### подключаю ноды
 sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-1.citus-workers', 5432);"
 sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-0.citus-workers', 5432);"
 sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-2.citus-workers', 5432);"
 
-проверяем
+#### 14)
+
+#### проверяю
 test=# SELECT * FROM master_get_active_worker_nodes();
           node_name           | node_port
 ------------------------------+-----------
@@ -1105,6 +1106,12 @@ test=# SELECT * FROM master_get_active_worker_nodes();
  citus-worker-1.citus-workers |      5432
 (3 rows)
 
+
+
+
+#### 15)
+
+#### создание табл и заливка данных 
 create table taxi_trips (
 unique_key text, 
 taxi_id text, 
@@ -1131,10 +1138,12 @@ dropoff_longitude numeric,
 dropoff_location text
 );
 
+#### по unique_key
+SELECT create_distributed_table('taxi_trips', 'unique_key');
+SELECT create_distributed_table('taxi_trips', 'unique_key');
 SELECT create_distributed_table('taxi_trips', 'unique_key');
 
-
-подключил бакет через s3fs-fuse
+#### подключил бакет через s3fs-fuse
 mkdir /tmp/taxi
 cd /tmp/taxi
 su - postgres
@@ -1151,6 +1160,8 @@ chown postgres:postgres /tmp/taxi -R
 #вливаю данные
 kubectl port-forward pod/citus-master-5bff7bc99c-kd89l 5432:5432
 for f in *.csv*; do psql -U postgres -p 5432 -h localhost -d test -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
+
+или
 
 \COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000000' DELIMITER ',' CSV HEADER;
 \COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000001' DELIMITER ',' CSV HEADER;
@@ -1184,7 +1195,6 @@ for f in *.csv*; do psql -U postgres -p 5432 -h localhost -d test -c "\\COPY tax
 
 
 
-#### Описать что и как делали и с какими проблемами столкнулись
 
 <pre>
 ---------------------------------------------------------------------------------------------------------------------------------------
