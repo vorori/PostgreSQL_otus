@@ -188,7 +188,7 @@ cat /etc/docker/daemon.json
 
 #### 4)
 
-### стартуем с автозагрузкой
+#### стартуем с автозагрузкой
 
 <pre>
 sudo systemctl daemon-reload
