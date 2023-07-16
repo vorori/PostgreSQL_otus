@@ -10,13 +10,16 @@
 #### подготовительные мероприятия нарезал vm установил необходимые пакеты
 
 <pre>
+#### получить данные vm
 
 hostname && hostname -i
 hostname && hostname -i
 hostname && hostname -i
 
-1) 
+#### 1) 
+
 ### добавляю на каждой ноде 
+
 sudo cat <<EOF>> /etc/hosts
 10.129.0.36 masterkub.ru-central1.internal
 10.129.0.34 node1 kub1.ru-central1.internal
@@ -32,12 +35,14 @@ sudo yum -y install epel-release && yum install -y htop mc vim wget telnet git
 sudo yum -y install epel-release && yum install -y htop mc vim wget telnet git
 
 
-###  Шаг 1: Предварительные требования 
-### 1.a.. Проверьте ОС, конфигурацию оборудования и Сетевое подключение 
-### 1.b.. Отключите подкачку Disable SWAP и брандмауэр 
+####  Шаг 1: Предварительные требования 
 
-### Прежде чем приступить, нужно проверить сводную информацию об использовании и доступности подкачки на устройстве хранения. 
-### С помощью команды swapon: (Если команда ничего не возвращает, значит файла подкачки не существует)
+#### 1.a.. Проверьте ОС, конфигурацию оборудования и Сетевое подключение 
+
+#### 1.b.. Отключите подкачку Disable SWAP и брандмауэр 
+
+#### Прежде чем приступить, нужно проверить сводную информацию об использовании и доступности подкачки на устройстве хранения. 
+#### С помощью команды swapon: (Если команда ничего не возвращает, значит файла подкачки не существует)
 
 swapon -s
 sudo sed -i '/swap/d' /etc/fstab && sudo swapoff -a 
@@ -46,18 +51,24 @@ sudo systemctl stop firewalld
 sudo systemctl disable firewalld 
 
 ### 1.c Отключить Selinux 
+
 Контейнеры должны получить доступ к файловой системе хоста. SELinux должен быть
 установлен в разрешающий режим, который эффективно отключает его функции безопасности.
 
 sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config && sudo setenforce 0
+sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config && sudo setenforce 0
 
-### Шаг 2. Настройте локальные таблицы IP для просмотра мостового трафика 
-2.a.. Включите мостовой трафик 
+#### 2)
+
+#### Шаг 2. настроим локальные таблицы IP для просмотра мостового трафика 
+
+#### Включите мостовой трафик 
 
 sudo modprobe br_netfilter && lsmod | grep br_netfilter
 sudo modprobe br_netfilter && lsmod | grep br_netfilter
 
-### 2.b.. Скопируйте приведенное ниже содержимое в этот файл.. /etc/modules-load.d/k8s.conf
+#### 2.b.. копирую приведенное ниже содержимое в этот файл.. /etc/modules-load.d/k8s.conf
+
 cat <<EOF | > sudo tee /etc/modules-load.d/k8s.conf
 br_netfilter
 EOF
@@ -65,7 +76,8 @@ EOF
 cat /etc/modules-load.d/k8s.conf
 cat /etc/modules-load.d/k8s.conf
 
-### копирую приведенное ниже содержимое в этот файл.. /etc/sysctl.d/k8s.conf 
+#### копирую приведенное ниже содержимое в этот файл.. /etc/sysctl.d/k8s.conf 
+
 cat <<EOF | > sudo tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
@@ -84,31 +96,39 @@ EOF
 cat /etc/sysctl.d/kubernetes.conf
 cat /etc/sysctl.d/kubernetes.conf
 
-### проверяю , что вы загружаете модули
+#### проверяю , что вы загружаете модули
 sudo modprobe overlay && sudo modprobe br_netfilter && sudo sysctl --system
 sudo modprobe overlay && sudo modprobe br_netfilter && sudo sysctl --system
 sudo modprobe overlay && sudo modprobe br_netfilter && sudo sysctl --system
 
-###  Шаг 3. Установите Docker будем работать через его движок
-3.a.. удаляю все старые версии если чтото было установлено
+#### 3)
+
+####  Шаг 3. установлю Docker будем работать через его движок
+
+####  удаляю все старые версии если чтото было установлено
+
 sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
 sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
 sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
 
-###  3. б.. устанавливаю утилиты Yum | Диспетчер конфигурации  
+#### 3. b.. устанавливаю утилиты Yum
+
 sudo yum install -y yum-utils
 sudo yum install -y yum-utils
 sudo yum install -y yum-utils
 
-###  3.c.. настраиваю репозиторий Docker
+####  3.c.. настраиваю репозиторий Docker
+
 yum-config-manager  --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 yum-config-manager  --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 
-### 3. d.. устанавливаю Docker Engine, Docker CLI, Docker RUNTIME $ 
+#### 3. d.. устанавливаю Docker Engine, Docker CLI, Docker RUNTIME 
+
 yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-### для работы docker 4.b. копирую е приведенное ниже содержимое в этот файл.. /etc/docker/  
+#### для работы docker 4.b. копирую е приведенное ниже содержимое в этот файл.. /etc/docker/  
+
 sudo tee /etc/docker/daemon.json <<EOF
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
@@ -123,14 +143,18 @@ EOF
 cat /etc/docker/daemon.json
 cat /etc/docker/daemon.json
 
+#### 4)
+
 ### стартуем с автозагрузкой
+
 sudo systemctl daemon-reload
 sudo systemctl enable docker && sudo systemctl restart docker && sudo systemctl status docker
 sudo systemctl enable docker && sudo systemctl restart docker && sudo systemctl status docker
 sudo systemctl daemon-reload
 
+#### 5)
 
-###  Шаг 5. устанавливаем kubeadm, kubectl, kubelet копирую в этот файл приведенное ниже содержимое.. /etc/yum.repos.d/kubernetes.repo
+####  Шаг 5. устанавливаем kubeadm, kubectl, kubelet копирую в этот файл приведенное ниже содержимое.. /etc/yum.repos.d/kubernetes.repo
 cat <<EOF | > sudo tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -144,19 +168,25 @@ EOF
 cat /etc/yum.repos.d/kubernetes.repo
 cat /etc/yum.repos.d/kubernetes.repo
 
-### контрольный ребут
+#### 5.2)
+
+#### контрольный ребут
 reboot -h now
 reboot -h now
 reboot -h now
 
-### если нужно установить определенную версию kubernetes смотрим какие версии доступны для установки
+#### 5.3)
+
+#### если нужно установить определенную версию kubernetes смотрим какие версии доступны для установки
+
 yum --showduplicates list kubeadm.x86_64
 yum --showduplicates list kubeadm.x86_64
 yum --showduplicates list kubeadm.x86_64
 
 
-### примеры инсталяции и деинсталяции
-### Устанавливаем командой new!
+#### примеры инсталяции и деинсталяции
+
+#### Устанавливаем командой new!
 yum install -y kubelet-1.26.1-0.x86_64 kubeadm-1.26.1-0.x86_64 kubectl-1.26.1-0.x86_64
 yum install -y kubelet-1.26.1-0.x86_64 kubeadm-1.26.1-0.x86_64 kubectl-1.26.1-0.x86_64
 
@@ -169,13 +199,16 @@ yum install -y kubelet-1.21.0-0.x86_64 kubeadm-1.21.0-0.x86_64 kubectl-1.21.0-0.
 yum install -y kubelet-1.16.2-0.x86_64 kubeadm-1.16.2-0.x86_64 kubectl-1.16.2-0.x86_64
 yum install -y kubelet-1.16.2-0.x86_64 kubeadm-1.16.2-0.x86_64 kubectl-1.16.2-0.x86_64
 
-###добавляем в автозагрузку и стартуем
+#### 5.4)
+
+#### добавляем в автозагрузку и стартуем
 sudo systemctl enable --now kubelet && systemctl status kubelet
 sudo systemctl enable --now kubelet && systemctl status kubelet
 sudo systemctl enable --now kubelet && systemctl status kubelet
 
+#### 5.5)
 
-смотрим ошибки
+#### смотрим ошибки
 tail -f /var/log/messages
 tail -f /var/log/messages
 tail -f /var/log/messages
@@ -209,6 +242,7 @@ systemctl restart containerd && sudo systemctl enable --now containerd && system
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
 ----------------------------------------------------------------------------------------------------------------------------
 
+#### 5.6)
 
 ### Pull the images , извлекает образы для версии Kubernetes 1.26.
 ----------------------------------------------------------------------------------------------------------------------------
@@ -217,6 +251,7 @@ sudo kubeadm config images pull --image-repository=registry.k8s.io --cri-socket 
 sudo kubeadm config images pull --image-repository=registry.k8s.io --cri-socket unix:///run/containerd/containerd.sock --kubernetes-version v1.26.1
 ----------------------------------------------------------------------------------------------------------------------------
 
+#### 5.7)
 
 ### запускаю команду инициализации kubeadm на узле управления.
 ----------------------------------------------------------------------------------------------------------------------------
@@ -228,6 +263,8 @@ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
 ----------------------------------------------------------------------------------------------------------------------------
+
+#### 5.8)
 
 ### проверяю
 ----------------------------------------------------------------------------------------------------------------------------
@@ -247,8 +284,9 @@ hostname -i
 hostname -i
 ----------------------------------------------------------------------------------------------------------------------------
 
+#### 5.9)
 
-### выполняю
+#### выполняю init
 ----------------------------------------------------------------------------------------------------------------------------
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
@@ -339,8 +377,9 @@ kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33
         --discovery-token-ca-cert-hash sha256:bbc69ceafaa3261fc3d7ce088f9f0837318d2e1dbc5f426b7de264f9c5bf64db
 ----------------------------------------------------------------------------------------------------------------------------
 
+#### 5.10)
 
-### основные конфиги
+#### основные конфиги
 ----------------------------------------------------------------------------------------------------------------------------
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
@@ -353,8 +392,9 @@ kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube
 kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
 ----------------------------------------------------------------------------------------------------------------------------
 
+#### 5.11)
 
-### ловим ошибку CrashLoopBackOff
+#### ловим ошибку CrashLoopBackOff
 ----------------------------------------------------------------------------------------------------------------------------
 https://stackoverflow.com/questions/52098214/kube-flannel-in-crashloopbackoff-status
 https://stackoverflow.com/questions/52098214/kube-flannel-in-crashloopbackoff-status
@@ -404,16 +444,18 @@ systemctl restart containerd;
 Это обеспечит правильную работу вашего Core-DNS.
 ----------------------------------------------------------------------------------------------------------------------------
 
+#### 5.12)
 
-
-### смотрим что все работает 1
+#### смотрим что все работает 1
 ----------------------------------------------------------------------------------------------------------------------------
 root@masterkub vorori]# kubectl get nodes
 NAME                             STATUS   ROLES           AGE     VERSION
 masterkub.ru-central1.internal   Ready    control-plane   4m27s   v1.26.1
 ----------------------------------------------------------------------------------------------------------------------------
 
-### смотрим что все работает 2
+#### 5.13)
+
+#### смотрим что все работает 2
 ----------------------------------------------------------------------------------------------------------------------------
 [root@masterkub ~]# kubectl get all -A
 NAMESPACE      NAME                                                         READY   STATUS    RESTARTS   AGE
@@ -442,9 +484,9 @@ kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       3
 ----------------------------------------------------------------------------------------------------------------------------
 
 
+#### 5.14)
 
-
-### пытаемся присоединиться к мастеру
+#### пытаемся присоединиться к мастеру
 ----------------------------------------------------------------------------------------------------------------------------
 rm /etc/containerd/config.toml
 rm /etc/containerd/config.toml
@@ -508,8 +550,9 @@ This node has joined the cluster:
 Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
 ---------------------------------
 
+#### 5.15)
 
-# заметка пытаемся присоединиться к мастеру
+#### заметка пытаемся присоединиться к мастеру
 ---------------------------------
 можно скопировать файл kubeconfig с узла controlplane node управления (~/.kube/config ) 
 на локальный и экспортировать переменную KUBECONFIG или получить прямой доступ к кластеру с узла controlplane node.
@@ -562,9 +605,9 @@ masterkub.ru-central1.internal   Ready    control-plane   20h   v1.26.1
 ----------------------------------------------------------------------------------------------------------------------------
 
 
+#### 5.16)
 
-
-### проверяю 
+#### проверяю 
 ----------------------------------------------------------------------------------------------------------------------------
 [root@masterkub vorori]# kubectl get nodes
 NAME                             STATUS   ROLES           AGE     VERSION
@@ -574,6 +617,7 @@ kub3.ru-central1.internal        Ready    <none>          16m     v1.26.1
 masterkub.ru-central1.internal   Ready    control-plane   4h30m   v1.26.1
 ----------------------------------------------------------------------------------------------------------------------------
 
+#### 5.17)
 
 ### важно! выделил заметка для себя   ---- ноды значения/наименования которых мы ввидем из разных команд
 ----------------------------------------------------------------------------------------------------------------------------
@@ -642,6 +686,8 @@ citusworker1
 citusworker2
 citusworker3
 
+#### 1.2)
+
 #### проверяю
 [root@masterkub vorori]# kubectl get nodes --show-labels
 NAME                             STATUS   ROLES           AGE     VERSION   LABELS
@@ -651,7 +697,7 @@ kub3.ru-central1.internal        Ready    <none>          2d5h    v1.26.1   beta
 masterkub.ru-central1.internal   Ready    control-plane   2d10h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusmaster,kubernetes.io/arch=amd64,kubernetes.io/hostname=masterkub.ru-central1.internal,kubernetes.io/os=
 
 
-#### 2)
+#### 1.3)
 
 #### создал директорию для мастера и worker
 mkdir /var/pgsql-volume-master
@@ -659,7 +705,7 @@ mkdir /var/pgsql-volume
 
 
 
-#### 3)
+#### 1.4)
 
 #### создал pv
 
@@ -759,7 +805,7 @@ spec:
 
 
 
-#### 3
+#### 1.5)
 
 #### проверяем 
 [root@masterkub citus]# kubectl apply -f /tmp/citus/mypv.yaml
@@ -770,7 +816,7 @@ storage-citusworker1   10Gi       RWO            Retain           Available     
 
 
 
-#### 4)
+#### 1.6)
 
 #### создал secrets
 vim /tmp/citus/secrets.yaml
@@ -791,7 +837,7 @@ secret/citus-secrets created
 
 
 
-#### 5)
+#### 1.7)
 
 #### создал PVC citus-master
 
@@ -814,7 +860,7 @@ spec:
   volumeName: storage-citusmaster
 
 
-#### 6)
+#### 1.8)
 
 #### проверяем 
 kubectl apply -f /tmp/citus/pvcmaster.yaml
@@ -827,7 +873,7 @@ citus-master-pvc   Bound    storage-citusworker1   10Gi       RWO               
 
 
 
-#### 7)
+#### 1.9)
 
 #### создаю master
 
@@ -902,7 +948,7 @@ spec:
             claimName: citus-master-pvc
 			
 
-#### 8)
+#### 1.10)
 
 #### проверяю
 
@@ -912,7 +958,8 @@ NAME                            READY   STATUS    RESTARTS   AGE
 citus-master-5bff7bc99c-kd89l   1/1     Running   0          41s
 
 
-#### 8.1	
+#### 1.11)
+
 [root@kub1 pgsql-volume-master]# ls -l /var/pgsql-volume-master/pgdata
 total 56
 drwx------. 6 polkitd input    64 Jul 15 21:13 base
@@ -942,7 +989,7 @@ drwx------. 2 polkitd input    18 Jul 15 21:13 pg_xact
 -rw-------. 1 polkitd input   101 Jul 15 21:13 postmaster.pid
 
 
-#### 9)
+#### 1.12)
 
 #### создаю worker
 vim /tmp/citus/worker.yaml
@@ -1023,7 +1070,7 @@ spec:
 
 
 
-#### 9)
+#### 1.13)
 
 #### проверяю
 kubectl apply -f /tmp/citus/worker.yaml
@@ -1038,7 +1085,7 @@ citus-worker-1                  1/1     Running   0          11s
 citus-worker-2                  1/1     Running   0          9s
 
 
-#### 10)
+#### 1.14)
 
 #### проверяю
 kubectl exec -it pod/citus-master-5bff7bc99c-kd89l -- bash
@@ -1054,10 +1101,7 @@ postgres=# SELECT * FROM master_get_active_worker_nodes();
 
 
 
-
-
-
-#### 11)
+#### 1.15)
 
 #### настройка подготовка к заливке данных
 установил  клиент psql
@@ -1075,7 +1119,7 @@ create database test;
 CREATE EXTENSION citus;
 
 
-#### 12)
+#### 1.16)
 
 #### создаю базу на всех воркерах
 
@@ -1088,14 +1132,15 @@ kubectl exec -it pod/citus-worker-1 -- psql -U postgres -d test -c 'CREATE EXTEN
 kubectl exec -it pod/citus-worker-2 -- psql -U postgres -d test -c 'CREATE EXTENSION citus;'
 
 
-#### 13)
+#### 1.17)
 
 #### подключаю ноды
 sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-1.citus-workers', 5432);"
 sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-0.citus-workers', 5432);"
 sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-2.citus-workers', 5432);"
 
-#### 14)
+
+#### 1.18)
 
 #### проверяю
 test=# SELECT * FROM master_get_active_worker_nodes();
@@ -1109,7 +1154,7 @@ test=# SELECT * FROM master_get_active_worker_nodes();
 
 
 
-#### 15)
+#### 1.19)
 
 #### создание табл и заливка данных 
 create table taxi_trips (
@@ -1138,10 +1183,15 @@ dropoff_longitude numeric,
 dropoff_location text
 );
 
+#### 1.20)
+
 #### по unique_key
 SELECT create_distributed_table('taxi_trips', 'unique_key');
 SELECT create_distributed_table('taxi_trips', 'unique_key');
 SELECT create_distributed_table('taxi_trips', 'unique_key');
+
+
+#### 1.21)
 
 #### подключил бакет через s3fs-fuse
 mkdir /tmp/taxi
@@ -1156,6 +1206,7 @@ s3fs myotus /tmp/taxi -o passwd_file=/home/postgres/.passwd-s3fs -o url=https://
 chown postgres:postgres /tmp/taxi -R
 
 
+#### 1.22)
 
 #вливаю данные
 kubectl port-forward pod/citus-master-5bff7bc99c-kd89l 5432:5432
@@ -1189,10 +1240,6 @@ for f in *.csv*; do psql -U postgres -p 5432 -h localhost -d test -c "\\COPY tax
 \COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000023' DELIMITER ',' CSV HEADER;
 \COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000024' DELIMITER ',' CSV HEADER;
 \COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000025' DELIMITER ',' CSV HEADER;
-
-
-
-
 
 
 
