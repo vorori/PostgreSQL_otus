@@ -20,7 +20,7 @@ hostname && hostname -i
 
 #### 1) 
 
-### добавляю на каждой ноде 
+#### добавляю на каждой ноде 
 
 <pre>
 sudo cat <<EOF>> /etc/hosts
@@ -57,7 +57,7 @@ sudo systemctl stop firewalld
 sudo systemctl disable firewalld 
 </pre>
 
-### 1.c Отключить Selinux 
+#### 1.c Отключить Selinux 
 
 <pre>
 Контейнеры должны получить доступ к файловой системе хоста. SELinux должен быть
