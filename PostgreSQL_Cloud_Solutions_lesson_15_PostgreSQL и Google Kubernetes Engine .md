@@ -1716,7 +1716,7 @@ https://www.youtube.com/watch?v=XfWE7NqgbLE&list=PLmxqUDFl0XM6pr2y6tK51cHOFajhFs
 https://www.youtube.com/watch?v=XfWE7NqgbLE&list=PLmxqUDFl0XM6pr2y6tK51cHOFajhFsWG8&index=4
 https://www.youtube.com/watch?v=XfWE7NqgbLE&list=PLmxqUDFl0XM6pr2y6tK51cHOFajhFsWG8&index=4 
 
-Kubernetes 1.26 — электрифицирующая установка релиза
+Kubernetes 1.26 — The electrifying release
 https://blog.kubesimplify.com/kubernetes-126
 https://blog.kubesimplify.com/kubernetes-126
 https://blog.kubesimplify.com/kubernetes-126
