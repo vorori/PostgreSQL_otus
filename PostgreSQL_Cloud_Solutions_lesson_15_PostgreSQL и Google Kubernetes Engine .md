@@ -96,6 +96,7 @@ cat /etc/modules-load.d/k8s.conf
 #### копирую приведенное ниже содержимое в этот файл.. /etc/sysctl.d/k8s.conf 
 
 <pre>
+
 cat <<EOF | > sudo tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
@@ -109,11 +110,14 @@ cat /etc/sysctl.d/k8s.conf
 
 <pre>
 
-sudo tee /etc/sysctl.d/kubernetes.conf <<EOF
+cat <<EOF | > sudo tee /etc/sysctl.d/kubernetes.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 net.ipv4.ip_forward = 1
 EOF
+
+
+
 
 
 cat /etc/sysctl.d/kubernetes.conf
