@@ -241,10 +241,13 @@ tps = 146.799855 (without initial connection time)
 
 
 #### sysbench на начальных настройках кластера postgres
+
+<pre>
 curl -s https://packagecloud.io/install/repositories/akopytov/sysbench/script.rpm.sh | sudo bash
 sudo yum -y install sysbench
 
 #### подготовка
+
 sudo -u postgres psql -c "CREATE ROLE test LOGIN SUPERUSER PASSWORD 'test'"
 sudo -u postgres psql -c "CREATE DATABASE test"
 sudo -u postgres sysbench \
@@ -262,7 +265,6 @@ run
 
 #### получили базу test 23 таблицы обьем 5520 MB 
 
-#### получаем выхлоп на настройках по умолчанию
 sysbench \
 --db-driver=pgsql \
 --report-interval=60 \
