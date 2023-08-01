@@ -10,7 +10,7 @@
 </pre>
 
 
-#### регистрация в VKcloud 
+#### регистрация в VKcloud https://mcs.mail.ru/app/auth
 #### подготовительные мероприятия создаю vm в VKcloud 
 #### Будем создавать мастер + standby в асинхронной репликации
 
@@ -285,6 +285,7 @@ sysbench \
 run
 
 #### результат
+#### результат для VKcloud
 [ 60s ] thds: 64 tps: 23.17 qps: 476.76 (r/w/o: 335.72/93.62/47.41) lat (ms,95%): 6594.16 err/s: 0.00 reconn/s: 0.00
 [ 120s ] thds: 64 tps: 29.67 qps: 589.79 (r/w/o: 412.59/117.87/59.33) lat (ms,95%): 4128.91 err/s: 0.00 reconn/s: 0.00
 [ 180s ] thds: 64 tps: 34.50 qps: 697.42 (r/w/o: 488.03/140.38/69.00) lat (ms,95%): 3267.19 err/s: 0.00 reconn/s: 0.00
@@ -320,6 +321,42 @@ Latency (ms):
 Threads fairness:
     events (avg/stddev):           306.4375/6.81
     execution time (avg/stddev):   600.8195/0.44
+
+</pre>
+
+
+
+<pre>
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------Sbercloud---------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+#### регистрация в Sbercloud https://cloud.ru/ru
+#### Будем создавать мастер + standby в асинхронной репликации настройку я опускаю т.к. она идентична вышеописсанной на примере с VKcloud
+#### подготовительные мероприятия создаю vm в Sbercloud
+
+<pre>
+Инструкция подключения
+1. Активация консоли https://console.hc.sbercloud.ru/console/?region=ru-moscow-1#/home( пополнение счета)
+2. Создание сети https://cloud.ru/ru/docs/vpc/ug/topics/managing-networks__create-vpc-network.html Перейдите в раздел Network → Virtual Private Cloud.
+3. документация по созданию VM https://cloud.ru/ru/docs/ecs/ug/index.html
+4. создание Elastic Cloud Server VM https://console.hc.sbercloud.ru/ecm/?agencyId=c7QXyl2IUo9XfqpunlzXoreUPd9KK3hq&region=ru-moscow-1&locale=en-us#/ecs/manager/vmList
+5. подключение по ssh root@37.230.196.5    ssh root@37.230.196.77
+</pre>
+
+#### Используем pgbench на начальных настройках кластера postgres
+<pre>
+запуск самого теста получаем выхлоп на настройках по умолчанию
+/usr/pgsql-15/bin/pgbench -c8 -P 60 -T 600 -U postgres postgres
+</pre>
+
+
+
+#### Используем sysbench на начальных настройках кластера postgres
+#### результат для Sbercloud
+
 
 </pre>
 
