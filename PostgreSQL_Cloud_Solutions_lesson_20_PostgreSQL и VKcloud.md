@@ -347,23 +347,23 @@ Threads fairness:
 5. подключение по ssh root@37.230.196.5    ssh root@37.230.196.77
 </pre>
 
-#### Используем pgbench на начальных настройках кластера postgres
+#### Используем pgbench 
+#### результат для Sbercloud
 <pre>
-запуск самого теста получаем выхлоп на настройках по умолчанию
 /usr/pgsql-15/bin/pgbench -c8 -P 60 -T 600 -U postgres postgres
 pgbench (15.3)
 starting vacuum...end.
-progress: 60.0 s, 392.4 tps, lat 5.741 ms stddev 1.678, 0 failed
-progress: 120.0 s, 406.7 tps, lat 5.684 ms stddev 2.255, 0 failed
-progress: 180.0 s, 364.1 tps, lat 5.862 ms stddev 1.824, 0 failed
-progress: 240.0 s, 391.2 tps, lat 5.747 ms stddev 1.612, 0 failed
-progress: 300.0 s, 439.7 tps, lat 5.553 ms stddev 1.561, 0 failed
-progress: 360.0 s, 420.2 tps, lat 5.630 ms stddev 1.693, 0 failed
-progress: 420.0 s, 452.1 tps, lat 5.506 ms stddev 1.638, 0 failed
-progress: 420.0 s, 452.1 tps, lat 5.506 ms stddev 1.638, 0 failed
-progress: 480.0 s, 431.7 tps, lat 5.585 ms stddev 1.624, 0 failed
-progress: 540.0 s, 439.4 tps, lat 5.555 ms stddev 1.606, 0 failed
-progress: 600.0 s, 475.5 tps, lat 5.419 ms stddev 1.456, 0 failed
+progress: 60.0 s, 892.4 tps, lat 5.741 ms stddev 1.678, 0 failed
+progress: 120.0 s, 706.7 tps, lat 5.684 ms stddev 2.255, 0 failed
+progress: 180.0 s, 664.1 tps, lat 5.862 ms stddev 1.824, 0 failed
+progress: 240.0 s, 891.2 tps, lat 5.747 ms stddev 1.612, 0 failed
+progress: 300.0 s, 839.7 tps, lat 5.553 ms stddev 1.561, 0 failed
+progress: 360.0 s, 720.2 tps, lat 5.630 ms stddev 1.693, 0 failed
+progress: 420.0 s, 752.1 tps, lat 5.506 ms stddev 1.638, 0 failed
+progress: 420.0 s, 752.1 tps, lat 5.506 ms stddev 1.638, 0 failed
+progress: 480.0 s, 831.7 tps, lat 5.585 ms stddev 1.624, 0 failed
+progress: 540.0 s, 639.4 tps, lat 5.555 ms stddev 1.606, 0 failed
+progress: 600.0 s, 875.5 tps, lat 5.419 ms stddev 1.456, 0 failed
 transaction type: <builtin: TPC-B (sort of)>
 scaling factor: 1
 query mode: simple
@@ -376,12 +376,12 @@ number of failed transactions: 0 (0.000%)
 latency average = 5.625 ms
 latency stddev = 1.709 ms
 initial connection time = 13.055 ms
-tps = 421.303039 (without initial connection time)
+tps = 721.303039 (without initial connection time)
 </pre>
 
 
 
-#### Используем sysbench на настройках по умолчанию кластера postgres
+#### Используем sysbench 
 #### результат для Sbercloud
 
 <pre>
@@ -429,4 +429,88 @@ Threads fairness:
 ---------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------Yandex Cloud------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+
+#### Используем sysbench 
+#### результат для Yandex Cloud
+
+<pre>
+progress: 60.0 s, 652.1 tps, lat 12.260 ms stddev 10.435
+progress: 120.0 s, 479.9 tps, lat 16.663 ms stddev 14.426
+progress: 180.0 s, 348.1 tps, lat 22.984 ms stddev 21.320
+progress: 240.0 s, 600.8 tps, lat 13.316 ms stddev 12.299
+progress: 300.0 s, 612.3 tps, lat 13.064 ms stddev 12.570
+progress: 360.0 s, 576.5 tps, lat 13.874 ms stddev 14.898
+progress: 420.0 s, 608.2 tps, lat 13.154 ms stddev 11.765
+progress: 480.0 s, 628.9 tps, lat 12.721 ms stddev 11.093
+progress: 540.0 s, 575.1 tps, lat 13.910 ms stddev 11.777
+progress: 600.0 s, 372.1 tps, lat 21.497 ms stddev 23.477
+transaction type: <builtin: TPC-B (sort of)>
+scaling factor: 1
+query mode: simple
+number of clients: 8
+number of threads: 1
+duration: 600 s
+number of transactions actually processed: 327245
+latency average = 14.666 ms
+latency stddev = 14.491 ms
+initial connection time = 16.419 ms
+tps = 545.411638 (without initial connection time)
+</pre>
+
+
+#sysbench на начальных настройках кластера postgres
+#### результат для Yandex Cloud
+
+<pre>
+[ 5s ] thds: 64 tps: 92.13 qps: 2049.52 (r/w/o: 1451.55/399.91/198.06) lat (ms,95%): 1280.93 err/s: 0.40 reconn/s: 0.00
+[ 10s ] thds: 64 tps: 82.61 qps: 1659.93 (r/w/o: 1164.69/330.03/165.21) lat (ms,95%): 2045.74 err/s: 0.00 reconn/s: 0.00
+[ 15s ] thds: 64 tps: 48.00 qps: 934.53 (r/w/o: 652.75/185.79/95.99) lat (ms,95%): 2493.86 err/s: 0.00 reconn/s: 0.00
+[ 20s ] thds: 64 tps: 89.20 qps: 1789.90 (r/w/o: 1252.47/359.02/178.41) lat (ms,95%): 1561.52 err/s: 0.00 reconn/s: 0.00
+[ 25s ] thds: 64 tps: 31.40 qps: 646.39 (r/w/o: 453.19/130.40/62.80) lat (ms,95%): 3448.53 err/s: 0.00 reconn/s: 0.00
+[ 30s ] thds: 64 tps: 32.60 qps: 602.00 (r/w/o: 425.60/111.20/65.20) lat (ms,95%): 3911.79 err/s: 0.00 reconn/s: 0.00
+[ 35s ] thds: 64 tps: 113.20 qps: 2324.46 (r/w/o: 1617.84/480.21/226.41) lat (ms,95%): 1191.92 err/s: 0.00 reconn/s: 0.00
+[ 40s ] thds: 64 tps: 41.80 qps: 815.99 (r/w/o: 576.19/156.20/83.60) lat (ms,95%): 2449.36 err/s: 0.00 reconn/s: 0.00
+[ 45s ] thds: 64 tps: 33.00 qps: 653.00 (r/w/o: 457.80/129.20/66.00) lat (ms,95%): 3386.99 err/s: 0.00 reconn/s: 0.00
+[ 50s ] thds: 64 tps: 32.80 qps: 669.01 (r/w/o: 464.21/139.00/65.80) lat (ms,95%): 4055.23 err/s: 0.00 reconn/s: 0.00
+[ 55s ] thds: 64 tps: 32.40 qps: 666.80 (r/w/o: 465.20/136.80/64.80) lat (ms,95%): 3706.08 err/s: 0.00 reconn/s: 0.00
+[ 60s ] thds: 64 tps: 37.80 qps: 734.40 (r/w/o: 514.40/144.40/75.60) lat (ms,95%): 3326.55 err/s: 0.00 reconn/s: 0.00
+SQL statistics:
+    queries performed:
+        read:                            47614
+        write:                           13598
+        other:                           6804
+        total:                           68016
+    transactions:                        3399   (53.50 per sec.)
+    queries:                             68016  (1070.47 per sec.)
+    ignored errors:                      2      (0.03 per sec.)
+    reconnects:                          0      (0.00 per sec.)
+
+General statistics:
+    total time:                          63.5364s
+    total number of events:              3399
+
+Latency (ms):
+         min:                                   10.04
+         avg:                                 1147.50
+         max:                                 6655.73
+         95th percentile:                     2828.87
+         sum:                              3900353.37
+
+Threads fairness:
+    events (avg/stddev):           53.1094/3.73
+    execution time (avg/stddev):   60.9430/0.63
+</pre>
+
+
+<pre>
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------Описать что и как делали и с какими проблемами столкнулись------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+<pre>
+
 </pre>
