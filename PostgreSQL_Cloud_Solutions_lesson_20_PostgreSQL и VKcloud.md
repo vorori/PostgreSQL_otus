@@ -1,6 +1,8 @@
 
 
-##### PostgreSQL и VKcloud, GCP, AWS, ЯО, Sbercloud-
+#####  Домашнее задание
+#####  PostgreSQL и VKcloud, GCP, AWS, ЯО, Sbercloud
+#####  научиться пользоваться PostgreSQL based и like сервисами в VKcloud, GCP, AWS, ЯО, Sbercloud
 
 <pre>
 ---------------------------------------------------------------------------------------------------------------------------------------
