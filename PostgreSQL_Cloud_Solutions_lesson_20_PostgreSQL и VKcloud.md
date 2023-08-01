@@ -381,9 +381,10 @@ tps = 421.303039 (without initial connection time)
 
 
 
-#### Используем sysbench на начальных настройках кластера postgres
+#### Используем sysbench на настройках по умолчанию кластера postgres
 #### результат для Sbercloud
 
+<pre>
 [ 60s ] thds: 64 tps: 219.72 qps: 4406.44 (r/w/o: 3086.43/879.40/440.61) lat (ms,95%): 773.68 err/s: 0.05 reconn/s: 0.00
 [ 120s ] thds: 64 tps: 246.82 qps: 4938.69 (r/w/o: 3457.09/987.86/493.73) lat (ms,95%): 707.07 err/s: 0.03 reconn/s: 0.00
 [ 180s ] thds: 64 tps: 248.84 qps: 4976.15 (r/w/o: 3483.87/994.49/497.79) lat (ms,95%): 669.89 err/s: 0.03 reconn/s: 0.00
