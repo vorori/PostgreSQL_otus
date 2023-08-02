@@ -217,11 +217,9 @@ cat /etc/yum.repos.d/kubernetes.repo
 
 #### 5.2)
 
-#### контрольный ребут
+#### контрольный ребут (смотрим логи)
 
 <pre>
-reboot -h now
-reboot -h now
 reboot -h now
 </pre>
 
@@ -238,7 +236,6 @@ yum --showduplicates list kubeadm.x86_64
 #### примеры инсталяции и деинсталяции
 
 <pre>
-#### Устанавливаем командой new!
 yum install -y kubelet-1.26.1-0.x86_64 kubeadm-1.26.1-0.x86_64 kubectl-1.26.1-0.x86_64
 yum install -y kubelet-1.26.1-0.x86_64 kubeadm-1.26.1-0.x86_64 kubectl-1.26.1-0.x86_64
 
@@ -254,7 +251,7 @@ yum install -y kubelet-1.16.2-0.x86_64 kubeadm-1.16.2-0.x86_64 kubectl-1.16.2-0.
 
 #### 5.4)
 
-#### добавляем в автозагрузку и стартуем
+#### kubelet добавляем в автозагрузку и стартуем
 
 <pre>
 sudo systemctl enable --now kubelet && systemctl status kubelet
@@ -268,16 +265,14 @@ sudo systemctl enable --now kubelet && systemctl status kubelet
 
 <pre>
 tail -f /var/log/messages
-tail -f /var/log/messages
-tail -f /var/log/messages
 </pre>
 
 
-#### ловим ошибку containerd
+#### ловим ошибку containerd (решаем вопросы)
 
 <pre>
-----------------------------------------------------------------------------------------------------------------------------
-ловим ошибку:
+------------------------------
+#### ловим ошибку:
 Jul 13 06:55:55 masterkub kubelet: E0713 06:55:55.831658    1708 run.go:74] "command failed" err="failed to validate kubelet flags: 
 the container runtime endpoint address was not specified or empty, use --container-runtime-endpoint to set"
 
@@ -301,35 +296,35 @@ rm /etc/containerd/config.toml
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
-----------------------------------------------------------------------------------------------------------------------------
+------------------------------
 </pre>
 
 #### 5.6)
-
-#### Pull the images , извлекает образы для версии Kubernetes 1.26.
+#### извлекаем образы для версии Kubernetes 1.26. Pull the images
 
 <pre>
-----------------------------------------------------------------------------------------------------------------------------
+------------------------------
 sudo kubeadm config images pull --image-repository=registry.k8s.io --cri-socket unix:///run/containerd/containerd.sock --kubernetes-version v1.26.1
 sudo kubeadm config images pull --image-repository=registry.k8s.io --cri-socket unix:///run/containerd/containerd.sock --kubernetes-version v1.26.1
 sudo kubeadm config images pull --image-repository=registry.k8s.io --cri-socket unix:///run/containerd/containerd.sock --kubernetes-version v1.26.1
-----------------------------------------------------------------------------------------------------------------------------
+------------------------------
 </pre>
 
 #### 5.7)
 
 #### запускаю команду инициализации kubeadm на узле управления.
 
-<pre>
-----------------------------------------------------------------------------------------------------------------------------
-Здесь CIDR сети pod зависит от CNI, который вы будете устанавливать позже, поэтому в этом случае я использую фланель 
-и --control-plane-endpoint буду общедоступным IP-адресом для экземпляра (это также может быть частный IP-адрес, 
-но если вы хотите получить доступ это из-за пределов узла с помощью Kubeconfig, тогда вам нужно указать общедоступный IP-адрес).
 
+#### Здесь CIDR сети pod зависит от CNI, который вы будете устанавливать позже, поэтому в этом случае я использую фланель 
+#### и --control-plane-endpoint буду общедоступным IP-адресом для экземпляра (это также может быть частный IP-адрес, 
+#### но если вы хотите получить доступ это из-за пределов узла с помощью Kubeconfig, тогда вам нужно указать общедоступный IP-адрес).
+
+<pre>
+------------------------------
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
-----------------------------------------------------------------------------------------------------------------------------
+------------------------------
 </pre>
 
 #### 5.8)
@@ -337,7 +332,7 @@ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address
 #### проверяю
 
 <pre>
-----------------------------------------------------------------------------------------------------------------------------
+------------------------------
 kubectl version
 kubectl version
 kubectl version
@@ -346,21 +341,21 @@ WARNING: This version information is deprecated and will be replaced with the ou
 Client Version: version.Info{Major:"1", Minor:"26", GitVersion:"v1.26.1", GitCommit:"8f94681cd294aa8cfd3407b8191f6c70214973a4", GitTreeState:"clean", BuildDate:"2023-01-18T15:58:16Z", GoVersion:"go1.19.5", Compiler:"gc", Platform:"linux/amd64"}
 Kustomize Version: v4.5.7
 Server Version: version.Info{Major:"1", Minor:"26", GitVersion:"v1.26.1", GitCommit:"8f94681cd294aa8cfd3407b8191f6c70214973a4", GitTreeState:"clean", BuildDate:"2023-01-18T15:51:25Z", GoVersion:"go1.19.5", Compiler:"gc", Platform:"linux/amd64"}
-----------------------------------------------------------------------------------------------------------------------------
+------------------------------
 
-----------------------------------------------------------------------------------------------------------------------------
+------------------------------
 hostname -i
 hostname -i
 hostname -i
-----------------------------------------------------------------------------------------------------------------------------
+------------------------------
 </pre>
 
 #### 5.9)
 
-#### выполняю init
+#### выполняю init Kubernetes cluster
 
 <pre>
-----------------------------------------------------------------------------------------------------------------------------
+------------------------------
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
@@ -448,16 +443,16 @@ Then you can join any number of worker nodes by running the following on each as
 
 kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33 \
         --discovery-token-ca-cert-hash sha256:bbc69ceafaa3261fc3d7ce088f9f0837318d2e1dbc5f426b7de264f9c5bf64db
-----------------------------------------------------------------------------------------------------------------------------
+------------------------------
 </pre>
 
 
 #### 5.10)
 
-#### основные конфиги
+#### основные конфиги (для распространения управления на других узлах)
 
 <pre>
-----------------------------------------------------------------------------------------------------------------------------
+------------------------------
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
@@ -467,7 +462,7 @@ export KUBECONFIG=/etc/kubernetes/admin.conf
 kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
 kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
 kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
-----------------------------------------------------------------------------------------------------------------------------
+------------------------------
 </pre>
 
 #### 5.11)
@@ -487,7 +482,7 @@ kube-system   kube-flannel-ds-amd64-42rl7            0/1       CrashLoopBackOff
 Это верно только для главного узла. Другие рабочие узлы не должны запускать эту команду. 
 Посмотрите на другой ответ, предоставленный @pande ниже; это то, что решило эту проблему для меня.
 
-как можно разрулить допорлнително
+как можно разрулить дополнительно:
 ------------------------
 Причина в том, что
 фланелевый бег с CIDR= 10.244.0.0/16​​НЕТ 10.244.0.0/24!!!
@@ -527,7 +522,7 @@ systemctl restart containerd;
 
 #### 5.12)
 
-#### смотрим что все работает 1
+#### проверяем статус и что все работает. a ..
 
 <pre>
 ----------------------------------------------------------------------------------------------------------------------------
@@ -539,7 +534,7 @@ masterkub.ru-central1.internal   Ready    control-plane   4m27s   v1.26.1
 
 #### 5.13)
 
-#### смотрим что все работает 2
+#### смотрим что все работает. b ..
 
 <pre>
 ----------------------------------------------------------------------------------------------------------------------------
@@ -572,7 +567,7 @@ kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       3
 
 #### 5.14)
 
-#### пытаемся присоединиться к мастеру
+#### на нодах пытаемся присоединиться к мастеру
 
 <pre>
 ----------------------------------------------------------------------------------------------------------------------------
@@ -642,7 +637,7 @@ Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
 
 #### 5.15)
 
-#### заметка пытаемся присоединиться к мастеру
+#### заметка если сделать в ручника (пытаемся присоединиться к мастеру)
 
 <pre>
 ---------------------------------
@@ -672,6 +667,7 @@ users:
   user:
     client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURJVENDQWdtZ0F3SUJBZ0lJTktFK3RRT1NLeFF3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TXpBM01UTXdPVE00TlRoYUZ3MHlOREEzTVRJd09UTTVNREZhTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXNaWVJZZE5CUHJZdXhDOTMKWk92eEJSSXU0S0F0U0g2bVlPelNZcTMzbEJCWkFJdUNpRjlGWnczMnZpSi9vbXhEZVlhMWw2czVsYndqNDNvUwpmSThxaS9mdDk3bUF3R2s5cThYQUVIUjRoMFo4QnRQR1VlSW11NUJtamJpS2VCQy9CQnpXUnYydTFHVCtRZlcyCnFXd0FaRS9VNUIwK1Z5VHJFeEEwbFE0WnU4d0VLTEtmczhXeFM2Y2RYK3Rkbi9Qams1OGZmTElyUXp5ZHM1Vm8KaGV4eVcxMHNwRkNjSDVwQktDT3JpUXRPL3RRWTBudjl2VzBVSEgydXNhL2c4eUF4N3JsejlYUU5NMENYc3ptSQpvRW9yeDNGRjkzcnBQaGNMRmJqR2kxWmlVakF4TWllZTltRnBWQStJSGpGdVBFck05UU0vanZDVUozalh1WHJvCkkvd2RzUUlEQVFBQm8xWXdWREFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RBWURWUjBUQVFIL0JBSXdBREFmQmdOVkhTTUVHREFXZ0JRU25TNlI5MTVQbTRTclZIbCtqeC83S3BKSwp6VEFOQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBWkI5MFFldmE0N2UrVUNYd2pmWkF3RzhwS1ZZdTBuODEzbko5CnFHamROZ0FJdm9SaGhoSFNXcERsUzVObGpWckorSWE4Zk50RC9HcTNxOG1kVmhmdDZLR2Mxa1FWUEFVMkNycXUKQjFYYUUraUxtSVZQUWRvS2R2MTR1WDQrTHQwQ0NORGNZWlNWd3hHT0xCZXcvakVXVitUa0ViSlJTbDlMOHlVSApsYitOOHNNOWtBOE5sdGhnNGFNcS8wb05Nek1xYm05bTQ3T3RwWXhGTkp0bGd5VDJxWXpWczJES1NkYm1ZdGVQCjZ3OS9PcHkwNGtqTUJHWTdxVnJudkY3OWhJeVlSUlNwb0tiR29ucFZPRkcxbTgrYmg3SEJuYmZtTGVQcmNnbWsKQ3hST2JVcEtRTThvNlJ2WjhxZlI2MGFMTWdVaTFjbVNVRllUYUFEclVpTHlsNkhobGc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
     client-key-data: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcEFJQkFBS0NBUUVBc1pZUllkTkJQcll1eEM5M1pPdnhCUkl1NEtBdFNINm1ZT3pTWXEzM2xCQlpBSXVDCmlGOUZadzMydmlKL29teERlWWExbDZzNWxid2o0M29TZkk4cWkvZnQ5N21Bd0drOXE4WEFFSFI0aDBaOEJ0UEcKVWVJbXU1Qm1qYmlLZUJDL0JCeldSdjJ1MUdUK1FmVzJxV3dBWkUvVTVCMCtWeVRyRXhBMGxRNFp1OHdFS0xLZgpzOFd4UzZjZFgrdGRuL1BqazU4ZmZMSXJRenlkczVWb2hleHlXMTBzcEZDY0g1cEJLQ09yaVF0Ty90UVkwbnY5CnZXMFVISDJ1c2EvZzh5QXg3cmx6OVhRTk0wQ1hzem1Jb0VvcngzRkY5M3JwUGhjTEZiakdpMVppVWpBeE1pZWUKOW1GcFZBK0lIakZ1UEVyTTlRTS9qdkNVSjNqWHVYcm9JL3dkc1FJREFRQUJBb0lCQUR6blJwYlNLTElsTU95LwppcWJsOUFiVk1aWi8ySWZnUjVjK0lQa095TFhTMVhOR1pVSDN5b21KVkhIb3l2VWRSQmJOaUVHM3kwdjY5aVB4Cm5aMXlUQmtzc2tRZkxuVE9vd1BpRWZpU3VUTkxqUVdhWTQxNWplY05vdDQveDkxZGdPVWNMckN5Rjk5bnMzdFQKbFkyTktLVSthN2kvL3IxTVFBS05zRHJlVnh6OFRDVFErVHZHQVdUUjVjSTRweWZsTkFyUkx5ZllRYyszL2Q4QQp6VWNUUmVQdWNFbkFoa2hrVkZ5N2ZyZjgvMFR2WlBGZXdDRkpVVVRzNCtWK2RSNWNEd3AzQlVwVjdNdEhMVm5oClA3WmZOYTBGTnlabDFXN3V2SS84N0VTM1NURmJZWE1OQXFDR1FlbnlEcGhrTHFObnV0VDBlMHZwemtTQ1c3SzgKSVQ3eC9uRUNnWUVBNlpzd3Iwd1hoaG5JcU9XaHhTZ0JuZTlabCtKNUVzalRRWkhXV2hPRGdyN1ExeTV2ZVdEcAo3Z1FqeEZ3ZVZSZ0hGcWwwY3VSQ3d3b21mM2R2M1ZCOVpWRjBkTENvWXdTRFJvZTFCSXRXTGVNb0NZT3dMRTFkCmozcFd4VVhhL3VCNTUrS2ppdjQzWWVVNzFYdnRBOU1jd2hFdnJhZFJ6c0thU3dUMm4wU3JDY3NDZ1lFQXdwd2UKbUhkY2p0am1JQTNmbTZiSEZRZDhsc01ZeG1FOStBeHdnaC9aZFJ4TE9meGN5TXl3LytRVXV1VzRGdjRCaEhQTAo0enZVeGFJbDRTZ1hLYmJDaWRjeXIxZHdQSUcwUGxkL3F5RitpYzJRZlZWd0h5aUlnd3czb2FzaGVqZDY3NGZCCkVEZE13Mmp6T0F6a0VXUlMxRTAyd0NTMEJjb0JOOXhLMVlhVE52TUNnWUFrQXhlTFBvaTExSTI1YzhUdmRzNWgKQVgvblNUTnU4T1NZVEJvbVFySFlXd0FvMi9DMVhucFJoZlBabG5YYW1seWxZclFmN2c1WXNOemtjNDRjS1FkYgpzaVhvd3o4Q0hMVDhEM21aWEwySlQyWmhxUnBraWZ5dFhLZTV1NTRhQXBMb2Eyall5WDNTS3B1QnVwdjhKZlJkCituWkdKL0FWbHF4Z2VrQm1weGhTNXdLQmdRQzNRZkNGdnBESWEzTjQ1OWVUYVYrN2E4dGs1Tjhsb0ZpTWhwcEQKenQ0bHE3a2pKNFB3Q3VENmRyc1dyRS9JUnZVQzExQTk4UStSOC9rYnAzYjRid09PYmJscTZEbm1vSFVzNTVSdgpnQ0Q2ZnpyNjYwT2o4N1ZwUWszNHpYKys2Uk81RCtzNzYvYzdaRTcwang4TlNaMitFZC9tM0NreDhtRm5TdWlsClhnNnZCUUtCZ1FDUHJGd095TGxobGc0cVZYbnY3eXRUVWVnS2NUQk9uSU93VVBEWXBBemJWaDIwWmlFbUhiZ3YKckY2YlhmK0hlcWZSRVpLWjl1RzM5ckZESVRFOC9IUDE2QWUvWlc0Z3M2VSt3dmU4WjdZc1BxZ2dadnE3RHRMOQoyQUgvQlVyS0pNTGhnVkl1TzluVzlTaDVhWERFWXhVeFhpTFcveVFIUjNzWmdEeVlYcmIwK1E9PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+---------------------------------
 </pre>
 
 <pre>
@@ -685,6 +681,7 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 </pre>
+----------------------------------------------------------------------------------------------------------------------------
 
 #### проверяем
 
@@ -693,13 +690,13 @@ kubectl get nodes
 kubectl get nodes
 kubectl get nodes
 
-[root@kub1 vorori]# kubectl get nodes
+kubectl get nodes
+
 NAME                             STATUS   ROLES           AGE   VERSION
 kub1.ru-central1.internal        Ready    <none>          16h   v1.26.1
 kub2.ru-central1.internal        Ready    <none>          16h   v1.26.1
 kub3.ru-central1.internal        Ready    <none>          16h   v1.26.1
 masterkub.ru-central1.internal   Ready    control-plane   20h   v1.26.1
-----------------------------------------------------------------------------------------------------------------------------
 </pre>
 
 
@@ -709,7 +706,8 @@ masterkub.ru-central1.internal   Ready    control-plane   20h   v1.26.1
 
 <pre>
 ----------------------------------------------------------------------------------------------------------------------------
-[root@masterkub vorori]# kubectl get nodes
+kubectl get nodes
+
 NAME                             STATUS   ROLES           AGE     VERSION
 kub1.ru-central1.internal        Ready    <none>          35m     v1.26.1
 kub2.ru-central1.internal        Ready    <none>          35s     v1.26.1
