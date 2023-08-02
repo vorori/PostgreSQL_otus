@@ -138,43 +138,34 @@ sudo modprobe overlay && sudo modprobe br_netfilter && sudo sysctl --system
 
 
 #### 3)
-
-####  Шаг 3. установлю Docker будем работать через его движок
-
-####  удаляю все старые версии если чтото было установлено
+#### установлю Docker будем работать через его движок
+#### удаляю все старые версии если чтото было установлено
 
 <pre>
 sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
-sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
-sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
 </pre>
 
-#### 3. b.. устанавливаю утилиты Yum
+#### 3. a.. устанавливаю утилиты Yum
 
 <pre>
 sudo yum install -y yum-utils
-sudo yum install -y yum-utils
-sudo yum install -y yum-utils
 </pre>
 
-####  3.c.. настраиваю репозиторий Docker
+####  3.b.. настраиваю репозиторий Docker
 
 <pre>
 yum-config-manager  --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-yum-config-manager  --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 </pre>
 
-#### 3. d.. устанавливаю Docker Engine, Docker CLI, Docker RUNTIME 
+#### 3.c.. устанавливаю Docker Engine, Docker CLI, Docker RUNTIME 
 
 <pre>
 yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 </pre>
 
-#### для работы docker 4.b. копирую е приведенное ниже содержимое в этот файл.. /etc/docker/  
+#### 3.d. для работы docker копирую е приведенное ниже содержимое в этот файл.. /etc/docker/  
 
 <pre>
-
 cat <<EOF | > sudo tee /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
@@ -185,26 +176,27 @@ cat <<EOF | > sudo tee /etc/docker/daemon.json
   "storage-driver": "overlay2"
 }
 EOF
-
-
-cat /etc/docker/daemon.json
-cat /etc/docker/daemon.json
 </pre>
+
+#### проверка
+</pre>
+cat /etc/docker/daemon.json
+<pre>
 
 #### 4)
 
-#### стартуем с автозагрузкой
+#### стартуем docker с добавляем в автозагрузку
 
 <pre>
 sudo systemctl daemon-reload
-sudo systemctl enable docker && sudo systemctl restart docker && sudo systemctl status docker
 sudo systemctl enable docker && sudo systemctl restart docker && sudo systemctl status docker
 sudo systemctl daemon-reload
 </pre>
 
 #### 5)
 
-####  Шаг 5. устанавливаем kubeadm, kubectl, kubelet копирую в этот файл приведенное ниже содержимое.. /etc/yum.repos.d/kubernetes.repo
+#### k8s
+#### устанавливаем kubeadm, kubectl, kubelet копирую в этот файл приведенное ниже содержимое.. /etc/yum.repos.d/kubernetes.repo   (add repo)
 
 <pre>
 cat <<EOF | > sudo tee /etc/yum.repos.d/kubernetes.repo
@@ -216,8 +208,10 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
+</pre>
 
-cat /etc/yum.repos.d/kubernetes.repo
+#### проверка
+<pre>
 cat /etc/yum.repos.d/kubernetes.repo
 </pre>
 
