@@ -179,9 +179,9 @@ EOF
 </pre>
 
 #### проверка
-</pre>
-cat /etc/docker/daemon.json
 <pre>
+cat /etc/docker/daemon.json
+</pre>
 
 #### 4)
 
