@@ -25,10 +25,10 @@ hostname && hostname -i
 
 <pre>
 sudo cat <<EOF>> /etc/hosts
-10.129.0.36 masterkub.ru-central1.internal
-10.129.0.34 node1 kub1.ru-central1.internal
+10.128.0.20 masterkub.ru-central1.internal
+10.128.0.30 node1 kub1.ru-central1.internal
 10.129.0.28 node2 kub2.ru-central1.internal
-10.129.0.5 node3 kub3.ru-central1.internal
+10.130.0.5 node3 kub3.ru-central1.internal
 EOF
 
 #### самопроверка
@@ -66,6 +66,11 @@ sudo systemctl disable firewalld
 <pre>
 sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config && sudo setenforce 0
 sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config && sudo setenforce 0
+
+
+#### самопроверка
+cat /etc/selinux/config
+cat /etc/selinux/config
 </pre>
 
 #### 2)
@@ -284,6 +289,8 @@ systemctl status containerd
 systemctl status containerd
 systemctl status containerd
 
+systemctl restart kubelet
+
 ### смотрим интерфейсы
 ip -4 addr show
 ip -4 addr show
@@ -296,6 +303,8 @@ rm /etc/containerd/config.toml
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
+
+sudo yum install kernel-modules-extra
 ------------------------------
 </pre>
 
@@ -1752,4 +1761,10 @@ https://kubernetes.io/releases/
 https://github.com/citusdata/docker/blob/master/CHANGELOG.md
 https://github.com/citusdata/docker/blob/master/CHANGELOG.md
 https://github.com/citusdata/docker/blob/master/CHANGELOG.md
+
+
+Patroni в GKE // Демо-занятие курса «PostgreSQL Cloud Solutions»
+https://www.youtube.com/watch?v=8eTnvIFYERQ
+https://www.youtube.com/watch?v=8eTnvIFYERQ
+https://www.youtube.com/watch?v=8eTnvIFYERQ
 </pre>
