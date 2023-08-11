@@ -25,10 +25,10 @@ hostname && hostname -i
 
 <pre>
 sudo cat <<EOF>> /etc/hosts
-10.128.0.20 masterkub.ru-central1.internal
-10.128.0.30 node1 kub1.ru-central1.internal
-10.129.0.28 node2 kub2.ru-central1.internal
-10.130.0.5 node3 kub3.ru-central1.internal
+10.129.0.24 masterkub.ru-central1.internal
+10.128.0.6 node1 kub1.ru-central1.internal
+10.129.0.19 node2 kub2.ru-central1.internal
+10.130.0.34 node3 kub3.ru-central1.internal
 EOF
 
 #### самопроверка
@@ -134,6 +134,11 @@ cat /etc/sysctl.d/kubernetes.conf
 
 
 #### проверяю что модули загружены
+<pre>
+sudo modprobe overlay
+sudo modprobe br_netfilter
+sysctl --system
+</pre>
 
 <pre>
 sudo modprobe overlay && sudo modprobe br_netfilter && sudo sysctl --system
@@ -141,6 +146,41 @@ sudo modprobe overlay && sudo modprobe br_netfilter && sudo sysctl --system
 sudo modprobe overlay && sudo modprobe br_netfilter && sudo sysctl --system
 </pre>
 
+<pre>
+reboot -h now
+reboot -h now
+reboot -h now
+
+tail -f /var/log/messages
+tail -f /var/log/messages
+tail -f /var/log/messages
+
+Настройка контейнера
+
+cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
+overlay
+br_netfilter
+EOF
+
+cat /etc/modules-load.d/containerd.conf
+cat /etc/modules-load.d/containerd.conf
+cat /etc/modules-load.d/containerd.conf
+
+sudo modprobe overlay && sudo modprobe br_netfilter
+sudo modprobe overlay && sudo modprobe br_netfilter
+sudo modprobe overlay && sudo modprobe br_netfilter
+
+# Setup required sysctl params, these persist across reboots.
+cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+
+# Apply sysctl params without reboot
+sudo sysctl --system
+
+</pre>
 
 #### 3)
 #### установлю Docker будем работать через его движок
@@ -166,6 +206,13 @@ yum-config-manager  --add-repo https://download.docker.com/linux/centos/docker-c
 
 <pre>
 yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+#Start containerd
+sudo mkdir -p /etc/containerd
+containerd config default | sudo tee /etc/containerd/config.toml
+
+
+sudo systemctl restart containerd && sudo systemctl enable containerd && systemctl status containerd
 </pre>
 
 #### 3.d. для работы docker копирую е приведенное ниже содержимое в этот файл.. /etc/docker/  
@@ -196,6 +243,7 @@ cat /etc/docker/daemon.json
 sudo systemctl daemon-reload
 sudo systemctl enable docker && sudo systemctl restart docker && sudo systemctl status docker
 sudo systemctl daemon-reload
+systemctl restart docker
 </pre>
 
 #### 5)
@@ -273,11 +321,10 @@ tail -f /var/log/messages
 </pre>
 
 
-#### ловим ошибку containerd (решаем вопросы)
-
+#### ловим ошибку containerd (решаем вопросы) пропускаем этот пункт необрашаем на нее внимания
 <pre>
 ------------------------------
-#### ловим ошибку:
+####  пропускаем этот пункт ловим ошибку пропускаем необрашаем внимание:
 Jul 13 06:55:55 masterkub kubelet: E0713 06:55:55.831658    1708 run.go:74] "command failed" err="failed to validate kubelet flags: 
 the container runtime endpoint address was not specified or empty, use --container-runtime-endpoint to set"
 
@@ -303,8 +350,6 @@ rm /etc/containerd/config.toml
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
-
-sudo yum install kernel-modules-extra
 ------------------------------
 </pre>
 
@@ -330,9 +375,7 @@ sudo kubeadm config images pull --image-repository=registry.k8s.io --cri-socket 
 
 <pre>
 ------------------------------
-sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
-sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
-sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.24 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
 ------------------------------
 </pre>
 
@@ -365,10 +408,17 @@ hostname -i
 
 <pre>
 ------------------------------
-sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
-sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
-sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
-[root@masterkub ~]# sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.36 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.24 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.24 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.24 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
+[config/images] Pulled registry.k8s.io/kube-apiserver:v1.26.1
+[config/images] Pulled registry.k8s.io/kube-controller-manager:v1.26.1
+[config/images] Pulled registry.k8s.io/kube-scheduler:v1.26.1
+[config/images] Pulled registry.k8s.io/kube-proxy:v1.26.1
+[config/images] Pulled registry.k8s.io/pause:3.9
+[config/images] Pulled registry.k8s.io/etcd:3.5.6-0
+[config/images] Pulled registry.k8s.io/coredns/coredns:v1.9.3
+[root@masterkub modules-load.d]# sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.24 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
 [init] Using Kubernetes version: v1.26.1
 [preflight] Running pre-flight checks
 [preflight] Pulling images required for setting up a Kubernetes cluster
@@ -377,15 +427,15 @@ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address
 [certs] Using certificateDir folder "/etc/kubernetes/pki"
 [certs] Generating "ca" certificate and key
 [certs] Generating "apiserver" certificate and key
-[certs] apiserver serving cert is signed for DNS names [kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local masterkub.ru-central1.internal] and IPs [10.96.0.1 10.129.0.36]
+[certs] apiserver serving cert is signed for DNS names [kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local masterkub.ru-central1.internal] and IPs [10.96.0.1 10.129.0.24]
 [certs] Generating "apiserver-kubelet-client" certificate and key
 [certs] Generating "front-proxy-ca" certificate and key
 [certs] Generating "front-proxy-client" certificate and key
 [certs] Generating "etcd/ca" certificate and key
 [certs] Generating "etcd/server" certificate and key
-[certs] etcd/server serving cert is signed for DNS names [localhost masterkub.ru-central1.internal] and IPs [10.129.0.36 127.0.0.1 ::1]
+[certs] etcd/server serving cert is signed for DNS names [localhost masterkub.ru-central1.internal] and IPs [10.129.0.24 127.0.0.1 ::1]
 [certs] Generating "etcd/peer" certificate and key
-[certs] etcd/peer serving cert is signed for DNS names [localhost masterkub.ru-central1.internal] and IPs [10.129.0.36 127.0.0.1 ::1]
+[certs] etcd/peer serving cert is signed for DNS names [localhost masterkub.ru-central1.internal] and IPs [10.129.0.24 127.0.0.1 ::1]
 [certs] Generating "etcd/healthcheck-client" certificate and key
 [certs] Generating "apiserver-etcd-client" certificate and key
 [certs] Generating "sa" key and public key
@@ -403,15 +453,15 @@ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address
 [control-plane] Creating static Pod manifest for "kube-scheduler"
 [etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
 [wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests". This can take up to 4m0s
-[apiclient] All control plane components are healthy after 7.002298 seconds
+[apiclient] All control plane components are healthy after 7.502577 seconds
 [upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
 [kubelet] Creating a ConfigMap "kubelet-config" in namespace kube-system with the configuration for the kubelets in the cluster
 [upload-certs] Storing the certificates in Secret "kubeadm-certs" in the "kube-system" Namespace
 [upload-certs] Using certificate key:
-2e3e131173d1ac126ea18d8c0ef049a3089152ae6875570f84ff3431fd9be74b
+25e511511f5ae6e5c0428dd276919391b4cb5692d32b9593627f9152715d5d97
 [mark-control-plane] Marking the node masterkub.ru-central1.internal as control-plane by adding the labels: [node-role.kubernetes.io/control-plane node.kubernetes.io/exclude-from-external-load-balancers]
 [mark-control-plane] Marking the node masterkub.ru-central1.internal as control-plane by adding the taints [node-role.kubernetes.io/control-plane:NoSchedule]
-[bootstrap-token] Using token: 6ar5s6.jvgjuszqhzdlmj33
+[bootstrap-token] Using token: eo5469.fboaarc5jjvl4dh1
 [bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
 [bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to get nodes
 [bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
@@ -440,9 +490,9 @@ Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
 
 You can now join any number of the control-plane node running the following command on each as root:
 
-  kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33 \
-        --discovery-token-ca-cert-hash sha256:bbc69ceafaa3261fc3d7ce088f9f0837318d2e1dbc5f426b7de264f9c5bf64db \
-        --control-plane --certificate-key 2e3e131173d1ac126ea18d8c0ef049a3089152ae6875570f84ff3431fd9be74b
+  kubeadm join masterkub.ru-central1.internal:6443 --token eo5469.fboaarc5jjvl4dh1 \
+        --discovery-token-ca-cert-hash sha256:ab7b5ce50b4825850aa86009b2f1d9a7c67db6ff872b08575f691410f8f4b220 \
+        --control-plane --certificate-key 25e511511f5ae6e5c0428dd276919391b4cb5692d32b9593627f9152715d5d97
 
 Please note that the certificate-key gives access to cluster sensitive data, keep it secret!
 As a safeguard, uploaded-certs will be deleted in two hours; If necessary, you can use
@@ -450,8 +500,8 @@ As a safeguard, uploaded-certs will be deleted in two hours; If necessary, you c
 
 Then you can join any number of worker nodes by running the following on each as root:
 
-kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33 \
-        --discovery-token-ca-cert-hash sha256:bbc69ceafaa3261fc3d7ce088f9f0837318d2e1dbc5f426b7de264f9c5bf64db
+kubeadm join masterkub.ru-central1.internal:6443 --token eo5469.fboaarc5jjvl4dh1 \
+        --discovery-token-ca-cert-hash sha256:ab7b5ce50b4825850aa86009b2f1d9a7c67db6ff872b08575f691410f8f4b220
 ------------------------------
 </pre>
 
@@ -459,6 +509,7 @@ kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33
 #### 5.10)
 
 #### основные конфиги (для распространения управления на других узлах)
+#### Экспортируйте KUBECONFIG и установите CNI Flannel.
 
 <pre>
 ------------------------------
@@ -579,6 +630,7 @@ kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       3
 #### на нодах пытаемся присоединиться к мастеру
 
 <pre>
+# еа эту ошибку не обрашаем внимания
 ----------------------------------------------------------------------------------------------------------------------------
 rm /etc/containerd/config.toml
 rm /etc/containerd/config.toml
@@ -588,7 +640,10 @@ systemctl restart containerd && sudo systemctl enable --now containerd && system
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
 systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
 
-kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33 --discovery-token-ca-cert-hash sha256:bbc69ceafaa3261fc3d7ce088f9f0837318d2e1dbc5f426b7de264f9c5bf64db
+
+kubeadm join masterkub.ru-central1.internal:6443 --token eo5469.fboaarc5jjvl4dh1 --discovery-token-ca-cert-hash sha256:ab7b5ce50b4825850aa86009b2f1d9a7c67db6ff872b08575f691410f8f4b220
+kubeadm join masterkub.ru-central1.internal:6443 --token eo5469.fboaarc5jjvl4dh1 --discovery-token-ca-cert-hash sha256:ab7b5ce50b4825850aa86009b2f1d9a7c67db6ff872b08575f691410f8f4b220
+
 
 ---------------------------------
 [root@kub1 vorori]# kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33 \
@@ -653,6 +708,10 @@ Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
 можно скопировать файл kubeconfig с узла controlplane node управления (~/.kube/config ) 
 на локальный и экспортировать переменную KUBECONFIG или получить прямой доступ к кластеру с узла controlplane node.
 
+mkdir -p $HOME/.kube
+mkdir -p $HOME/.kube
+mkdir -p $HOME/.kube
+
 cat /etc/kubernetes/admin.conf
 cat /etc/kubernetes/admin.conf
 cat /etc/kubernetes/admin.conf
@@ -660,7 +719,7 @@ cat /etc/kubernetes/admin.conf
 apiVersion: v1
 clusters:
 - cluster:
-    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMvakNDQWVhZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJek1EY3hNekE1TXpnMU9Gb1hEVE16TURjeE1EQTVNemcxT0Zvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTmhaCk1rRnVWenEyOHVRcWZtRnphR2dCQWt3R1BNNEFJSkdudnZYSHBDVlNKM2tZU0dseXNuM1hjUExRTXlRRUpwVnIKbU5GOXMxdDI3V1BjQVBDZVM5RkNsZEFZamVJaENReEtUcXRGZjZwSjJoY2ZocGpIVjJaenBsTWlxNTBqU1FBagozcGZzYXlNWnJBODBxVmtGcS9Nb3JyNjloTkhHNE9NM0dMVmJiM2o1U0NHTDQvMFFHcEZkWmVPMXhtOTByVzZOCi9OY2l5ZlFrcVlHdXBBaEhqcGRCUkJvSnBJdXdmYUpwMDFYYUVxbkUvVkZ4SU1ETzNQUkVXR0xqRjRtT3NoNHgKc2YvNFRaMzRYb0Jta1V0cjh1cTh2WDhjM3ZGNXgzY045OXlmRlRWbFcrV2kxbWo0SUdKeXBzZ3NGNUcwUjVtdwpCWGRtcFkyVFdNVjNvSDlPa1Y4Q0F3RUFBYU5aTUZjd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0hRWURWUjBPQkJZRUZCS2RMcEgzWGsrYmhLdFVlWDZQSC9zcWtrck5NQlVHQTFVZEVRUU8KTUF5Q0NtdDFZbVZ5Ym1WMFpYTXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBRzVTYU9nQWNNV1lJTmNka2JlZQpRWjVQVzY3MVBRTWxFTTNOYUIrdEQ1REY3VmEyRTRNRTRlb2NkSy83TGZxa3prUGlsM0NvZWtTRVJvZW5CU3NCCk9reW1XaVpWdVJBWGs2QVdVdEMrRHVkNEpib2cwSXNFRCswYlZuZ1paZEsvQUl1Z1pEL01CTGMydTZnZVprb2QKU28xUXYzaGd3MVUrbzZNK2FBVWk3K2U0RjBESXR0VTNUNXgyZ3BwMUdkU1pIRzVtOXh6ZGpIeVpKM1hRb2R2Rwo5d0I0MG9GMGEzSkdYandSekRqU0s0Ri9oUmVsUndxenVaaEpVNXYycjBUVmdyVUszcUpnNDhGSFkzWmVtOWVUCjlKRGJteW1XYkorRmdHQi90NjBJUU1oS2pqOEZucXIyT1hsdmJuaVZjUXp1YVBTcENSOHVGM3ZXcEdOZU5Za1MKSjkwPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMvakNDQWVhZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJek1EZ3hNVEE0TXprek5Gb1hEVE16TURnd09EQTRNemt6TkZvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTDlBCklLTE5jaUJvWDhxS1QzYys2N3prdFZWdEl6d2k2d1o4WUJBZzFNNVI2T3pkQnZaekZsOGtzWSt4ejVHWHR4YmsKWERkekNPSldlSFdTSlR5WXoxT3RvdS9IS2JOdmNETHg1SVo5Mk9YVFhTS0lpcTh2UUFKT1ZpdytTUnNPQ0FqWgppRkVwUUVEY25aN05ZaTJSM1IyWFRUSHpCaDFKb3BWOVcxelYzN25ydksrZFpnMFlUOFd6Mi9OUmdmd2xqU05HCjBIeEhpZk1XY3lTcTJEalRyTmsyTkkwYk9XVmIvK0prNUJGT1dtMUtHSUhOTkl2MXMxRUU3TGhldGRCRXRuQjMKdGUyaCtnS0ROU3kxb1dzekRCNUNzdG9uUWhOVklMS0NLWnc0YWtOSXNBYzhKWFY5eDZqT29mdzlGNDF6dlVVUApuVmdjYy9PeVg4cUROVmdXNXFzQ0F3RUFBYU5aTUZjd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0hRWURWUjBPQkJZRUZJUFRlTVBsUWx5VHg2R1k0S1J5Q202Wm83VVpNQlVHQTFVZEVRUU8KTUF5Q0NtdDFZbVZ5Ym1WMFpYTXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBSEF5bGpKUHhpR0FHNDIwYlhIKwppWlJ2VUEreXY4b0NyaHIzbHJNRHVSV3lBc0tMUnVZY2lseFpXN2ZFQjkxbTdZUS9Lamc2S01vSFhoYlVIZS9aCk93ZVE1NUZzMmNoQmhqQUt6eDltQkZJUzVvWGxNdk9CWllaMWNsVTdyTGI2WGc1UUhKQnpOZ2dXWGhHQ2ZnakwKR1drSk1JWGk1b1E2RFNCclFtQWJkM0wvWHc3eXNjMUUxdXJtaHArb202QUlJTTdxYVdTYkNTd2VwVVVSU05mMApud01la1NyWGJMU3YxZkxVNVlMcUlJdXVKdmFiRFYyYUluMThoN2VialB6ZFNxNm1CT1Z0bmZ6MTg0YVVrbUx5CkxKN0h1ajdobjlGNmRmcTBPdXhNUlBGZkZsRGlML1g2NnpiZU45S3RDUzJ1bGRjTHg2Myt0c2U4RHFBU3hTV0wKZ2hjPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
     server: https://masterkub.ru-central1.internal:6443
   name: kubernetes
 contexts:
@@ -674,8 +733,8 @@ preferences: {}
 users:
 - name: kubernetes-admin
   user:
-    client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURJVENDQWdtZ0F3SUJBZ0lJTktFK3RRT1NLeFF3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TXpBM01UTXdPVE00TlRoYUZ3MHlOREEzTVRJd09UTTVNREZhTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXNaWVJZZE5CUHJZdXhDOTMKWk92eEJSSXU0S0F0U0g2bVlPelNZcTMzbEJCWkFJdUNpRjlGWnczMnZpSi9vbXhEZVlhMWw2czVsYndqNDNvUwpmSThxaS9mdDk3bUF3R2s5cThYQUVIUjRoMFo4QnRQR1VlSW11NUJtamJpS2VCQy9CQnpXUnYydTFHVCtRZlcyCnFXd0FaRS9VNUIwK1Z5VHJFeEEwbFE0WnU4d0VLTEtmczhXeFM2Y2RYK3Rkbi9Qams1OGZmTElyUXp5ZHM1Vm8KaGV4eVcxMHNwRkNjSDVwQktDT3JpUXRPL3RRWTBudjl2VzBVSEgydXNhL2c4eUF4N3JsejlYUU5NMENYc3ptSQpvRW9yeDNGRjkzcnBQaGNMRmJqR2kxWmlVakF4TWllZTltRnBWQStJSGpGdVBFck05UU0vanZDVUozalh1WHJvCkkvd2RzUUlEQVFBQm8xWXdWREFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RBWURWUjBUQVFIL0JBSXdBREFmQmdOVkhTTUVHREFXZ0JRU25TNlI5MTVQbTRTclZIbCtqeC83S3BKSwp6VEFOQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBWkI5MFFldmE0N2UrVUNYd2pmWkF3RzhwS1ZZdTBuODEzbko5CnFHamROZ0FJdm9SaGhoSFNXcERsUzVObGpWckorSWE4Zk50RC9HcTNxOG1kVmhmdDZLR2Mxa1FWUEFVMkNycXUKQjFYYUUraUxtSVZQUWRvS2R2MTR1WDQrTHQwQ0NORGNZWlNWd3hHT0xCZXcvakVXVitUa0ViSlJTbDlMOHlVSApsYitOOHNNOWtBOE5sdGhnNGFNcS8wb05Nek1xYm05bTQ3T3RwWXhGTkp0bGd5VDJxWXpWczJES1NkYm1ZdGVQCjZ3OS9PcHkwNGtqTUJHWTdxVnJudkY3OWhJeVlSUlNwb0tiR29ucFZPRkcxbTgrYmg3SEJuYmZtTGVQcmNnbWsKQ3hST2JVcEtRTThvNlJ2WjhxZlI2MGFMTWdVaTFjbVNVRllUYUFEclVpTHlsNkhobGc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
-    client-key-data: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcEFJQkFBS0NBUUVBc1pZUllkTkJQcll1eEM5M1pPdnhCUkl1NEtBdFNINm1ZT3pTWXEzM2xCQlpBSXVDCmlGOUZadzMydmlKL29teERlWWExbDZzNWxid2o0M29TZkk4cWkvZnQ5N21Bd0drOXE4WEFFSFI0aDBaOEJ0UEcKVWVJbXU1Qm1qYmlLZUJDL0JCeldSdjJ1MUdUK1FmVzJxV3dBWkUvVTVCMCtWeVRyRXhBMGxRNFp1OHdFS0xLZgpzOFd4UzZjZFgrdGRuL1BqazU4ZmZMSXJRenlkczVWb2hleHlXMTBzcEZDY0g1cEJLQ09yaVF0Ty90UVkwbnY5CnZXMFVISDJ1c2EvZzh5QXg3cmx6OVhRTk0wQ1hzem1Jb0VvcngzRkY5M3JwUGhjTEZiakdpMVppVWpBeE1pZWUKOW1GcFZBK0lIakZ1UEVyTTlRTS9qdkNVSjNqWHVYcm9JL3dkc1FJREFRQUJBb0lCQUR6blJwYlNLTElsTU95LwppcWJsOUFiVk1aWi8ySWZnUjVjK0lQa095TFhTMVhOR1pVSDN5b21KVkhIb3l2VWRSQmJOaUVHM3kwdjY5aVB4Cm5aMXlUQmtzc2tRZkxuVE9vd1BpRWZpU3VUTkxqUVdhWTQxNWplY05vdDQveDkxZGdPVWNMckN5Rjk5bnMzdFQKbFkyTktLVSthN2kvL3IxTVFBS05zRHJlVnh6OFRDVFErVHZHQVdUUjVjSTRweWZsTkFyUkx5ZllRYyszL2Q4QQp6VWNUUmVQdWNFbkFoa2hrVkZ5N2ZyZjgvMFR2WlBGZXdDRkpVVVRzNCtWK2RSNWNEd3AzQlVwVjdNdEhMVm5oClA3WmZOYTBGTnlabDFXN3V2SS84N0VTM1NURmJZWE1OQXFDR1FlbnlEcGhrTHFObnV0VDBlMHZwemtTQ1c3SzgKSVQ3eC9uRUNnWUVBNlpzd3Iwd1hoaG5JcU9XaHhTZ0JuZTlabCtKNUVzalRRWkhXV2hPRGdyN1ExeTV2ZVdEcAo3Z1FqeEZ3ZVZSZ0hGcWwwY3VSQ3d3b21mM2R2M1ZCOVpWRjBkTENvWXdTRFJvZTFCSXRXTGVNb0NZT3dMRTFkCmozcFd4VVhhL3VCNTUrS2ppdjQzWWVVNzFYdnRBOU1jd2hFdnJhZFJ6c0thU3dUMm4wU3JDY3NDZ1lFQXdwd2UKbUhkY2p0am1JQTNmbTZiSEZRZDhsc01ZeG1FOStBeHdnaC9aZFJ4TE9meGN5TXl3LytRVXV1VzRGdjRCaEhQTAo0enZVeGFJbDRTZ1hLYmJDaWRjeXIxZHdQSUcwUGxkL3F5RitpYzJRZlZWd0h5aUlnd3czb2FzaGVqZDY3NGZCCkVEZE13Mmp6T0F6a0VXUlMxRTAyd0NTMEJjb0JOOXhLMVlhVE52TUNnWUFrQXhlTFBvaTExSTI1YzhUdmRzNWgKQVgvblNUTnU4T1NZVEJvbVFySFlXd0FvMi9DMVhucFJoZlBabG5YYW1seWxZclFmN2c1WXNOemtjNDRjS1FkYgpzaVhvd3o4Q0hMVDhEM21aWEwySlQyWmhxUnBraWZ5dFhLZTV1NTRhQXBMb2Eyall5WDNTS3B1QnVwdjhKZlJkCituWkdKL0FWbHF4Z2VrQm1weGhTNXdLQmdRQzNRZkNGdnBESWEzTjQ1OWVUYVYrN2E4dGs1Tjhsb0ZpTWhwcEQKenQ0bHE3a2pKNFB3Q3VENmRyc1dyRS9JUnZVQzExQTk4UStSOC9rYnAzYjRid09PYmJscTZEbm1vSFVzNTVSdgpnQ0Q2ZnpyNjYwT2o4N1ZwUWszNHpYKys2Uk81RCtzNzYvYzdaRTcwang4TlNaMitFZC9tM0NreDhtRm5TdWlsClhnNnZCUUtCZ1FDUHJGd095TGxobGc0cVZYbnY3eXRUVWVnS2NUQk9uSU93VVBEWXBBemJWaDIwWmlFbUhiZ3YKckY2YlhmK0hlcWZSRVpLWjl1RzM5ckZESVRFOC9IUDE2QWUvWlc0Z3M2VSt3dmU4WjdZc1BxZ2dadnE3RHRMOQoyQUgvQlVyS0pNTGhnVkl1TzluVzlTaDVhWERFWXhVeFhpTFcveVFIUjNzWmdEeVlYcmIwK1E9PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+    client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURJVENDQWdtZ0F3SUJBZ0lJZDg2MUN2YWdFUll3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TXpBNE1URXdPRE01TXpSYUZ3MHlOREE0TVRBd09ETTVNelphTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXhQQy9nb1NBbERVSStvcjYKOXR0TkpIaHpFZkw4bmk1aXo2S1NBaXc2OGJyR0dFekRjeFNJU0pNMGlqM0wvcUFqbitIZzl3UktleWZJeTcvVgphR3dIaGVMaFdsTjlQdEdYWWd5QTF4Z2RVTFNuOTlhMmY2S2NWb2p0R0Q4ZVdMNm9BWE5UVHFVbmpTTVhxK0k3CmZCUVFiYllPOHFqUmt1UnVLbnMvdkJhei9QRmlRUGJTU1lzbnhNOXJNQkVmbHJVdU9KbXNXMGNxMStZanBNQXcKODUxMnZlUDU0MldxMlBheVhFcDQ0MHlrc0MwRy9DQmkrVXY5SjQ0cVF0SjMwV1QrOXo2ZXFSVVFXYWphY3NhUApOZ0dPQjFVU2JML3pOcWdKUDRlVG4wRDZrNFZTNnhSb0VuNEJRSzBnK0doeEc5enhhVXRZaHpRNHo3eGU3YTZTCkhOT0pJd0lEQVFBQm8xWXdWREFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RBWURWUjBUQVFIL0JBSXdBREFmQmdOVkhTTUVHREFXZ0JTRDAzakQ1VUpjazhlaG1PQ2tjZ3B1bWFPMQpHVEFOQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBVVJLRjVZNnNNSm4xbWFiQWlaSlRtMndpRHFkTzhKckVjSFFqClBVY05XYWdJUFVibHViYmJUcFg5VmdqUEk4TDlBb3NJMUFzT2d0Q2dycTZ6NEVtV1NHVnZhbTFOeGxwYWxoSUcKS2lWNkNGbjU2QlRhM0FPVFprRHErem1VWFVaODJOOVNRVDQySkc2cUZnZXhCMVcyS0xVZmhyM2tZVmxJOGFoOQpnT1Rxekx6SjhoU1JtdVAvK1RkRVQ1MDR3NzNhRVFWMHN5cmU1YXpoWFhhb2h4bWE2WklRZVlrTkc2bnlBc0hyCm5jdHc0N0w3TFcrenRFdWtuMTdEbjUxRGJRd2Q4aXFWL3h3L2JDQTk1bEQyU2E5VXFtUktkcG1zaWZXN0JScWQKWWhhVlBEZmhrdG1zR1lPWlFSTTJXL0xTZVF2MGJvcFVoWUFncW5Mc0Z4YU45THB2TWc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+    client-key-data: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcFFJQkFBS0NBUUVBeFBDL2dvU0FsRFVJK29yNjl0dE5KSGh6RWZMOG5pNWl6NktTQWl3NjhickdHRXpECmN4U0lTSk0waWozTC9xQWpuK0hnOXdSS2V5Zkl5Ny9WYUd3SGhlTGhXbE45UHRHWFlneUExeGdkVUxTbjk5YTIKZjZLY1ZvanRHRDhlV0w2b0FYTlRUcVVualNNWHErSTdmQlFRYmJZTzhxalJrdVJ1S25zL3ZCYXovUEZpUVBiUwpTWXNueE05ck1CRWZsclV1T0ptc1cwY3ExK1lqcE1Bdzg1MTJ2ZVA1NDJXcTJQYXlYRXA0NDB5a3NDMEcvQ0JpCitVdjlKNDRxUXRKMzBXVCs5ejZlcVJVUVdhamFjc2FQTmdHT0IxVVNiTC96TnFnSlA0ZVRuMEQ2azRWUzZ4Um8KRW40QlFLMGcrR2h4Rzl6eGFVdFloelE0ejd4ZTdhNlNITk9KSXdJREFRQUJBb0lCQVFDTkIyWHMvaHZoaGhVVwo3WDJJVjBUbjBBVi9IZ1UrOVRLM1E5RFJFNEZtWjN6Q0cvNStvMzV3a2xHMmlVaFMzN1NESXNycHVUM284WFYrClNySjFJNTlEaGxRZ1RkZExxK1YvUmpyaFRSaDVHZFdLeWt4SUhGZGVOSkdzb2s2RitJbnc5L2Y1UXBXUElVa3IKUWtlY3MvV0x5eXJySkc5bmhJTkxrcFR5aVVOODVzN0duRlNOTDVobFR6VXh0c2RpanpLd2JnOWhjNnRGTWhtbgpEcncvSDJyekJVR1dxcGdXQWhYb0tBOGRPVmFLbFFhYm14NWZrbHVYS1JTYkg3ZXUwRXNwdEJMVnZNckdSeGVxCkhHYkZUTXRLaDVSSEFZQWpZL2JOKzIycjFjTXhVTWpxV0hYdkt1ZGxVd0tmTXpwM0xIaFlNNmR5Z2toYzZkRDgKSGdUcnB3cTVBb0dCQVB5YlpiU2xGaUlNdXRud20vcW5iM2I3YkVnZnYxZmxxNFlIckE3Z2ZVTThTZ3Z0bnNZZwp1R3YxYUl0N0lMcGhPYmQxZG9ydGh6SVJVS0FHbFlOTUlNaDdSajVKTC9EUkVmK2pJZmQ3aVlvWFAycFd1YXNRClRXN0praDJDN3l2a0VpZmFRMHJTRU1VV2FiOFk5RlRQVk9QYTZtRm5MSm1YamVSNXJjMFNIbk90QW9HQkFNZVYKOEMvWkI2T2hqZG83MTFqSDVYS2tKNXJocmJXUDFUMGQ5UjJJR0dKUkxZR2JJNEcwdnV2L2RacXBTSUZYZ0NBdQpJNE9Eclk5enRlRkZjRWs1dTlaTFJoYWF6RlFIdzNzY1ZsbDFOTGRSVlhJK2FjaEl0LzBmVVpiejRBd0pCZ2JwCkU1TUFXWS9YT2srdURqaks3NitxQ09JRG15KzBvSE9xN3RoUFhnb1BBb0dCQU5RREpTaXB5bHJIcm1mTzMwdFEKRG1paGV1OUozaEhLek54UVFpTzJYTXY2cFBjLzk1dTR5TENycDVReHduVkx0dUo0cndiSmQwZ1phajcxWjdWcwpSck9kYTRaSmJQaEVzVU9LeXE1cFBEWHZieVUwSnQ4aGJxd0dlQ0ZXektCYzZyUVNKNXA3bHVHai94c0p1Y0FZCng5bjUyZS9vWlhGLzF2S2xBYTkxZnFOOUFvR0FWeURybzllNDhBUWM2d0pvdGtjOXNWaGNPYzcvaUYxc0Y2dzIKVDFnVVhRZFhPRmREbnVJSzN2ZThuWEg5UndtdDAxNlEvbDdEcS9ZMWxrdzhBcHVEbHI5eHIzaVFicmFjN2VlbgpBcEthR3RVVTJqVEk5VGhacWRTOFI0dmJhU1dmVGZEK0xKUmdoTnpPaGU1VUl4TGtvK2sweTRZTGZ6MzVOY1dQClV6c0NzSjBDZ1lFQTE4Yk52Y0YwbUFHTitwSGNNM2kyc1ZNRmJFN0EwYnlOLzE5MGh6Y0pRYWh4R250TTBqOVkKVUZxU2RaRzBHa203azd0UlFUR2pISkNCc1d6OVoyMEowSkFjSDVvM2xuZk1yaytDUUZXSmk0MmZVdDE1VlRoUwo5d2xJYUJtb1dPbmhsWXlaa0RTMVZXaWNFNys1clIzQ0lxUXhvb0VEMTl4U0I2WmVmV2s1NVo4PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
 ---------------------------------
 </pre>
 
@@ -741,37 +800,35 @@ kub3.ru-central1.internal        Ready    <none>          18m     v1.26.1
 ----
 masterkub.ru-central1.internal   Ready    control-plane   4h33m   v1.26.1
 [root@masterkub vorori]# kubectl get all -A
-NAMESPACE      NAME                                                         READY   STATUS    RESTARTS      AGE
----
-kube-flannel   pod/kube-flannel-ds-7g8q2                                    1/1     Running   0             37m
-kube-flannel   pod/kube-flannel-ds-bsh77                                    1/1     Running   0             18m
-kube-flannel   pod/kube-flannel-ds-d82s6                                    1/1     Running   0             3m17s
-----
-kube-flannel   pod/kube-flannel-ds-rdp9t                                    1/1     Running   1 (63m ago)   4h30m
-kube-system    pod/coredns-787d4945fb-f98p8                                 1/1     Running   1 (63m ago)   4h33m
-kube-system    pod/coredns-787d4945fb-s78vs                                 1/1     Running   1 (63m ago)   4h33m
-kube-system    pod/etcd-masterkub.ru-central1.internal                      1/1     Running   2 (63m ago)   4h33m
-kube-system    pod/kube-apiserver-masterkub.ru-central1.internal            1/1     Running   2 (63m ago)   4h33m
-kube-system    pod/kube-controller-manager-masterkub.ru-central1.internal   1/1     Running   1 (63m ago)   4h33m
-kube-system    pod/kube-proxy-6knkk                                         1/1     Running   0             18m
-kube-system    pod/kube-proxy-8vf7j                                         1/1     Running   0             3m17s
-kube-system    pod/kube-proxy-9khtr                                         1/1     Running   1 (63m ago)   4h33m
-kube-system    pod/kube-proxy-n7xcg                                         1/1     Running   0             37m
-kube-system    pod/kube-scheduler-masterkub.ru-central1.internal            1/1     Running   2 (63m ago)   4h33m
+NAMESPACE      NAME                                                         READY   STATUS    RESTARTS        AGE
+kube-flannel   pod/kube-flannel-ds-77pwz                                    1/1     Running   1 (7m20s ago)   8m8s
+kube-flannel   pod/kube-flannel-ds-8nrhx                                    1/1     Running   0               10m
+kube-flannel   pod/kube-flannel-ds-d94qd                                    1/1     Running   0               58m
+kube-flannel   pod/kube-flannel-ds-pslvk                                    1/1     Running   0               9m7s
+kube-system    pod/coredns-787d4945fb-mxvx7                                 1/1     Running   0               65m
+kube-system    pod/coredns-787d4945fb-x57tb                                 1/1     Running   0               65m
+kube-system    pod/etcd-masterkub.ru-central1.internal                      1/1     Running   0               66m
+kube-system    pod/kube-apiserver-masterkub.ru-central1.internal            1/1     Running   0               66m
+kube-system    pod/kube-controller-manager-masterkub.ru-central1.internal   1/1     Running   0               66m
+kube-system    pod/kube-proxy-25mpq                                         1/1     Running   0               10m
+kube-system    pod/kube-proxy-cdhx7                                         1/1     Running   0               65m
+kube-system    pod/kube-proxy-ssz9x                                         1/1     Running   0               8m8s
+kube-system    pod/kube-proxy-z4prx                                         1/1     Running   0               9m7s
+kube-system    pod/kube-scheduler-masterkub.ru-central1.internal            1/1     Running   0               66m
 
 NAMESPACE     NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                  AGE
-default       service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP                  4h33m
-kube-system   service/kube-dns     ClusterIP   10.96.0.10   <none>        53/UDP,53/TCP,9153/TCP   4h33m
+default       service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP                  66m
+kube-system   service/kube-dns     ClusterIP   10.96.0.10   <none>        53/UDP,53/TCP,9153/TCP   66m
 
 NAMESPACE      NAME                             DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
-kube-flannel   daemonset.apps/kube-flannel-ds   4         4         4       4            4           <none>                   4h30m
-kube-system    daemonset.apps/kube-proxy        4         4         4       4            4           kubernetes.io/os=linux   4h33m
+kube-flannel   daemonset.apps/kube-flannel-ds   4         4         4       4            4           <none>                   58m
+kube-system    daemonset.apps/kube-proxy        4         4         4       4            4           kubernetes.io/os=linux   66m
 
 NAMESPACE     NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
-kube-system   deployment.apps/coredns   2/2     2            2           4h33m
+kube-system   deployment.apps/coredns   2/2     2            2           66m
 
 NAMESPACE     NAME                                 DESIRED   CURRENT   READY   AGE
-kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       4h33m
+kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       65m
 ----------------------------------------------------------------------------------------------------------------------------
 </pre>
 
@@ -779,9 +836,150 @@ kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       4
 <pre>
 ---------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
-----------------------------------------------настройка citus--------------------------------------------------------------------------
+----------------------------------------------настройка patroni или аналог-------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
 </pre>
+
+
+
+zalando postgres patroni
+https://habr.com/ru/articles/527042/
+
+https://highload.ru/moscow/2019/abstracts/6049
+
+
+
+
+1)
+Local Path Provisioner
+Local Path Provisioner
+Local Path Provisioner
+https://www.youtube.com/watch?v=9H0Wp1Xnbf4&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+https://www.youtube.com/watch?v=9H0Wp1Xnbf4&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+https://www.youtube.com/watch?v=9H0Wp1Xnbf4&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+
+
+
+Диски
+Быстродействие любых БД упирается в скорость работы дисковой подсистемы. В kubernetes принято использовать PV и PVC, которые являются не самым быстрым 
+по быстродействию решением (за некоторыми исключениями). Быстрые диски - это обычно локальные диски серверов, для доступа к которым используется volumes типа hostPath. 
+С другой стороны, как нам говорят гуру ИБ: "использование hostPath не безопасно". Скорее всего из-за этого утверждения в большинстве известных мне helm charts 
+и операторах диски определяются только при помощи PVC.
+Ещё одна специфика PVC/PV - нет привязки диска к конкретной ноде кластера kubernetes (есть исключения из этого утверждения). 
+Т.е. если под переедет на другую ноду кластера, то он сможет подключить существующий PV без создания нового физического диска и копирования (восстановления из бекапа).
+Под капотом у PVC/PV в подавляющем большинстве случаев лежит какая-либо сетевая файловая система. Или файловая система с репликацией данных по сети (например longhorn).
+В итоге нам предлагают использовать универсальное, но не самое быстрое решение. "Не самое быстрое" - это весьма условно. 
+Для многих задач хватит быстродействия PVC/PV. Но есть задачи, где использования PVC/PV будет тормозом. И нам придётся "выкручиваться" подставляя hostPath в чарты (пример minio на hostPath).
+
+Итого:
+• В простейшем случае для volumes используем сетевую файловую систему. Например, nfs и nfs-client-provisioner.
+• Если хочется использовать локальные диски нод кластера, с репликацией и вменяемой системой управления - смотрим в сторону longhorn.
+• Если нужна скорость - тогда используем локальные диски нод напрямую - hostPath или local-path-provisioner.
+
+local-path-provisioner
+B local-path-provisioner:v0.0.24 ограничение по объему PV не поддерживается!
+Поскольку специалисты ИБ не очень любят hostPath. Сделаем "ход конём", "оденем" локальные диски в PVC при помощи local-path-provisioner.
+Небольшое замечание. Раньше, для запрета использования hostPath администраторы кластера могли определять PSP. Но, начиная с kubernetes v1.25.0 PSP переведён
+в статус deprecated. :( Я пока не думал как в новых кластерах ввести ограничение на hostPath. Но скорее всего придётся пользоваться внешними инструментами, muna kyverno.
+Манифест для установки приложения 00-local-path-storage.yaml.
+
+
+2)
+Zalando spilo in kubernetes - manifests
+Zalando spilo in kubernetes - manifests
+Zalando spilo in kubernetes - manifests
+https://www.youtube.com/watch?v=fFvOA8UlnrI&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+https://www.youtube.com/watch?v=fFvOA8UlnrI&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+https://www.youtube.com/watch?v=fFvOA8UlnrI&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+
+3)
+Анонс видео: Подробно о создании helm chart.
+Анонс видео: Подробно о создании helm chart.
+Анонс видео: Подробно о создании helm chart.
+https://www.youtube.com/watch?v=bXr7wvMgKkw&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+https://www.youtube.com/watch?v=bXr7wvMgKkw&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+https://www.youtube.com/watch?v=bXr7wvMgKkw&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+
+
+https://www.youtube.com/watch?v=vv8SSYITzPE&list=PLmxqUDFl0XM7e0d0ixZ82zlcBprpMfEpk&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+https://www.youtube.com/watch?v=vv8SSYITzPE&list=PLmxqUDFl0XM7e0d0ixZ82zlcBprpMfEpk&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+https://www.youtube.com/watch?v=vv8SSYITzPE&list=PLmxqUDFl0XM7e0d0ixZ82zlcBprpMfEpk&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+
+4)
+Zalando postgres-operator [01] Артур Крюков
+https://www.youtube.com/watch?v=1eJ8njJqIS4&t=784s&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+https://www.youtube.com/watch?v=1eJ8njJqIS4&t=784s&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+https://www.youtube.com/watch?v=1eJ8njJqIS4&t=784s&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
+
+
+
+https://www.youtube.com/watch?v=iruaCgeG7qs&ab_channel=Apprenda
+https://www.youtube.com/watch?v=iruaCgeG7qs&ab_channel=Apprenda
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #### 1)
