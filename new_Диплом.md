@@ -842,12 +842,18 @@ kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       6
 
 
 
+мои заметки к диплому выбираем statesfuleset чтобы сохранять измнения контенеров с бд
+replicas 3   --- создастца один мастер под и 2 слейва
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------ПУНКТЫ КОТОРЫЕ ТРЕБУЕТСЯ ИЗУЧИТЬ!!!!------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+0)
 zalando postgres patroni
 https://habr.com/ru/articles/527042/
-
 https://highload.ru/moscow/2019/abstracts/6049
-
-
 
 
 1)
@@ -857,8 +863,6 @@ Local Path Provisioner
 https://www.youtube.com/watch?v=9H0Wp1Xnbf4&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
 https://www.youtube.com/watch?v=9H0Wp1Xnbf4&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
 https://www.youtube.com/watch?v=9H0Wp1Xnbf4&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
-
-
 
 Диски
 Быстродействие любых БД упирается в скорость работы дисковой подсистемы. В kubernetes принято использовать PV и PVC, которые являются не самым быстрым 
@@ -883,7 +887,6 @@ B local-path-provisioner:v0.0.24 ограничение по объему PV н�
 в статус deprecated. :( Я пока не думал как в новых кластерах ввести ограничение на hostPath. Но скорее всего придётся пользоваться внешними инструментами, muna kyverno.
 Манифест для установки приложения 00-local-path-storage.yaml.
 
-
 2)
 Zalando spilo in kubernetes - manifests
 Zalando spilo in kubernetes - manifests
@@ -900,7 +903,6 @@ https://www.youtube.com/watch?v=bXr7wvMgKkw&ab_channel=%D0%90%D1%80%D1%82%D1%83%
 https://www.youtube.com/watch?v=bXr7wvMgKkw&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
 https://www.youtube.com/watch?v=bXr7wvMgKkw&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
 
-
 https://www.youtube.com/watch?v=vv8SSYITzPE&list=PLmxqUDFl0XM7e0d0ixZ82zlcBprpMfEpk&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
 https://www.youtube.com/watch?v=vv8SSYITzPE&list=PLmxqUDFl0XM7e0d0ixZ82zlcBprpMfEpk&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
 https://www.youtube.com/watch?v=vv8SSYITzPE&list=PLmxqUDFl0XM7e0d0ixZ82zlcBprpMfEpk&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
@@ -913,6 +915,7 @@ https://www.youtube.com/watch?v=1eJ8njJqIS4&t=784s&ab_channel=%D0%90%D1%80%D1%82
 
 
 
+дополнительно для информации:
 https://www.youtube.com/watch?v=iruaCgeG7qs&ab_channel=Apprenda
 https://www.youtube.com/watch?v=iruaCgeG7qs&ab_channel=Apprenda
 
@@ -921,10 +924,628 @@ https://www.youtube.com/watch?v=iruaCgeG7qs&ab_channel=Apprenda
 
 
 
+<pre>
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------настройка patroni часть 1 подготовка-----------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+
+
+1)
+https://github.com/BigKAA/youtube/tree/38f295485674147bc484c2183625059987a46013/base/local-path-provisioner
+
+установить настроить local-path-provisioner
+
+скачать манифест редактируем по своим настройкам:
+https://github.com/BigKAA/youtube/blob/38f295485674147bc484c2183625059987a46013/base/local-path-provisioner/manifests/00-local-path-storage.yaml
+
+mkdir /data
+mkdir /data/local-path-provisioner
+vim /data/00-local-path-storage.yaml
+
+
+В конфигурации по умолчанию, на всех нодах кластера, если потребуется разместить volume. 
+Директория этого тома будет создаваться в /data/local-path-provisioner. Для каждого volume отдельная директория.
+
+--------------------------------------------------------------------------------------
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: local-path-storage
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: local-path-provisioner-service-account
+  namespace: local-path-storage
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: local-path-provisioner-role
+rules:
+  - apiGroups: [ "" ]
+    resources: [ "nodes", "persistentvolumeclaims", "configmaps" ]
+    verbs: [ "get", "list", "watch" ]
+  - apiGroups: [ "" ]
+    resources: [ "endpoints", "persistentvolumes", "pods" ]
+    verbs: [ "*" ]
+  - apiGroups: [ "" ]
+    resources: [ "events" ]
+    verbs: [ "create", "patch" ]
+  - apiGroups: [ "storage.k8s.io" ]
+    resources: [ "storageclasses" ]
+    verbs: [ "get", "list", "watch" ]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: local-path-provisioner-bind
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: local-path-provisioner-role
+subjects:
+  - kind: ServiceAccount
+    name: local-path-provisioner-service-account
+    namespace: local-path-storage
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local-path-provisioner
+  namespace: local-path-storage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: local-path-provisioner
+  template:
+    metadata:
+      labels:
+        app: local-path-provisioner
+    spec:
+      serviceAccountName: local-path-provisioner-service-account
+      containers:
+        - name: local-path-provisioner
+          image: rancher/local-path-provisioner:v0.0.24
+          imagePullPolicy: IfNotPresent
+          command:
+            - local-path-provisioner
+            - --debug
+            - start
+            - --config
+            - /etc/config/config.json
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config/
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+      volumes:
+        - name: config-volume
+          configMap:
+            name: local-path-config
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-path
+provisioner: rancher.io/local-path
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Delete
+
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: local-path-config
+  namespace: local-path-storage
+data:
+  config.json: |-
+    {
+            "nodePathMap":[
+            {
+                    "node":"DEFAULT_PATH_FOR_NON_LISTED_NODES",
+                    "paths":["/data/local-path-provisioner"]
+            }
+            ]
+    }
+  setup: |-
+    #!/bin/sh
+    set -eu
+    mkdir -m 0777 -p "$VOL_DIR"
+  teardown: |-
+    #!/bin/sh
+    set -eu
+    rm -rf "$VOL_DIR"
+  helperPod.yaml: |-
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: helper-pod
+    spec:
+      containers:
+      - name: helper-pod
+        image: busybox:1.35.0
+        imagePullPolicy: IfNotPresent
+--------------------------------------------------------------------------------------------------
+
+заметка:
+В local-path-provisioner:v0.0.24 ограничение по объему PV не поддерживается!
+
+Установка local-path-provisioner
+
+### посмотрим дефолтный тип стораджа
+kubectl get storageclasses
+
+#применяем
+kubectl apply -f /data/00-local-path-storage.yaml
+
+#проверяем
+kubectl get all -A
+------------------------------
+NAMESPACE            NAME                                     READY   UP-TO-DATE   AVAILABLE   AGE
+kube-system          deployment.apps/coredns                  2/2     2            2           3d4h
+local-path-storage   deployment.apps/local-path-provisioner   1/1     1            1           2m33s
+-----------------------------
+
+#Создаем PVC где его имя name: volume-test-pvc
+В файле my_pvc.yaml показан пример PVC.
+
+vim /data/my_pvc.yaml 
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: volume-test-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 200Mi
+
+Обычно в качестве локальных файловых систем нод кластера используются не кластерные файловые системы. Поэтому в PVC указываем accessModes ReadWriteOnce.
+Добавляем PVC в кластер.
+kubectl apply -f /data/my_pvc.yaml
+Проверяем состояние PVC.
+------------------
+[root@masterkub data]# kubectl get pvc
+NAME              STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+volume-test-pvc   Pending                                      local-path     113s
+------------------
+status pending говорит нам о том что он не распределяет диск физически до тех пор пока к этому pvc никто не обратится
+
+Т.е. в дальнейшем наше приложение можно будет запускать только на ноде, где создан PV для используемого в приложении PVC.
+
+
+
+#черновик он нам понадобится:
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: volume-test
+  namespace: default
+spec:
+  containers:
+  - name: volume-test
+    image: nginx:1.23.4-alpine
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+    - name: volv
+      mountPath: /data
+    ports:
+    - containerPort: 80
+  nodeSelector:
+    kubernetes.io/hostname: ws1.kryukov.local     #вот тут мы указываем где на какой ноде будет создан этот диск
+  volumes:
+  - name: volv
+    persistentVolumeClaim:
+      claimName: volume-test-pvc
 
 
 
 
+#Использование в StatefulSet
+Как мы поняли из предыдущего примера, при использовании StorageClass связанных с local-path-provisioner мы должны внимательно следить где будут запускаться приложения.
+
+Самым правильным вариантом, когда нам требуется сохранять состояния приложений в файловой системе, является использование StatefulSet.
+
+При определении StatefulSet мы должны будем учесть следующие особенности:
+
+1)Явным образом определить ноды, на которых будут запускаться pods StatefulSet-та.
+2)Позаботиться о том, что бы на одной ноде запускался один pod StatefulSet-та.
+
+
+
+
+<pre>
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------настройка patroni часть 2 настройка базового yaml----------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+Преходим к следуюшему шагу подкготовки базоввому yaml для patroni от zalando/spilo (будем использовать контенеры для построения кластера patroni в kub)
+
+https://github.com/zalando/spilo
+https://github.com/BigKAA/youtube/blob/38f295485674147bc484c2183625059987a46013/base/spilo/manifests/spilo_kubernetes.yaml
+https://github.com/BigKAA/youtube/blob/38f295485674147bc484c2183625059987a46013/base/spilo/Spilo-manual.md
+https://github.com/zalando/spilo/blob/master/ENVIRONMENT.rst
+
+остановился на 19 минуте!!!!
+
+Конфигурационные параметры скрипта
+Параметры скрипта поместив в отдельный ConfigMap
+
+vim /data/spilo_backup-script.yaml
+kubectl apply -f /data/spilo_backup-script.yaml
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-script
+data:
+  PGHOST: "/var/run/postgresql"
+  PGUSER: "postgres"
+  PGROOT: "/home/postgres/pgdata/pgroot"
+  PGLOG: "/home/postgres/pgdata/pgroot/pg_log"
+  PGDATA: "/home/postgres/pgdata/pgroot/data"
+  BACKUP_NUM_TO_RETAIN: "5"
+  USE_WALG_BACKUP: "true"
+  USE_WALG_RESTORE: "true"
+  WALG_ALIVE_CHECK_INTERVAL: "5m"
+  WALE_BINARY: "wal-g"
+  WALG_FILE_PREFIX: "/data/pg_wal"
+  WALE_ENV_DIR: "/config"
+
+
+#проверяем
+kubectl get ConfigMap
+kubectl delete configmap backup-script
+
+#Дополнительные диски
+#Первый - это подключение ConfigMap в файловую систему контейнера.
+
+      volumes:
+        - configMap:
+            name: backup-script
+          name: config
+		  
+		volumeMounts:
+        - mountPath: /config
+          name: config
+
+
+vim /data/spilo_kubernetes.yaml
+
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: &cluster_name zalandopatroni01
+  labels:
+    application: spilo
+    spilo-cluster: *cluster_name
+spec:
+  selector:
+    matchLabels:
+      application: spilo
+      spilo-cluster: *cluster_name
+  replicas: 3
+  serviceName: *cluster_name
+  podManagementPolicy: Parallel
+  template:
+    metadata:
+      labels:
+        application: spilo
+        spilo-cluster: *cluster_name
+    spec:
+      # service account that allows changing endpoints and assigning pod labels
+      # in the given namespace: https://kubernetes.io/docs/user-guide/service-accounts/
+      # not required unless you've changed the default service account in the namespace
+      # used to deploy Spilo
+      serviceAccountName: operator
+      containers:
+      - name: *cluster_name
+        image: registry.opensource.zalan.do/acid/spilo-15:3.0-p1  # put the spilo image here
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8008
+          protocol: TCP
+        - containerPort: 5432
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /data/pg_wal
+          name: backup
+        - mountPath: /config
+          name: config
+        - mountPath: /home/postgres/pgdata
+          name: pgdata
+        env:
+        - name: DCS_ENABLE_KUBERNETES_API
+          value: 'true'
+#        - name: ETCD_HOST
+#          value: 'test-etcd.default.svc.cluster.local:2379' # where is your etcd?
+#        - name: WAL_S3_BUCKET
+#          value: example-spilo-dbaas
+#        - name: LOG_S3_BUCKET # may be the same as WAL_S3_BUCKET
+#          value: example-spilo-dbaas
+#        - name: BACKUP_SCHEDULE
+#          value: "00 01 * * *"
+        - name: KUBERNETES_SCOPE_LABEL
+          value: spilo-cluster
+        - name: KUBERNETES_ROLE_LABEL
+          value: role
+        - name: SPILO_CONFIGURATION
+          value: | ## https://github.com/zalando/patroni#yaml-configuration
+            bootstrap:
+              initdb:
+                - auth-host: md5
+                - auth-local: md5
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: PGPASSWORD_SUPERUSER
+          valueFrom:
+            secretKeyRef:
+              name: *cluster_name
+              key: superuser-password
+        - name: PGUSER_ADMIN
+          value: superadmin
+        - name: PGPASSWORD_ADMIN
+          valueFrom:
+            secretKeyRef:
+              name: *cluster_name
+              key: admin-password
+        - name: PGPASSWORD_STANDBY
+          valueFrom:
+            secretKeyRef:
+              name: *cluster_name
+              key: replication-password
+        - name: SCOPE
+          value: *cluster_name
+        - name: PGROOT
+          value: /home/postgres/pgdata/pgroot
+        - name: WALG_FILE_PREFIX
+          value: "/data/pg_wal"
+        - name: CRONTAB
+          value: "[\"00 01 * * * envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data\"]"
+      terminationGracePeriodSeconds: 0
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: db
+                    operator: In
+                    values:
+                      - spilo
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: spilo-cluster
+                    operator: In
+                    values:
+                      - *cluster_name
+              topologyKey: "kubernetes.io/hostname"
+      volumes:
+        - configMap:
+            name: backup-script
+          name: config
+        - persistentVolumeClaim:
+            claimName: zalandopatroni01-backup
+          name: backup
+  volumeClaimTemplates:
+  - metadata:
+      labels:
+        application: spilo
+        spilo-cluster: *cluster_name
+      name: pgdata
+    spec:
+      storageClassName: local-path
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
+  - metadata:
+      labels:
+        application: spilo
+        spilo-cluster: *cluster_name
+      name: backup
+    spec:
+      storageClassName: local-path
+      accessModes:
+       - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: &cluster_name zalandopatroni01
+  labels:
+    application: spilo
+    spilo-cluster: *cluster_name
+subsets: []
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: &cluster_name zalandopatroni01
+  labels:
+    application: spilo
+    spilo-cluster: *cluster_name
+spec:
+  type: ClusterIP
+  ports:
+  - name: postgresql
+    port: 5432
+    targetPort: 5432
+
+---
+# headless service to avoid deletion of patronidemo-config endpoint
+apiVersion: v1
+kind: Service
+metadata:
+  name: zalandopatroni01-config
+  labels:
+    application: spilo
+    spilo-cluster: zalandopatroni01
+spec:
+  clusterIP: None
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: &cluster_name zalandopatroni01
+  labels:
+    application: spilo
+    spilo-cluster: *cluster_name
+type: Opaque
+stringData:
+  superuser-password: password
+  replication-password: password
+  admin-password: password
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: operator
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: operator
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+  # delete is required only for 'patronictl remove'
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  verbs:
+  - get
+  - patch
+  - update
+  # the following three privileges are necessary only when using endpoints
+  - create
+  - list
+  - watch
+  # delete is required only for for 'patronictl remove'
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+# The following privilege is only necessary for creation of headless service
+# for patronidemo-config endpoint, in order to prevent cleaning it up by the
+# k8s master. You can avoid giving this privilege by explicitly creating the
+# service like it is done in this manifest (lines 160..169)
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - create
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: operator
+subjects:
+- kind: ServiceAccount
+  name: operator
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-script
+data:
+  PGHOST: "/var/run/postgresql"
+  PGUSER: "postgres"
+  PGROOT: "/home/postgres/pgdata/pgroot"
+  PGLOG: "/home/postgres/pgdata/pgroot/pg_log"
+  PGDATA: "/home/postgres/pgdata/pgroot/data"
+  BACKUP_NUM_TO_RETAIN: "5"
+  USE_WALG_BACKUP: "true"
+  USE_WALG_RESTORE: "true"
+  WALG_ALIVE_CHECK_INTERVAL: "5m"
+  WALE_BINARY: "wal-g"
+  WALG_FILE_PREFIX: "/data/pg_wal"
+  WALE_ENV_DIR: "/config"
+
+
+
+
+
+
+#### xxxxxxx)
+
+#### добавил метки 
+
+<pre>
+kubectl label nodes masterkub.ru-central1.internal disktype=citusmaster
+kubectl label nodes kub1.ru-central1.internal disktype=citusworker1
+kubectl label nodes kub2.ru-central1.internal disktype=citusworker2
+kubectl label nodes kub3.ru-central1.internal disktype=citusworker3
+
+citusmaster
+citusworker1
+citusworker2
+citusworker3
+</pre>
 
 
 
