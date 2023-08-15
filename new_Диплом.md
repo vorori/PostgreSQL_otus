@@ -1669,7 +1669,7 @@ kubectl -n spilo exec -it pod/zalandopatroni01-0  -- patronictl list
 +--------------------+------------+---------+---------+----+-----------+
 ----------
 
-### смотрим логи pod видм кто у нас матер
+### единоразово смотрим логи pod видм кто у нас матер
 kubectl logs --namespace spilo pod/zalandopatroni01-0 
 kubectl logs --namespace spilo pod/zalandopatroni01-1 
 kubectl logs --namespace spilo pod/zalandopatroni01-2
@@ -1854,14 +1854,43 @@ patronictl -c postgres.yml list
 -----------------------------------------------------------------------------
 
 
-
-
+#подключаемся для тестов с управляюшей ноды
 psql -U postgres -h 10.105.5.80 -d postgres
-psql -U postgres -h 10.105.5.80
-psql -U postgres -h 10.105.5.80
+psql -U postgres -h 10.105.5.80 -d postgres
+psql -U postgres -h 10.105.5.80 -d postgres
+
+#БАЗОВАЯ ИНФОРМАЦИЯ порт версия сервер
+select
+inet_server_addr( ) AS "Server",
+inet_server_port( ) AS "Port",
+current_database() AS "CurrentDatabase",
+version() AS "Version";
+
+--------------------------
+  Server   | Port | CurrentDatabase |                                                              Version
+------------+------+-----------------+-----------------------------------------------------------------------------------------------------------------------------------
+ 10.244.2.4 | 5432 | postgres        | PostgreSQL 15.2 (Ubuntu 15.2-1.pgdg22.04+1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 11.3.0-1ubuntu1~22.04) 11.3.0, 64-bit
+(1 row)
+--------------------------
 
 
+#показать ноды реплики
+select usename,application_name,client_addr,backend_start,state,sync_state from pg_stat_replication;
 
+--------------------------
+postgres=# select usename,application_name,client_addr,backend_start,state,sync_state from pg_stat_replication;
+ usename |  application_name  | client_addr |         backend_start         |   state   | sync_state
+---------+--------------------+-------------+-------------------------------+-----------+------------
+ standby | zalandopatroni01-0 | 10.244.1.4  | 2023-08-15 07:33:41.148787+00 | streaming | async
+ standby | zalandopatroni01-2 | 10.244.3.6  | 2023-08-15 07:33:41.712539+00 | streaming | async
+(2 rows)
+--------------------------
+
+#показать состояние конкретной ноды к которой подключился не находится ли она в состоянии восстоновления
+select pg_is_in_recovery();
+
+
+#выполняю преключение
 
 
 
