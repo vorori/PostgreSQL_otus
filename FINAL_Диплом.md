@@ -1430,9 +1430,9 @@ metadata:
     spilo-cluster: *cluster_name
 type: Opaque
 stringData:
-  superuser-password: pass
-  replication-password: pass
-  admin-password: pass
+  superuser-password: pass1
+  replication-password: pass2
+  admin-password: pass3
 
 ---
 apiVersion: v1
