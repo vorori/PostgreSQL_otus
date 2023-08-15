@@ -1187,10 +1187,13 @@ https://github.com/BigKAA/youtube/blob/38f295485674147bc484c2183625059987a46013/
 https://github.com/BigKAA/youtube/blob/38f295485674147bc484c2183625059987a46013/base/spilo/Spilo-manual.md
 https://github.com/zalando/spilo/blob/master/ENVIRONMENT.rst
 
-остановился на 19 минуте!!!!
 
-Конфигурационные параметры скрипта
-Параметры скрипта поместив в отдельный ConfigMap
+
+---------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------Конфигурационные параметры скрипта START-------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+#Конфигурационные параметры скрипта
+#Параметры скрипта поместив в отдельный ConfigMap
 
 vim /data/spilo_backup-script.yaml
 kubectl apply -f /data/spilo_backup-script.yaml
@@ -1214,23 +1217,19 @@ data:
   WALG_FILE_PREFIX: "/data/pg_wal"
   WALE_ENV_DIR: "/config"
 
+---------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------Конфигурационные параметры скрипта END---------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
 
 #проверяем
 kubectl get ConfigMap
 kubectl delete configmap backup-script
 
-#Дополнительные диски
-#Первый - это подключение ConfigMap в файловую систему контейнера.
 
-      volumes:
-        - configMap:
-            name: backup-script
-          name: config
-		  
-		volumeMounts:
-        - mountPath: /config
-          name: config
 
+---------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------Конфигурационные параметры zalandopatroni START------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
 
 vim /data/spilo_kubernetes.yaml
 
@@ -1527,51 +1526,162 @@ data:
   WALE_ENV_DIR: "/config"
 
 
+---------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------Конфигурационные параметры zalandopatroni END--------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
 
 
 
 
-#### xxxxxxx)
 
-#### добавил метки 
+#### добавил метки они нам нужны чтобы разкатать patroni по нашим указанным нодам
 
 <pre>
-kubectl label nodes masterkub.ru-central1.internal disktype=citusmaster
-kubectl label nodes kub1.ru-central1.internal disktype=citusworker1
-kubectl label nodes kub2.ru-central1.internal disktype=citusworker2
-kubectl label nodes kub3.ru-central1.internal disktype=citusworker3
+kubectl label nodes kub1.ru-central1.internal db=spilo
+kubectl label nodes kub2.ru-central1.internal db=spilo
+kubectl label nodes kub3.ru-central1.internal db=spilo
 
-citusmaster
-citusworker1
-citusworker2
-citusworker3
+kubectl get nodes --show-labels
+
+root@masterkub vorori]# kubectl get nodes --show-labels
+NAME                             STATUS   ROLES           AGE     VERSION   LABELS
+kub1.ru-central1.internal        Ready    <none>          3d21h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,db=spilo,
+kub2.ru-central1.internal        Ready    <none>          3d21h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,db=spilo,
+kub3.ru-central1.internal        Ready    <none>          3d21h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,db=spilo,
+masterkub.ru-central1.internal   Ready    control-plane   3d22h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,
 </pre>
 
 
 
+#начинаем создание нашего кластера
+#создаем namespase spilo
+kubectl create ns spilo
+kubectl create ns spilo
+
+### Это предоставит информацию о пространствах имен
+kubectl get namespace
+kubectl get namespace
+
+kubectl get all -A
+kubectl get all -A
+
+#запускаю наш манифест 
+kubectl -n spilo apply -f /data/spilo_kubernetes.yaml
+kubectl -n spilo apply -f /data/spilo_kubernetes.yaml
+
+#проверяю что все ок и что все запустилось все под создались и работают
+kubectl get pods --namespace spilo
+kubectl get pods --namespace spilo
+
+----------
+[root@masterkub vorori]# kubectl get pods --namespace spilo
+NAME                 READY   STATUS    RESTARTS   AGE
+zalandopatroni01-0   1/1     Running   0          7m15s
+zalandopatroni01-1   1/1     Running   0          7m15s
+zalandopatroni01-2   1/1     Running   0          7m15s
+----------
+
+#проверяю что создались сервисы
+kubectl get services --namespace spilo
+kubectl get services --namespace spilo
+
+----------
+[root@masterkub vorori]# kubectl get services --namespace spilo
+NAME                      TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
+zalandopatroni01          ClusterIP   10.105.5.80   <none>        5432/TCP   26m
+zalandopatroni01-config   ClusterIP   None          <none>        <none>     26m
+----------
+
+#проверяю что все ок и что все запустилось с дисками pvc
+kubectl get pvc --namespace spilo
+kubectl get pvc --namespace spilo
+
+----------
+[root@masterkub vorori]# kubectl get pvc --namespace spilo
+NAME                        STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+backup-zalandopatroni01-0   Bound    pvc-27ed630b-b7df-4a04-802b-67e547bfc272   2Gi        RWO            local-path     11m
+backup-zalandopatroni01-1   Bound    pvc-afa11811-90df-4a0d-ad2e-adaf27126c12   2Gi        RWO            local-path     11m
+backup-zalandopatroni01-2   Bound    pvc-9b76b757-e3e7-4581-9a5c-4e510e3bd898   2Gi        RWO            local-path     11m
+pgdata-zalandopatroni01-0   Bound    pvc-dc04c3ee-aaf9-4698-be1a-64bcbd66119a   2Gi        RWO            local-path     11m
+pgdata-zalandopatroni01-1   Bound    pvc-58ae2079-216f-4353-8edb-fbe930ebeeba   2Gi        RWO            local-path     11m
+pgdata-zalandopatroni01-2   Bound    pvc-eddb585f-e9af-48ee-aab5-aaeb971716f4   2Gi        RWO            local-path     11m
+----------
+
+#проверяю что все ок на всех обектах кластера 
+----------
+[root@masterkub vorori]# kubectl get all -A
+NAMESPACE            NAME                                                         READY   STATUS    RESTARTS      AGE
+kube-flannel         pod/kube-flannel-ds-77pwz                                    1/1     Running   4 (29m ago)   3d22h
+kube-flannel         pod/kube-flannel-ds-8nrhx                                    1/1     Running   2 (31m ago)   3d22h
+kube-flannel         pod/kube-flannel-ds-d94qd                                    1/1     Running   2 (31m ago)   3d22h
+kube-flannel         pod/kube-flannel-ds-pslvk                                    1/1     Running   2 (31m ago)   3d22h
+kube-system          pod/coredns-787d4945fb-mxvx7                                 1/1     Running   2 (31m ago)   3d23h
+kube-system          pod/coredns-787d4945fb-x57tb                                 1/1     Running   2 (31m ago)   3d23h
+kube-system          pod/etcd-masterkub.ru-central1.internal                      1/1     Running   2 (31m ago)   3d23h
+kube-system          pod/kube-apiserver-masterkub.ru-central1.internal            1/1     Running   2 (31m ago)   3d23h
+kube-system          pod/kube-controller-manager-masterkub.ru-central1.internal   1/1     Running   2 (31m ago)   3d23h
+kube-system          pod/kube-proxy-25mpq                                         1/1     Running   2 (31m ago)   3d22h
+kube-system          pod/kube-proxy-cdhx7                                         1/1     Running   2 (31m ago)   3d23h
+kube-system          pod/kube-proxy-ssz9x                                         1/1     Running   2 (31m ago)   3d22h
+kube-system          pod/kube-proxy-z4prx                                         1/1     Running   2 (31m ago)   3d22h
+kube-system          pod/kube-scheduler-masterkub.ru-central1.internal            1/1     Running   2 (31m ago)   3d23h
+local-path-storage   pod/local-path-provisioner-7f8667b75c-swvwb                  1/1     Running   1 (31m ago)   18h
+spilo                pod/zalandopatroni01-0                                       1/1     Running   0             8m53s
+spilo                pod/zalandopatroni01-1                                       1/1     Running   0             8m53s
+spilo                pod/zalandopatroni01-2                                       1/1     Running   0             8m53s
+
+NAMESPACE     NAME                              TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)                  AGE
+default       service/kubernetes                ClusterIP   10.96.0.1     <none>        443/TCP                  3d23h
+kube-system   service/kube-dns                  ClusterIP   10.96.0.10    <none>        53/UDP,53/TCP,9153/TCP   3d23h
+spilo         service/zalandopatroni01          ClusterIP   10.105.5.80   <none>        5432/TCP                 8m53s
+spilo         service/zalandopatroni01-config   ClusterIP   None          <none>        <none>                   8m53s
+
+NAMESPACE      NAME                             DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+kube-flannel   daemonset.apps/kube-flannel-ds   4         4         4       4            4           <none>                   3d22h
+kube-system    daemonset.apps/kube-proxy        4         4         4       4            4           kubernetes.io/os=linux   3d23h
+
+NAMESPACE            NAME                                     READY   UP-TO-DATE   AVAILABLE   AGE
+kube-system          deployment.apps/coredns                  2/2     2            2           3d23h
+local-path-storage   deployment.apps/local-path-provisioner   1/1     1            1           18h
+
+NAMESPACE            NAME                                                DESIRED   CURRENT   READY   AGE
+kube-system          replicaset.apps/coredns-787d4945fb                  2         2         2       3d23h
+local-path-storage   replicaset.apps/local-path-provisioner-7f8667b75c   1         1         1       18h
+
+NAMESPACE   NAME                                READY   AGE
+spilo       statefulset.apps/zalandopatroni01   3/3     8m53s
+----------
 
 
 
 
+### смотрим логи pod видм кто у нас матер
+kubectl logs --namespace spilo pod/zalandopatroni01-0 
+kubectl logs --namespace spilo pod/zalandopatroni01-1 
+kubectl logs --namespace spilo pod/zalandopatroni01-2
+
+
+----------
+2023-08-15 07:33:41,879 INFO: no action. I am (zalandopatroni01-0), a secondary, and following a leader (zalandopatroni01-1)
+2023-08-15 07:33:49,325 INFO: no action. I am (zalandopatroni01-0), a secondary, and following a leader (zalandopatroni01-1)
+2023-08-15 07:33:59,333 INFO: no action. I am (zalandopatroni01-0), a secondary, and following a leader (zalandopatroni01-1)
+
+
+2023-08-15 07:51:59,259 INFO: no action. I am (zalandopatroni01-1), the leader with the lock
+2023-08-15 07:52:09,261 INFO: no action. I am (zalandopatroni01-1), the leader with the lock
+2023-08-15 07:52:19,259 INFO: no action. I am (zalandopatroni01-1), the leader with the lock
+
+
+2023-08-15 07:55:09,266 INFO: no action. I am (zalandopatroni01-2), a secondary, and following a leader (zalandopatroni01-1)
+2023-08-15 07:55:19,269 INFO: no action. I am (zalandopatroni01-2), a secondary, and following a leader (zalandopatroni01-1)
+2023-08-15 07:55:29,265 INFO: no action. I am (zalandopatroni01-2), a secondary, and following a leader (zalandopatroni01-1)
+2023-08-15 07:55:39,265 INFO: no action. I am (zalandopatroni01-2), a secondary, and following a leader (zalandopatroni01-1)
+----------
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### прикручиваем сервис
+kubectl get services --namespace spilo
 
 
 

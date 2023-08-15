@@ -1522,6 +1522,11 @@ kube-system   kube-flannel-ds-amd64-42rl7            0/1       CrashLoopBackOff
 
 
 <pre>
+
+tail -f /var/log/messages
+tail -f /var/log/messages
+tail -f /var/log/messages
+
 ----------------------------------------------------------
 kubectl get pods --all-namespaces -o wide
 kubectl get pods --all-namespaces -o wide
@@ -1571,7 +1576,7 @@ kubectl get all --all-namespaces
 kubectl get all --all-namespaces
 kubectl get all --all-namespaces
 
-kubectl get pods
+kubectl get pods -ns spilo
 kubectl get pods
 kubectl get pods
 
