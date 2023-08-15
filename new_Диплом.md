@@ -1955,6 +1955,8 @@ root@kub3 vorori]# kubectl -n spilo exec -it pod/zalandopatroni01-1 -- patronict
 
 ### единоразово смотрим логи pod видм кто у нас матер
 kubectl logs --namespace spilo pod/zalandopatroni01-0 
+kubectl logs --namespace spilo pod/zalandopatroni01-0 --tail=40 
+kubectl logs --namespace spilo pod/zalandopatroni01-0 --tail=40 
 
 -------------------
 2023-08-15 10:44:32,059 ERROR: Exception when working with leader
@@ -1972,6 +1974,57 @@ Traceback (most recent call last):
 psycopg2.OperationalError: connection to server at "10.244.3.6", port 5432 failed: FATAL:  password authentication failed for user "postgres"
 connection to server at "10.244.3.6", port 5432 failed: FATAL:  no pg_hba.conf entry for host "10.244.1.5", user "postgres", database "postgres", no encryption
 -------------------
+
+
+kubectl get pods --namespace spilo
+kubectl get pods --namespace spilo
+kubectl get pods --namespace spilo
+
+NAME                 READY   STATUS    RESTARTS      AGE
+zalandopatroni01-0   1/1     Running   1 (18m ago)   3h24m
+zalandopatroni01-1   1/1     Running   0             3h24m
+zalandopatroni01-2   1/1     Running   0             3h24m
+
+#удаляем проблемный под
+kubectl delete pod zalandopatroni01-0 --namespace spilo
+kubectl delete pod zalandopatroni01-0 --namespace spilo
+kubectl delete pod zalandopatroni01-0 --namespace spilo
+
+#проверяем под стартанул
+kubectl get pods --namespace spilo
+NAME                 READY   STATUS    RESTARTS   AGE
+zalandopatroni01-0   1/1     Running   0          95s
+zalandopatroni01-1   1/1     Running   0          3h28m
+zalandopatroni01-2   1/1     Running   0          3h28m
+
+
+### смотреть логи в режиме реального времени pod pod/zalandopatroni01-0 namespace spilo используя префикс -f
+kubectl logs --namespace spilo pod/zalandopatroni01-0 -f
+kubectl logs --namespace spilo pod/zalandopatroni01-0 -f
+
+
+###умышленнос сломал zalandopatroni01-0
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/patroni/postgresql/rewind.py", line 70, in check_leader_is_not_in_recovery
+    with get_connection_cursor(connect_timeout=3, options='-c statement_timeout=2000', **conn_kwargs) as cur:
+  File "/usr/lib/python3.10/contextlib.py", line 135, in __enter__
+    return next(self.gen)
+  File "/usr/local/lib/python3.10/dist-packages/patroni/postgresql/connection.py", line 43, in get_connection_cursor
+    conn = psycopg.connect(**kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/patroni/psycopg.py", line 42, in connect
+    ret = _connect(*args, **kwargs)
+  File "/usr/lib/python3/dist-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+
+#наблюдаем вот такую картину
+kubectl -n spilo exec -it pod/zalandopatroni01-1 -- patronictl list
++ Cluster: zalandopatroni01 ------+---------+--------------+----+-----------+
+| Member             | Host       | Role    | State        | TL | Lag in MB |
++--------------------+------------+---------+--------------+----+-----------+
+| zalandopatroni01-0 | 10.244.1.7 | Replica | start failed |    |   unknown |
+| zalandopatroni01-1 | 10.244.2.4 | Replica | running      |  3 |         0 |
+| zalandopatroni01-2 | 10.244.3.6 | Leader  | running      |  3 |           |
++--------------------+------------+---------+--------------+----+-----------+
 
 
 <pre>
@@ -2079,6 +2132,16 @@ kubectl logs pod_name(необязательно с -n namespace_name)
 kubectl logs pod_name(необязательно с -n namespace_name)
 kubectl logs pod_name(необязательно с -n namespace_name)
 
+###### смотреть логи в режиме реального времени pod pod/zalandopatroni01-0 namespace spilo используя префикс -f
+kubectl logs --namespace spilo pod/zalandopatroni01-0 -f
+kubectl logs --namespace spilo pod/zalandopatroni01-0 -f
+kubectl logs --namespace spilo pod/zalandopatroni01-0 -f
+
+https://sematext.com/blog/tail-kubernetes-logs/
+https://sematext.com/blog/tail-kubernetes-logs/
+https://sematext.com/blog/tail-kubernetes-logs/
+
+
 ### Запустите команду ниже, чтобы получить события. Это покажет проблему (и все другие события), почему модуль не запланирован.
 kubectl get events
 kubectl get events
@@ -2148,6 +2211,14 @@ kubectl get pods,services,deployments,jobs
 kubectl get pods,services,deployments,jobs
 kubectl get pods,services,deployments,jobs
 
+------------
+------------
+удалить конкретный под с именем zalandopatroni01-0 который расположен в namespace spilo
+kubectl delete pod zalandopatroni01-0 --namespace spilo
+kubectl delete pod zalandopatroni01-0 --namespace spilo
+kubectl delete pod zalandopatroni01-0 --namespace spilo
+------------
+------------
 модули могут быть созданы развертываниями или заданиями
 
 kubectl delete job [job_name]
