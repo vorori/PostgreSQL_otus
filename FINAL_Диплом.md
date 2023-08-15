@@ -1087,6 +1087,13 @@ data:
 
 ### посмотрим дефолтный тип стораджа
 kubectl get storageclasses
+kubectl get storageclasses
+kubectl get storageclasses
+
+#если надо удалить
+kubectl delete storageclasses local-path
+kubectl delete storageclasses local-path
+kubectl delete storageclasses local-path
 
 #применяем
 kubectl apply -f /data/00-local-path-storage.yaml
@@ -1231,8 +1238,26 @@ kubectl delete configmap backup-script
 ----------------------------------------------Конфигурационные параметры zalandopatroni old START------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
 
+#my yaml
 vim /data/spilo_kubernetes.yaml
-kubectl apply -f /data/spilo_kubernetes.yaml
+vim /data/spilo_kubernetes.yaml
+
+#начинаем создание нашего кластера
+#создаем namespase spilo
+kubectl create ns spilo
+kubectl create ns spilo
+
+### Это предоставит информацию о пространствах имен
+kubectl get namespace
+kubectl get namespace
+
+#запускаю наш манифест 
+kubectl -n spilo apply -f /data/spilo_kubernetes.yaml
+kubectl -n spilo apply -f /data/spilo_kubernetes.yaml
+
+#если надо удалить
+kubectl delete -f /data/spilo_kubernetes.yaml --namespace spilo
+kubectl delete -f /data/spilo_kubernetes.yaml --namespace spilo
 
 apiVersion: apps/v1
 kind: StatefulSet
@@ -1533,9 +1558,39 @@ data:
 ---------------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------Конфигурационные параметры zalandopatroni final START------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
-
+#my yaml
 vim /data/spilo_kubernetes_final.yaml
-kubectl apply -f /data/spilo_kubernetes_final.yaml
+vim /data/spilo_kubernetes_final.yaml
+
+#начинаем создание нашего кластера
+#создаем namespase spilo
+kubectl create ns spilo
+kubectl create ns spilo
+
+### Это предоставит информацию о пространствах имен
+kubectl get namespace
+kubectl get namespace
+
+#запускаю наш манифест 
+kubectl apply -f /data/spilo_kubernetes_final.yaml --namespace spilo
+kubectl apply -f /data/spilo_kubernetes_final.yaml --namespace spilo
+
+#если надо удалить
+kubectl delete -f /data/spilo_kubernetes_final.yaml  --namespace spilo
+kubectl delete -f /data/spilo_kubernetes_final.yaml  --namespace spilo
+
+#если надо удалить
+kubectl delete pvc,pv --all --namespace spilo
+kubectl delete pvc,pv --all --namespace spilo
+kubectl delete pvc,pv --all --namespace spilo
+
+kubectl delete all,ing,secrets,pvc,pv --all --namespace spilo
+kubectl delete all,ing,secrets,pvc,pv --all
+kubectl delete all,ing,secrets,pvc,pv --all
+
+kubectl delete --namespace spilo
+kubectl delete --namespace spilo
+kubectl delete --namespace spilo
 
 apiVersion: apps/v1
 kind: StatefulSet
@@ -1751,7 +1806,7 @@ spec:
       - ReadWriteOnce
       resources:
         requests:
-          storage: 2Gi
+          storage: 10Gi
   - metadata:
       labels:
         application: spilo
@@ -1763,7 +1818,7 @@ spec:
        - ReadWriteOnce
       resources:
         requests:
-          storage: 2Gi
+          storage: 10Gi
 ---
 apiVersion: v1
 kind: Endpoints
@@ -1932,21 +1987,7 @@ masterkub.ru-central1.internal   Ready    control-plane   3d22h   v1.26.1   beta
 
 
 
-#начинаем создание нашего кластера
-#создаем namespase spilo
-kubectl create ns spilo
-kubectl create ns spilo
 
-### Это предоставит информацию о пространствах имен
-kubectl get namespace
-kubectl get namespace
-
-kubectl get all -A
-kubectl get all -A
-
-#запускаю наш манифест 
-kubectl -n spilo apply -f /data/spilo_kubernetes.yaml
-kubectl -n spilo apply -f /data/spilo_kubernetes.yaml
 
 #проверяю что все ок и что все запустилось все под создались и работают
 kubectl get pods --namespace spilo
@@ -2595,6 +2636,7 @@ kubectl delete pvc --all
 
 -- удалим все
 kubectl delete all,ing,secrets,pvc,pv --all
+kubectl delete deployment --all
 ------------
 ------------
 Это предоставит информацию обо всех модулях, развертываниях, службах и заданиях в пространстве имен.

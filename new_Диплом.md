@@ -2170,7 +2170,7 @@ sudo ip link delete cni0;
 sudo ip link delete flannel.1;
 ---
 
-tail -f /var/log/messages
+
 tail -f /var/log/messages
 tail -f /var/log/messages
 
