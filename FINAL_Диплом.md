@@ -1186,7 +1186,7 @@ https://github.com/zalando/spilo
 https://github.com/BigKAA/youtube/blob/38f295485674147bc484c2183625059987a46013/base/spilo/manifests/spilo_kubernetes.yaml
 https://github.com/BigKAA/youtube/blob/38f295485674147bc484c2183625059987a46013/base/spilo/Spilo-manual.md
 https://github.com/zalando/spilo/blob/master/ENVIRONMENT.rst
-
+https://github.com/zalando/patroni/blob/master/postgres0.yml
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------
@@ -1430,9 +1430,9 @@ metadata:
     spilo-cluster: *cluster_name
 type: Opaque
 stringData:
-  superuser-password: password
-  replication-password: password
-  admin-password: password
+  superuser-password: FefsgtrdyDwre5533
+  replication-password: Ffrgdtrhs45gsdgdgfd!fr
+  admin-password: dgdfgfdDgrgh!2gfh
 
 ---
 apiVersion: v1
@@ -1807,6 +1807,7 @@ postgresql:
     wal_level: hot_standby
     wal_log_hints: 'on'
   pg_hba:
+  - host all all 10.244.0.0/0 md5
   - host all all 10.129.0.24/32 md5
   - host all all 10.128.0.6/32 md5
   - host all all 10.129.0.19/32 md5
