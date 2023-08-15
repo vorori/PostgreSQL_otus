@@ -1692,7 +1692,6 @@ kubectl logs --namespace spilo pod/zalandopatroni01-2
 2023-08-15 07:55:39,265 INFO: no action. I am (zalandopatroni01-2), a secondary, and following a leader (zalandopatroni01-1)
 ----------
 
-
 ### прикручиваем сервис который будет служить единой точкой входа 
 
 #проверяем что сервис создан
@@ -1777,7 +1776,6 @@ patronictl -c postgres.yml edit-config
 patronictl -c postgres.yml edit-config
 patronictl -c postgres.yml edit-config
 
-
 ------------------
 loop_wait: 10
 maximum_lag_on_failover: 33554432
@@ -1826,11 +1824,9 @@ psql -U postgres -d postgres
 alter user poargres with password 'mypass';
 alter user poargres with password 'mypass';
 
-
 #а после уже можем подключаться к ip адресу нашего сервиса
 psql -U postgres -h 10.105.5.80 -d postgres
 psql -U postgres -h 10.105.5.80 -d postgres
-
 
 #если требуется изменить конфигурацию ккластера zalandopatroni01
 patronictl -c postgres.yml restart zalandopatroni01
@@ -1853,7 +1849,6 @@ patronictl -c postgres.yml list
 patronictl -c postgres.yml list
 -----------------------------------------------------------------------------
 
-
 #подключаемся для тестов с управляюшей ноды
 psql -U postgres -h 10.105.5.80 -d postgres
 psql -U postgres -h 10.105.5.80 -d postgres
@@ -1873,7 +1868,6 @@ version() AS "Version";
 (1 row)
 --------------------------
 
-
 #показать ноды реплики
 select usename,application_name,client_addr,backend_start,state,sync_state from pg_stat_replication;
 
@@ -1889,10 +1883,95 @@ postgres=# select usename,application_name,client_addr,backend_start,state,sync_
 #показать состояние конкретной ноды к которой подключился не находится ли она в состоянии восстоновления
 select pg_is_in_recovery();
 
-
 #выполняю преключение
+kubectl -n spilo exec -it pod/zalandopatroni01-1 -- patronictl list
+
++ Cluster: zalandopatroni01 ------+---------+---------+----+-----------+
+| Member             | Host       | Role    | State   | TL | Lag in MB |
++--------------------+------------+---------+---------+----+-----------+
+| zalandopatroni01-0 | 10.244.1.4 | Replica | running |  1 |         0 |
+| zalandopatroni01-1 | 10.244.2.4 | Leader  | running |  1 |           |
+| zalandopatroni01-2 | 10.244.3.6 | Replica | running |  1 |         0 |
++--------------------+------------+---------+---------+----+-----------+
+
+#выполняю switchover
+kubectl -n spilo exec -it pod/zalandopatroni01-1 -- patronictl switchover
+kubectl -n spilo exec -it pod/zalandopatroni01-1 -- patronictl switchover
 
 
+#видим лидер изменился и TL
+kubectl -n spilo exec -it pod/zalandopatroni01-1 -- patronictl list
++ Cluster: zalandopatroni01 ------+---------+---------+----+-----------+
+| Member             | Host       | Role    | State   | TL | Lag in MB |
++--------------------+------------+---------+---------+----+-----------+
+| zalandopatroni01-0 | 10.244.1.4 | Leader  | running |  2 |           |
+| zalandopatroni01-1 | 10.244.2.4 | Replica | running |  2 |         0 |
+| zalandopatroni01-2 | 10.244.3.6 | Replica | running |  2 |         0 |
++--------------------+------------+---------+---------+----+-----------+
+
+
+#преподключаемся к ip сервиса и видем что мы уже на новом мастере
+kubectl get all -A
+psql -U postgres -h 10.105.5.80 -d postgres
+select pg_is_in_recovery();
+
+---------------------
+postgres=# select pg_is_in_recovery();
+ pg_is_in_recovery
+-------------------
+ f
+(1 row)
+---------------------
+
+
+#создаю аварийную ситуацию роняю под лидера на котором работает кластер патрони прегружаю vm kub1
+
+[root@masterkub vorori]# kubectl -n spilo exec -it pod/zalandopatroni01-1 -- patronictl list
++ Cluster: zalandopatroni01 ------+---------+---------+----+-----------+
+| Member             | Host       | Role    | State   | TL | Lag in MB |
++--------------------+------------+---------+---------+----+-----------+
+| zalandopatroni01-0 | 10.244.1.4 | Leader  | running |  2 |           |
+| zalandopatroni01-1 | 10.244.2.4 | Replica | running |  2 |         0 |
+| zalandopatroni01-2 | 10.244.3.6 | Replica | running |  2 |         0 |
++--------------------+------------+---------+---------+----+-----------+
+
+shutdown -r now
+
+
+#смотрим что под zalandopatroni01-2 стал лидером а zalandopatroni01-0 Replica и с лагом репликации 1 и TL не преключился на 3
+root@kub3 vorori]# kubectl -n spilo exec -it pod/zalandopatroni01-1 -- patronictl list
++ Cluster: zalandopatroni01 ------+---------+---------+----+-----------+
+| Member             | Host       | Role    | State   | TL | Lag in MB |
++--------------------+------------+---------+---------+----+-----------+
+| zalandopatroni01-0 | 10.244.1.4 | Replica | running |  2 |         1 |
+| zalandopatroni01-1 | 10.244.2.4 | Replica | running |  3 |         0 |
+| zalandopatroni01-2 | 10.244.3.6 | Leader  | running |  3 |           |
++--------------------+------------+---------+---------+----+-----------+
+
+#делаем принудительную синхронизацию с мастерос для пода zalandopatroni01-0
+# можно выполнить специальную команду которая пресоздаст нашу реплику с нуля
+# мы же попробуем просто убить под с этой репликой и посмотрим на работу kubernets
+
+
+### единоразово смотрим логи pod видм кто у нас матер
+kubectl logs --namespace spilo pod/zalandopatroni01-0 
+
+-------------------
+2023-08-15 10:44:32,059 ERROR: Exception when working with leader
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/patroni/postgresql/rewind.py", line 70, in check_leader_is_not_in_recovery
+    with get_connection_cursor(connect_timeout=3, options='-c statement_timeout=2000', **conn_kwargs) as cur:
+  File "/usr/lib/python3.10/contextlib.py", line 135, in __enter__
+    return next(self.gen)
+  File "/usr/local/lib/python3.10/dist-packages/patroni/postgresql/connection.py", line 43, in get_connection_cursor
+    conn = psycopg.connect(**kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/patroni/psycopg.py", line 42, in connect
+    ret = _connect(*args, **kwargs)
+  File "/usr/lib/python3/dist-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: connection to server at "10.244.3.6", port 5432 failed: FATAL:  password authentication failed for user "postgres"
+connection to server at "10.244.3.6", port 5432 failed: FATAL:  no pg_hba.conf entry for host "10.244.1.5", user "postgres", database "postgres", no encryption
+-------------------
 
 
 <pre>
