@@ -1654,6 +1654,20 @@ spilo       statefulset.apps/zalandopatroni01   3/3     8m53s
 
 
 
+### смотрим на кворум кто мастер из самого пода pod/zalandopatroni01-0 
+kubectl -n spilo exec -it pod/zalandopatroni01-0  -- patronictl list
+kubectl -n spilo exec -it pod/zalandopatroni01-0  -- patronictl list
+
+----------
+[root@masterkub vorori]# kubectl -n spilo exec -it pod/zalandopatroni01-0  -- patronictl list
++ Cluster: zalandopatroni01 ------+---------+---------+----+-----------+
+| Member             | Host       | Role    | State   | TL | Lag in MB |
++--------------------+------------+---------+---------+----+-----------+
+| zalandopatroni01-0 | 10.244.1.4 | Replica | running |  1 |         0 |
+| zalandopatroni01-1 | 10.244.2.4 | Leader  | running |  1 |           |
+| zalandopatroni01-2 | 10.244.3.6 | Replica | running |  1 |         0 |
++--------------------+------------+---------+---------+----+-----------+
+----------
 
 ### смотрим логи pod видм кто у нас матер
 kubectl logs --namespace spilo pod/zalandopatroni01-0 
@@ -1679,770 +1693,174 @@ kubectl logs --namespace spilo pod/zalandopatroni01-2
 ----------
 
 
+### прикручиваем сервис который будет служить единой точкой входа 
 
-### прикручиваем сервис
+#проверяем что сервис создан
+kubectl get services --namespace spilo
 kubectl get services --namespace spilo
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#### 1)
-
-#### добавил метки 
-
-<pre>
-kubectl label nodes masterkub.ru-central1.internal disktype=citusmaster
-kubectl label nodes kub1.ru-central1.internal disktype=citusworker1
-kubectl label nodes kub2.ru-central1.internal disktype=citusworker2
-kubectl label nodes kub3.ru-central1.internal disktype=citusworker3
-
-citusmaster
-citusworker1
-citusworker2
-citusworker3
-</pre>
-
-#### 1.2)
-
-#### проверяю
-
-<pre>
-[root@masterkub vorori]# kubectl get nodes --show-labels
-NAME                             STATUS   ROLES           AGE     VERSION   LABELS
-kub1.ru-central1.internal        Ready    <none>          2d6h    v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker1,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub1.ru-central1.internal,kubernetes.io/os=linux
-kub2.ru-central1.internal        Ready    <none>          2d5h    v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker2,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub2.ru-central1.internal,kubernetes.io/os=linux
-kub3.ru-central1.internal        Ready    <none>          2d5h    v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusworker3,kubernetes.io/arch=amd64,kubernetes.io/hostname=kub3.ru-central1.internal,kubernetes.io/os=linux
-masterkub.ru-central1.internal   Ready    control-plane   2d10h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,disktype=citusmaster,kubernetes.io/arch=amd64,kubernetes.io/hostname=masterkub.ru-central1.internal,kubernetes.io/os=
-</pre>
-
-#### 1.3)
-
-#### создал директорию для мастера и worker
-
-<pre>
-mkdir /var/pgsql-volume-master
-mkdir /var/pgsql-volume
-</pre>
-
-
-#### 1.4)
-
-#### создал pv
-
-<pre>
-vim /tmp/citus/mypv.yaml
-
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: storage-citusmaster
-  labels:
-    storage: basemain1citusmaster1
-spec:
-  accessModes:
-  - ReadWriteOnce
-  capacity:
-    storage: 10Gi
-  local:
-    path: /var/pgsql-volume-master
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: disktype
-          operator: In
-          values:
-          - citusworker1
-  persistentVolumeReclaimPolicy: Retain
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: storage-citusworker1
-  labels:
-    storage: baserepl1citusworker1
-spec:
-  accessModes:
-  - ReadWriteOnce
-  capacity:
-    storage: 10Gi
-  local:
-    path: /var/pgsql-volume
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: disktype
-          operator: In
-          values:
-          - citusworker1
-  persistentVolumeReclaimPolicy: Retain
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: storage-citusworker2
-  labels:
-    storage: baserepl2citusworker2
-spec:
-  accessModes:
-  - ReadWriteOnce
-  capacity:
-    storage: 10Gi
-  local:
-    path: /var/pgsql-volume
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: disktype
-          operator: In
-          values:
-          - citusworker2
-  persistentVolumeReclaimPolicy: Retain
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: storage-citusworker3
-  labels:
-    storage: baserepl3citusworker3
-spec:
-  accessModes:
-  - ReadWriteOnce
-  capacity:
-    storage: 10Gi
-  local:
-    path: /var/pgsql-volume
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: disktype
-          operator: In
-          values:
-          - citusworker3
-  persistentVolumeReclaimPolicy: Retain
-
-</pre>
-
-#### 1.5)
-
-#### проверяем 
-
-<pre>
-[root@masterkub citus]# kubectl apply -f /tmp/citus/mypv.yaml
-persistentvolume/storage-citusworker1 created
-[root@masterkub citus]# kubectl get pv
-NAME                   CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
-storage-citusworker1   10Gi       RWO            Retain           Available                                   12s                         44s
-</pre>
-
-
-#### 1.6)
-
-#### создал secrets
-
-<pre>
-vim /tmp/citus/secrets.yaml
-
-
-apiVersion: v1
-kind: Secret
-metadata:
-  name: citus-secrets
-type: Opaque
-data:
-  password: MjMzODQ4NA==
-</pre>
-
-<pre>
-kubectl create -f /tmp/citus/secrets.yaml
-
-[root@masterkub citus]# [root@masterkub citus]# kubectl create -f /tmp/citus/secrets.yaml
-secret/citus-secrets created
-</pre>
-
-
-#### 1.7)
-
-#### создал PVC citus-master
-
-<pre>
-https://coffee-web.ru/blog/getting-started-with-kubernetes-persistent-volumes/
-Создание заявки на постоянный том
-Создайте спецификацию PVC, открыв текстовый редактор и скопировав приведенный ниже код YA
-
-vim /tmp/citus/pvcmaster.yaml
-
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: citus-master-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
-  volumeName: storage-citusmaster
-</pre>
-
-#### 1.8)
-
-#### проверяем 
-
-<pre>
-kubectl apply -f /tmp/citus/pvcmaster.yaml
-kubectl get pvc -o wide
-[root@masterkub citus]# [root@masterkub citus]# kubectl apply -f /tmp/citus/pvcmaster.yaml
-persistentvolumeclaim/citus-master-pvc created
-[root@masterkub citus]# kubectl get pvc -o wide
-NAME               STATUS   VOLUME                 CAPACITY   ACCESS MODES   STORAGECLASS   AGE   VOLUMEMODE
-citus-master-pvc   Bound    storage-citusworker1   10Gi       RWO                           12s   Filesystem
-</pre>
-
-
-#### 1.9)
-
-#### создаю master
-
-<pre>
-vim /tmp/citus/master.yaml
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: citus-master-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: citus-master
-  labels:
-    app: citus-master
-spec:
-  selector:
-    app: citus-master
-  type: NodePort
-  ports:
-  - port: 5432
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: citus-master
-spec:
-  selector:
-    matchLabels:
-      app: citus-master
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: citus-master
-    spec:
-      containers:
-      - name: citus
-        image: citusdata/citus:7.3.0
-        ports:
-        - containerPort: 5432
-        env:
-        - name: PGDATA
-          value: /var/lib/postgresql/data/pgdata
-        - name: PGPASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: citus-secrets
-              key: password
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: citus-secrets
-              key: password
-        volumeMounts:
-        - name: storage
-          mountPath: /var/lib/postgresql/data
-        livenessProbe:
-          exec:
-            command:
-            - ./pg_healthcheck
-          initialDelaySeconds: 60
-      volumes:
-        - name: storage
-          persistentVolumeClaim:
-            claimName: citus-master-pvc
-</pre>		
-
-#### 1.10)
-
-#### проверяю
-
-<pre>
-kubectl apply -f /tmp/citus/master.yaml
-[root@masterkub citus]# kubectl get pods
-NAME                            READY   STATUS    RESTARTS   AGE
-citus-master-5bff7bc99c-kd89l   1/1     Running   0          41s
-</pre>
-
-#### 1.11)
-
-<pre>
-[root@kub1 pgsql-volume-master]# ls -l /var/pgsql-volume-master/pgdata
-total 56
-drwx------. 6 polkitd input    64 Jul 15 21:13 base
-drwx------. 2 polkitd input  4096 Jul 15 21:14 global
-drwx------. 2 polkitd input     6 Jul 15 21:13 pg_commit_ts
-drwx------. 2 polkitd input     6 Jul 15 21:13 pg_dynshmem
-drwx------. 3 polkitd input    20 Jul 15 21:13 pg_foreign_file
--rw-------. 1 polkitd input  4535 Jul 15 21:13 pg_hba.conf
--rw-------. 1 polkitd input  1636 Jul 15 21:13 pg_ident.conf
-drwx------. 4 polkitd input    68 Jul 15 21:13 pg_logical
-drwx------. 4 polkitd input    36 Jul 15 21:13 pg_multixact
-drwx------. 2 polkitd input    18 Jul 15 21:13 pg_notify
-drwx------. 2 polkitd input     6 Jul 15 21:13 pg_replslot
-drwx------. 2 polkitd input     6 Jul 15 21:13 pg_serial
-drwx------. 2 polkitd input     6 Jul 15 21:13 pg_snapshots
-drwx------. 2 polkitd input     6 Jul 15 21:13 pg_stat
-drwx------. 2 polkitd input    63 Jul 15 21:17 pg_stat_tmp
-drwx------. 2 polkitd input    18 Jul 15 21:13 pg_subtrans
-drwx------. 2 polkitd input     6 Jul 15 21:13 pg_tblspc
-drwx------. 2 polkitd input     6 Jul 15 21:13 pg_twophase
--rw-------. 1 polkitd input     3 Jul 15 21:13 PG_VERSION
-drwx------. 3 polkitd input    60 Jul 15 21:13 pg_wal
-drwx------. 2 polkitd input    18 Jul 15 21:13 pg_xact
--rw-------. 1 polkitd input    88 Jul 15 21:13 postgresql.auto.conf
--rw-------. 1 polkitd input 22762 Jul 15 21:13 postgresql.conf
--rw-------. 1 polkitd input    36 Jul 15 21:13 postmaster.opts
--rw-------. 1 polkitd input   101 Jul 15 21:13 postmaster.pid
-</pre>
-
-
-#### 1.12)
-
-#### создаю worker
-
-<pre>
-vim /tmp/citus/worker.yaml
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: citus-workers
-  labels:
-    app: citus-workers
-spec:
-  selector:
-    app: citus-workers
-  clusterIP: None
-  ports:
-  - port: 5432
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: citus-worker
-spec:
-  selector:
-    matchLabels:
-      app: citus-workers
-  serviceName: citus-workers
-  replicas: 3
-  template:
-    metadata:
-      labels:
-        app: citus-workers
-    spec:
-      containers:
-      - name: citus-worker
-        image: citusdata/citus:7.3.0
-        lifecycle:
-          postStart:
-            exec:
-              command: 
-              - /bin/sh
-              - -c
-              - if [ ${POD_IP} ]; then psql --host=citus-master --username=postgres --command="SELECT * from master_add_node('${HOSTNAME}.citus-workers', 5432);" ; fi
-        ports:
-        - containerPort: 5432
-        env:
-        - name: POD_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.podIP
-        - name: PGPASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: citus-secrets
-              key: password
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: citus-secrets
-              key: password
-        - name: PGDATA
-          value: /var/lib/postgresql/data/pgdata
-        volumeMounts:
-        - name: storage
-          mountPath: /var/lib/postgresql/data
-        livenessProbe:
-          exec:
-            command:
-            - ./pg_healthcheck
-          initialDelaySeconds: 60
-  volumeClaimTemplates:
-  - metadata:
-      name: storage
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 10Gi
-</pre>
-
-
-#### 1.13)
-
-#### проверяю
-
-<pre>
-kubectl apply -f /tmp/citus/worker.yaml
-[root@masterkub citus]# [root@masterkub citus]# kubectl apply -f /tmp/citus/worker.yaml
-service/citus-workers created
-statefulset.apps/citus-worker created
-[root@masterkub citus]# kubectl get pods
-NAME                            READY   STATUS    RESTARTS   AGE
-citus-master-5bff7bc99c-kd89l   1/1     Running   0          2m32s
-citus-worker-0                  1/1     Running   0          14s
-citus-worker-1                  1/1     Running   0          11s
-citus-worker-2                  1/1     Running   0          9s
-</pre>
-
-#### 1.14)
-
-#### проверяю
-
-<pre>
-kubectl exec -it pod/citus-master-5bff7bc99c-kd89l -- bash
-psql -U postgres
-postgres=# SELECT * FROM master_get_active_worker_nodes();
-          node_name           | node_port
-------------------------------+-----------
- citus-worker-2.citus-workers |      5432
- citus-worker-0.citus-workers |      5432
- citus-worker-1.citus-workers |      5432
-(3 rows)
-</pre>
-
-
-
-#### 1.15)
-
-#### настройка подготовка к заливке данных
-
-<pre>
-установил  клиент psql
+#видим ip адрес сервиса но нам нужно сделать так чтобы сервис ссылался на master ноду проверим как работает оно сейчас
+[root@masterkub vorori]# kubectl get services --namespace spilo
+NAME                      TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
+zalandopatroni01          ClusterIP   10.105.5.80   <none>        5432/TCP   40m
+zalandopatroni01-config   ClusterIP   None          <none>        <none>     40m
+
+#устанавливаю клиента psql
+yum install postgresql
 yum install postgresql
 
-открыл доступ c 10.129.0.34 
-vim /var/pgsql-volume-master/pgdata/pg_hba.conf
+#пытаемся подключиться получаем ошибку это значинт надо моменять конфиг pg_hba.conf
+psql -U postgres -h 10.105.5.80
+psql -U postgres -h 10.105.5.80
 
-host    all             postgres           10.129.0.34/32            trust
+--------------------
+psql: FATAL:  password authentication failed for user "postgres"
+FATAL:  pg_hba.conf rejects connection for host "10.244.0.0", user "postgres", database "postgres", no encryption
+--------------------
 
-применил наcтройки:
-select pg_reload_conf();
+#Наборы скриптов для patroni находятся тут
+kubectl -n spilo exec -it pod/zalandopatroni01-1 -- ls /scripts/
+kubectl -n spilo exec -it pod/zalandopatroni01-1 -- ls /scripts/
 
-прокинул подключения контенера наружу
-kubectl port-forward pod/citus-master-5bff7bc99c-kd89l 5432:5432
+#удалил из pg_hba.conf запрешающее правило reject ssl
+pg_hba.conf
 
-подключился c kub1.ru-central1.internal
-psql -U postgres -h 127.0.0.1
+#из логов мы знаем кто мастер подключимся напрямую к этой ноде мастера чтобы добавить разрешаюшие правила в pg_hba.conf
+kubectl -n spilo exec -it pod/zalandopatroni01-1  -- patronictl list
+kubectl -n spilo exec -it pod/zalandopatroni01-1  -- patronictl list
 
-create database test;
-CREATE EXTENSION citus;
-</pre>
+#подключаемся к лидеру 
+kubectl -n spilo exec -it pod/zalandopatroni01-1  -- bash
+kubectl -n spilo exec -it pod/zalandopatroni01-1  -- bash
 
-#### 1.16)
+---------------
+[root@masterkub vorori]# kubectl -n spilo exec -it pod/zalandopatroni01-1  -- bash
 
-#### создаю базу на всех воркерах
+ ____        _ _
+/ ___| _ __ (_) | ___
+\___ \| '_ \| | |/ _ \
+ ___) | |_) | | | (_) |
+|____/| .__/|_|_|\___/
+      |_|
 
-<pre>
-kubectl exec -it pod/citus-worker-0 -- psql -U postgres -c 'create database test;'
-kubectl exec -it pod/citus-worker-1 -- psql -U postgres -c 'create database test;'
-kubectl exec -it pod/citus-worker-2 -- psql -U postgres -c 'create database test;'
+This container is managed by runit, when stopping/starting services use sv
 
-kubectl exec -it pod/citus-worker-0 -- psql -U postgres -d test -c 'CREATE EXTENSION citus;'
-kubectl exec -it pod/citus-worker-1 -- psql -U postgres -d test -c 'CREATE EXTENSION citus;'
-kubectl exec -it pod/citus-worker-2 -- psql -U postgres -d test -c 'CREATE EXTENSION citus;'
-</pre>
+Examples:
 
-#### 1.17)
+sv stop cron
+sv restart patroni
 
-#### подключаю ноды
+Current status: (sv status /etc/service/*)
 
-<pre>
-sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-1.citus-workers', 5432);"
-sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-0.citus-workers', 5432);"
-sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus-worker-2.citus-workers', 5432);"
-</pre>
+run: /etc/service/cron: (pid 37) 3298s
+run: /etc/service/patroni: (pid 36) 3298s
+run: /etc/service/pgqd: (pid 38) 3298s
+---------------
 
-#### 1.18)
+#нашли файл с конфигурацией patroni
+---------------
+root@zalandopatroni01-1:/home/postgres# pwd
+/home/postgres
 
-#### проверяю
+root@zalandopatroni01-1:/home/postgres# ls -l
+total 4
+lrwxrwxrwx. 1 root     root   8 Mar 10 05:53 etc -> /run/etc
+drwxrwxrwx. 3 root     root  20 Aug 15 07:32 pgdata
+-rw-rw-r--. 1 postgres root 157 Mar 10 05:37 pgq_ticker.ini
+lrwxrwxrwx. 1 root     root  17 Mar 10 05:53 postgres.yml -> /run/postgres.yml
+---------------
 
-<pre>
-test=# SELECT * FROM master_get_active_worker_nodes();
-          node_name           | node_port
-------------------------------+-----------
- citus-worker-2.citus-workers |      5432
- citus-worker-0.citus-workers |      5432
- citus-worker-1.citus-workers |      5432
-(3 rows)
-</pre>
-
-
-
-#### 1.19)
-
-#### создание табл и заливка данных 
-
-<pre>
-create table taxi_trips (
-unique_key text, 
-taxi_id text, 
-trip_start_timestamp TIMESTAMP, 
-trip_end_timestamp TIMESTAMP, 
-trip_seconds bigint, 
-trip_miles numeric, 
-pickup_census_tract bigint, 
-dropoff_census_tract bigint, 
-pickup_community_area bigint, 
-dropoff_community_area bigint, 
-fare numeric, 
-tips numeric, 
-tolls numeric, 
-extras numeric, 
-trip_total numeric, 
-payment_type text, 
-company text, 
-pickup_latitude numeric, 
-pickup_longitude numeric, 
-pickup_location text, 
-dropoff_latitude numeric, 
-dropoff_longitude numeric, 
-dropoff_location text
-);
-</pre>
-
-#### 1.20)
-
-#### по unique_key
-
-<pre>
-SELECT create_distributed_table('taxi_trips', 'unique_key');
-SELECT create_distributed_table('taxi_trips', 'unique_key');
-SELECT create_distributed_table('taxi_trips', 'unique_key');
-</pre>
-
-#### 1.21)
-
-#### подключил бакет через s3fs-fuse
-
-<pre>
-mkdir /tmp/taxi
-cd /tmp/taxi
-su - postgres
-добавляю ранее созданный индификатор,двоеточие и сервисный ключ
-/home/postgres/.passwd-s3fs
-echo YCAJEUqYD2tU3jgU2_jXoYImx:YCPQB68gMTtEmWhj-UQNp7HvY85KZFkBYdWL1lHP > /home/postgres/.passwd-s3fs
-cat /home/postgres/.passwd-s3fs
-chmod 600 /home/postgres/.passwd-s3fs
-s3fs myotus /tmp/taxi -o passwd_file=/home/postgres/.passwd-s3fs -o url=https://storage.yandexcloud.net -o use_path_request_style -o dbglevel=info -f -o curldbg
-chown postgres:postgres /tmp/taxi -R
-</pre>
-
-#### 1.22)
-
-#### вливаю данные
-
-<pre>
-kubectl port-forward pod/citus-master-5bff7bc99c-kd89l 5432:5432
-for f in *.csv*; do psql -U postgres -p 5432 -h localhost -d test -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
-
-или
-
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000000' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000001' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000002' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000003' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000004' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000005' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000006' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000007' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000008' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000009' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000010' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000011' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000012' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000013' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000014' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000015' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000016' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000017' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000018' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000019' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000020' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000021' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000022' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000023' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000024' DELIMITER ',' CSV HEADER;
-\COPY taxi_trips FROM '/tmp/taxi2/taxi.csv.000000000025' DELIMITER ',' CSV HEADER;
-</pre>
+#редактируем свои настройки из внутрянки пода 
+-----------------------------------------------------------------------------
+#команда на изменение параметра . ниже показан как я добавил раздел pg_hba::
+patronictl -c postgres.yml edit-config
+patronictl -c postgres.yml edit-config
+patronictl -c postgres.yml edit-config
 
 
-<pre>
----------------------------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------итого по запросам ------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------------------------
-</pre>
+------------------
+loop_wait: 10
+maximum_lag_on_failover: 33554432
+postgresql:
+  parameters:
+    archive_mode: 'on'
+    archive_timeout: 1800s
+    autovacuum_analyze_scale_factor: 0.02
+    autovacuum_max_workers: 5
+    autovacuum_vacuum_scale_factor: 0.05
+    checkpoint_completion_target: 0.9
+    hot_standby: 'on'
+    log_autovacuum_min_duration: 0
+    log_checkpoints: 'on'
+    log_connections: 'on'
+    log_disconnections: 'on'
+    log_line_prefix: '%t [%p]: [%l-1] %c %x %d %u %a %h '
+    log_lock_waits: 'on'
+    log_min_duration_statement: 500
+    log_statement: ddl
+    log_temp_files: 0
+    max_connections: 126
+    max_replication_slots: 10
+    max_wal_senders: 10
+    tcp_keepalives_idle: 900
+    tcp_keepalives_interval: 100
+    track_functions: all
+    wal_compression: 'on'
+    wal_level: hot_standby
+    wal_log_hints: 'on'
+  pg_hba:
+  - host all all 10.129.0.24/32 md5
+  - host all all 10.128.0.6/32 md5
+  - host all all 10.129.0.19/32 md5
+  - host all all 10.130.0.34/32 md5
+  use_pg_rewind: true
+  use_slots: true
+retry_timeout: 10
+ttl: 30
+----------------------
+
+#подключаемся сначало локально меняем пароль пользователя postgres
+psql -U postgres -d postgres
+psql -U postgres -d postgres
+
+alter user poargres with password 'mypass';
+alter user poargres with password 'mypass';
 
 
-<pre>
----------------------------------------------------------------------------------------------------------------------------------------
-EXPLAIN(ANALYZE) SELECT payment_type, round(sum(tips))/round(sum(trip_total)*100) + 0 as tips_percent, count(*) as c 
-FROM taxi_trips
-group by payment_type
-order by c;
+#а после уже можем подключаться к ip адресу нашего сервиса
+psql -U postgres -h 10.105.5.80 -d postgres
+psql -U postgres -h 10.105.5.80 -d postgres
 
 
-на citus
-Execution time: 11738.133 ms
+#если требуется изменить конфигурацию ккластера zalandopatroni01
+patronictl -c postgres.yml restart zalandopatroni01
+patronictl -c postgres.yml restart zalandopatroni01
+patronictl -c postgres.yml restart zalandopatroni01
 
-на gp 
-Execution time: 36975.560 ms
+patronictl -c postgres.yml reload zalandopatroni01
+patronictl -c postgres.yml reload zalandopatroni01
+patronictl -c postgres.yml reload zalandopatroni01
 
-на Postgre
-Execution Time: 208397.652 ms
----------------------------------------------------------------------------------------------------------------------------------------
-</pre>
+patronictl -c postgres.yml restart zalandopatroni01
+patronictl -c postgres.yml restart zalandopatroni01
+patronictl -c postgres.yml restart zalandopatroni01
+-----------------------------------------------------------------------------
+#показать лидера и кворум из внутрянки пода 
+-----------------------------------------------------------------------------
+показать лидера и кворум из внутрянки пода 
+patronictl -c postgres.yml list
+patronictl -c postgres.yml list
+patronictl -c postgres.yml list
+-----------------------------------------------------------------------------
 
-<pre>
----------------------------------------------------------------------------------------------------------------------------------------
-тестовая генерация данных:
-EXPLAIN(ANALYZE) create table t14 as select generate_series(1,1000000) as colA distributed by (colA);
 
-на citus
-Execution time: 2435.434 ms
 
-на gp 
-Execution time: 804.079 ms
 
-на ванильном Postgre
-Execution time: 3.981 sec
----------------------------------------------------------------------------------------------------------------------------------------
-</pre>
+psql -U postgres -h 10.105.5.80 -d postgres
+psql -U postgres -h 10.105.5.80
+psql -U postgres -h 10.105.5.80
 
-<pre>
----------------------------------------------------------------------------------------------------------------------------------------
-запрос:
-EXPLAIN(ANALYZE) select count(*) from t14;
 
-на citus
-Execution time: 98.504 ms
-
-на gp
-Execution time: 182.096 ms
-
-на ванильном Postgre
-Execution Time: 114.369 ms
----------------------------------------------------------------------------------------------------------------------------------------
-</pre>
-
-<pre>
----------------------------------------------------------------------------------------------------------------------------------------
-запрос:
-EXPLAIN(ANALYZE) select sum(colA) from t14;
-
-на citus
-Execution time: 67.226 ms
-
-на gp
-Execution time: 79.044 ms
-
-на ванильном Postgre
-Execution Time: 102.372 ms
----------------------------------------------------------------------------------------------------------------------------------------
-</pre>
-
-<pre>
----------------------------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------трудности---------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------------------------
-</pre>
-
-<pre>
-когда настраивал кластер k8s проблем было очень много. универсально рецепта нет нигде в каждой версии свои приколы почти на каждом шаге по созданию кластера вываливались 
-ошибки причем отлаживал паралельно разные версии на своих vm в соей сетке и  в облаках ... "баги" при инициализации кластера это отдельная тема заметил что в яндекс оболаке
-было больше напрягов по траблошутингу. Эта домашка далась очень сложно отступать было нельзя, диплом планировал связать с k8s.
-большое количество времени потратил на осмысление материала и на практике оттачивал многие моменты чтобы было хоть какое понимание как же оно всетаки работает.
-паралельно собрал свой локальный домашний кластер правда его надо допилить хорошенько напильником...(всего попыток настройки кластера k8s инсталяций было около 4х) 
-на яндекс в облако когда заходил в тупик убивл виртуалки и заново все разворачивал после того как наковырял исправления ошибок проблем на последующих шагах было еше больше....
-уж очень плохая реализация "снапшетов" в яндекс облаке которая прям подбешивает их впринцепи можно таки сказать и нет(. 
-Итого неделька в режиме вампир по ночам нон стоп первое сильное знакомство с Kubernetes удалось)))
-</pre>
-
-<pre>
-ошибок было намного больше вот некоторые из них:
-container
------------------------------------------------
-Jul 13 06:55:55 masterkub kubelet: E0713 06:55:55.831658    1708 run.go:74] "command failed" err="failed to validate kubelet flags: 
-the container runtime endpoint address was not specified or empty, use --container-runtime-endpoint to set"
------------------------------------------------
-
-не поднимался системный pod
------------------------------------------------
-kube-system   kube-flannel-ds-amd64-42rl7            0/1       CrashLoopBackOff
------------------------------------------------
-
-проблема с PersistentVolumeClaims
------------------------------------------------
-0/4 nodes are available: pod has unbound immediate PersistentVolumeClaims. preemption: 0/4 nodes are available: 4 No preemption victims found for incoming pod..
------------------------------------------------
-</pre>
 
 
 
