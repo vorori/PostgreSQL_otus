@@ -1930,7 +1930,7 @@ kub3.ru-central1.internal        Ready    <none>          3d21h   v1.26.1   beta
 masterkub.ru-central1.internal   Ready    control-plane   3d22h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,
 </pre>
 
-
+ 
 
 #начинаем создание нашего кластера
 #создаем namespase spilo
