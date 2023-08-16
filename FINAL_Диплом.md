@@ -2047,7 +2047,7 @@ root@kub3 vorori]# kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronic
 | zalandopatroni777-2 | 10.244.3.40 | Leader   | running |  3 |        0 |
 +---------------------+-------------+---------+---------+----+-----------+
 
-#делаем принудительную синхронизацию с мастера для пода pod/zalandopatroni777-0
+# делаем принудительную синхронизацию с мастера для пода pod/zalandopatroni777-0
 # можно выполнить специальную команду которая пресоздаст нашу реплику с нуля
 # мы же попробуем просто убить под с этой репликой и посмотрим на работу kubernets
 
@@ -2103,7 +2103,7 @@ kubectl logs --namespace spilo pod/zalandopatroni777-0 -f
 kubectl logs --namespace spilo pod/zalandopatroni777-0 -f
 
 
-###умышленнос сломал zalandopatroni01-0
+###умышленнос сломал zalandopatroni777-0 данные повреждены (удалил пару файлов с каталога data)
 Traceback (most recent call last):
   File "/usr/local/lib/python3.10/dist-packages/patroni/postgresql/rewind.py", line 70, in check_leader_is_not_in_recovery
     with get_connection_cursor(connect_timeout=3, options='-c statement_timeout=2000', **conn_kwargs) as cur:
@@ -2128,8 +2128,9 @@ kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl list
 
 
 #чтобы вернуть оживить под zalandopatroni777-0  я пошел на сервер kub1 и почистил каталог с данными
-#после чего патрони пресоздал реплику zalandopatroni777-0
-#после чего мы видим что с кластером все ок
+#после чего patroni пресоздал реплику zalandopatroni777-0
+#и мы видим что с кластером все ок  zalandopatroni777-0 реплицировался TL = 3
+
 kubectl -n spilo exec -it pod/zalandopatroni01-1 -- patronictl list
 + Cluster: zalandopatroni01 ------+---------+---------+----+-----------+
 | Member             | Host       | Role    | State   | TL | Lag in MB |
