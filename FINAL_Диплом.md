@@ -1444,6 +1444,8 @@ spec:
                     log_truncate_on_rotation: on
                     log_rotation_age: 1d
                     log_rotation_size: 0
+					log_directory: 'log'
+					log_destination: 'stderr'
                     log_line_prefix: '%m [%p] %d %u %h (transaction ID %x)'
                     log_filename: postgresql-%a.log
                     max_standby_streaming_delay: 30s
@@ -1693,23 +1695,16 @@ data:
 ---------------------------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
-
-
-
-
 #проверяю что все ок и что все запустилось все под создались и работают
 kubectl get pods --namespace spilo
 kubectl get pods --namespace spilo
 
 ----------
 [root@masterkub vorori]# kubectl get pods --namespace spilo
-NAME                 READY   STATUS    RESTARTS   AGE
-zalandopatroni01-0   1/1     Running   0          7m15s
-zalandopatroni01-1   1/1     Running   0          7m15s
-zalandopatroni01-2   1/1     Running   0          7m15s
+NAME                  READY   STATUS    RESTARTS   AGE
+zalandopatroni777-0   1/1     Running   0          2m22s
+zalandopatroni777-1   1/1     Running   0          2m22s
+zalandopatroni777-2   1/1     Running   0          2m22s
 ----------
 
 #проверяю что создались сервисы
@@ -1719,8 +1714,8 @@ kubectl get services --namespace spilo
 ----------
 [root@masterkub vorori]# kubectl get services --namespace spilo
 NAME                      TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
-zalandopatroni01          ClusterIP   10.105.5.80   <none>        5432/TCP   26m
-zalandopatroni01-config   ClusterIP   None          <none>        <none>     26m
+zalandopatroni777          ClusterIP   10.109.75.112   <none>        5432/TCP   2m58s
+zalandopatroni777-config   ClusterIP   None            <none>        <none>     2m58s
 ----------
 
 #проверяю что все ок и что все запустилось с дисками pvc
@@ -1729,98 +1724,92 @@ kubectl get pvc --namespace spilo
 
 ----------
 [root@masterkub vorori]# kubectl get pvc --namespace spilo
-NAME                        STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-backup-zalandopatroni01-0   Bound    pvc-27ed630b-b7df-4a04-802b-67e547bfc272   2Gi        RWO            local-path     11m
-backup-zalandopatroni01-1   Bound    pvc-afa11811-90df-4a0d-ad2e-adaf27126c12   2Gi        RWO            local-path     11m
-backup-zalandopatroni01-2   Bound    pvc-9b76b757-e3e7-4581-9a5c-4e510e3bd898   2Gi        RWO            local-path     11m
-pgdata-zalandopatroni01-0   Bound    pvc-dc04c3ee-aaf9-4698-be1a-64bcbd66119a   2Gi        RWO            local-path     11m
-pgdata-zalandopatroni01-1   Bound    pvc-58ae2079-216f-4353-8edb-fbe930ebeeba   2Gi        RWO            local-path     11m
-pgdata-zalandopatroni01-2   Bound    pvc-eddb585f-e9af-48ee-aab5-aaeb971716f4   2Gi        RWO            local-path     11m
+backup-zalandopatroni777-0   Bound    pvc-7998c73c-af30-495a-936b-d282c753968e   3Gi        RWO            local-path     3m18s
+backup-zalandopatroni777-1   Bound    pvc-e9977701-028c-4ebf-b674-ac4ab9f28f4a   3Gi        RWO            local-path     3m17s
+backup-zalandopatroni777-2   Bound    pvc-03a38737-e58d-4d2f-90f4-f265c4a089f8   3Gi        RWO            local-path     3m17s
+pgdata-zalandopatroni777-0   Bound    pvc-501f1dc7-9bde-4ddd-8624-f5e69832d0ab   10Gi       RWO            local-path     3m18s
+pgdata-zalandopatroni777-1   Bound    pvc-8988e08d-1145-4491-a354-0a6e35f44601   10Gi       RWO            local-path     3m17s
+pgdata-zalandopatroni777-2   Bound    pvc-32147774-ce25-4dcf-ab67-1edbbe57cb9a   10Gi       RWO            local-path     3m17s
 ----------
 
 #проверяю что все ок на всех обектах кластера 
 ----------
-[root@masterkub vorori]# kubectl get all -A
-NAMESPACE            NAME                                                         READY   STATUS    RESTARTS      AGE
-kube-flannel         pod/kube-flannel-ds-77pwz                                    1/1     Running   4 (29m ago)   3d22h
-kube-flannel         pod/kube-flannel-ds-8nrhx                                    1/1     Running   2 (31m ago)   3d22h
-kube-flannel         pod/kube-flannel-ds-d94qd                                    1/1     Running   2 (31m ago)   3d22h
-kube-flannel         pod/kube-flannel-ds-pslvk                                    1/1     Running   2 (31m ago)   3d22h
-kube-system          pod/coredns-787d4945fb-mxvx7                                 1/1     Running   2 (31m ago)   3d23h
-kube-system          pod/coredns-787d4945fb-x57tb                                 1/1     Running   2 (31m ago)   3d23h
-kube-system          pod/etcd-masterkub.ru-central1.internal                      1/1     Running   2 (31m ago)   3d23h
-kube-system          pod/kube-apiserver-masterkub.ru-central1.internal            1/1     Running   2 (31m ago)   3d23h
-kube-system          pod/kube-controller-manager-masterkub.ru-central1.internal   1/1     Running   2 (31m ago)   3d23h
-kube-system          pod/kube-proxy-25mpq                                         1/1     Running   2 (31m ago)   3d22h
-kube-system          pod/kube-proxy-cdhx7                                         1/1     Running   2 (31m ago)   3d23h
-kube-system          pod/kube-proxy-ssz9x                                         1/1     Running   2 (31m ago)   3d22h
-kube-system          pod/kube-proxy-z4prx                                         1/1     Running   2 (31m ago)   3d22h
-kube-system          pod/kube-scheduler-masterkub.ru-central1.internal            1/1     Running   2 (31m ago)   3d23h
-local-path-storage   pod/local-path-provisioner-7f8667b75c-swvwb                  1/1     Running   1 (31m ago)   18h
-spilo                pod/zalandopatroni01-0                                       1/1     Running   0             8m53s
-spilo                pod/zalandopatroni01-1                                       1/1     Running   0             8m53s
-spilo                pod/zalandopatroni01-2                                       1/1     Running   0             8m53s
+NAMESPACE            NAME                                                         READY   STATUS    RESTARTS       AGE
+kube-flannel         pod/kube-flannel-ds-77pwz                                    1/1     Running   11 (68m ago)   4d23h
+kube-flannel         pod/kube-flannel-ds-8nrhx                                    1/1     Running   8 (67m ago)    4d23h
+kube-flannel         pod/kube-flannel-ds-d94qd                                    1/1     Running   8 (67m ago)    4d23h
+kube-flannel         pod/kube-flannel-ds-pslvk                                    1/1     Running   7 (68m ago)    4d23h
+kube-system          pod/coredns-787d4945fb-mxvx7                                 1/1     Running   7 (68m ago)    5d
+kube-system          pod/coredns-787d4945fb-x57tb                                 1/1     Running   7 (68m ago)    5d
+kube-system          pod/etcd-masterkub.ru-central1.internal                      1/1     Running   7 (68m ago)    5d
+kube-system          pod/kube-apiserver-masterkub.ru-central1.internal            1/1     Running   7 (68m ago)    5d
+kube-system          pod/kube-controller-manager-masterkub.ru-central1.internal   1/1     Running   7 (68m ago)    5d
+kube-system          pod/kube-proxy-25mpq                                         1/1     Running   8 (67m ago)    4d23h
+kube-system          pod/kube-proxy-cdhx7                                         1/1     Running   7 (68m ago)    5d
+kube-system          pod/kube-proxy-ssz9x                                         1/1     Running   8 (68m ago)    4d23h
+kube-system          pod/kube-proxy-z4prx                                         1/1     Running   7 (68m ago)    4d23h
+kube-system          pod/kube-scheduler-masterkub.ru-central1.internal            1/1     Running   7 (68m ago)    5d
+local-path-storage   pod/local-path-provisioner-7f8667b75c-swvwb                  1/1     Running   7 (68m ago)    43h
+spilo                pod/zalandopatroni777-0                                      1/1     Running   0              3m37s
+spilo                pod/zalandopatroni777-1                                      1/1     Running   0              3m37s
+spilo                pod/zalandopatroni777-2                                      1/1     Running   0              3m37s
 
-NAMESPACE     NAME                              TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)                  AGE
-default       service/kubernetes                ClusterIP   10.96.0.1     <none>        443/TCP                  3d23h
-kube-system   service/kube-dns                  ClusterIP   10.96.0.10    <none>        53/UDP,53/TCP,9153/TCP   3d23h
-spilo         service/zalandopatroni01          ClusterIP   10.105.5.80   <none>        5432/TCP                 8m53s
-spilo         service/zalandopatroni01-config   ClusterIP   None          <none>        <none>                   8m53s
+NAMESPACE     NAME                               TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                  AGE
+default       service/kubernetes                 ClusterIP   10.96.0.1       <none>        443/TCP                  101m
+kube-system   service/kube-dns                   ClusterIP   10.96.0.10      <none>        53/UDP,53/TCP,9153/TCP   5d
+spilo         service/zalandopatroni777          ClusterIP   10.109.75.112   <none>        5432/TCP                 3m38s
+spilo         service/zalandopatroni777-config   ClusterIP   None            <none>        <none>                   3m38s
 
 NAMESPACE      NAME                             DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
-kube-flannel   daemonset.apps/kube-flannel-ds   4         4         4       4            4           <none>                   3d22h
-kube-system    daemonset.apps/kube-proxy        4         4         4       4            4           kubernetes.io/os=linux   3d23h
+kube-flannel   daemonset.apps/kube-flannel-ds   4         4         4       4            4           <none>                   4d23h
+kube-system    daemonset.apps/kube-proxy        4         4         4       4            4           kubernetes.io/os=linux   5d
 
 NAMESPACE            NAME                                     READY   UP-TO-DATE   AVAILABLE   AGE
-kube-system          deployment.apps/coredns                  2/2     2            2           3d23h
-local-path-storage   deployment.apps/local-path-provisioner   1/1     1            1           18h
+kube-system          deployment.apps/coredns                  2/2     2            2           5d
+local-path-storage   deployment.apps/local-path-provisioner   1/1     1            1           43h
 
 NAMESPACE            NAME                                                DESIRED   CURRENT   READY   AGE
-kube-system          replicaset.apps/coredns-787d4945fb                  2         2         2       3d23h
-local-path-storage   replicaset.apps/local-path-provisioner-7f8667b75c   1         1         1       18h
+kube-system          replicaset.apps/coredns-787d4945fb                  2         2         2       5d
+local-path-storage   replicaset.apps/local-path-provisioner-7f8667b75c   1         1         1       43h
 
-NAMESPACE   NAME                                READY   AGE
-spilo       statefulset.apps/zalandopatroni01   3/3     8m53s
+NAMESPACE   NAME                                 READY   AGE
+spilo       statefulset.apps/zalandopatroni777   3/3     3m38s
 ----------
 
 
 
 ### смотрим на кворум кто мастер из самого пода pod/zalandopatroni01-0 
-kubectl -n spilo exec -it pod/zalandopatroni01-0  -- patronictl list
-kubectl -n spilo exec -it pod/zalandopatroni01-0  -- patronictl list
+kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl list
+kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl list
 
 ----------
-[root@masterkub vorori]# kubectl -n spilo exec -it pod/zalandopatroni01-0  -- patronictl list
-+ Cluster: zalandopatroni01 ------+---------+---------+----+-----------+
-| Member             | Host       | Role    | State   | TL | Lag in MB |
-+--------------------+------------+---------+---------+----+-----------+
-| zalandopatroni01-0 | 10.244.1.4 | Replica | running |  1 |         0 |
-| zalandopatroni01-1 | 10.244.2.4 | Leader  | running |  1 |           |
-| zalandopatroni01-2 | 10.244.3.6 | Replica | running |  1 |         0 |
-+--------------------+------------+---------+---------+----+-----------+
++ Cluster: zalandopatroni777 -------+---------+---------+----+-----------+
+| Member              | Host        | Role    | State   | TL | Lag in MB |
++---------------------+-------------+---------+---------+----+-----------+
+| zalandopatroni777-0 | 10.244.2.31 | Leader  | running |  1 |           |
+| zalandopatroni777-1 | 10.244.1.33 | Replica | running |  1 |         0 |
+| zalandopatroni777-2 | 10.244.3.36 | Replica | running |  1 |         0 |
++---------------------+-------------+---------+---------+----+-----------+
 ----------
 
 ### единоразово смотрим логи pod видм кто у нас матер
-kubectl logs --namespace spilo pod/zalandopatroni01-0 
-kubectl logs --namespace spilo pod/zalandopatroni01-1 
-kubectl logs --namespace spilo pod/zalandopatroni01-2
+kubectl logs --namespace spilo pod/zalandopatroni777-0
+kubectl logs --namespace spilo pod/zalandopatroni777-1
+kubectl logs --namespace spilo pod/zalandopatroni777-2
 
 
 ----------
-2023-08-15 07:33:41,879 INFO: no action. I am (zalandopatroni01-0), a secondary, and following a leader (zalandopatroni01-1)
-2023-08-15 07:33:49,325 INFO: no action. I am (zalandopatroni01-0), a secondary, and following a leader (zalandopatroni01-1)
-2023-08-15 07:33:59,333 INFO: no action. I am (zalandopatroni01-0), a secondary, and following a leader (zalandopatroni01-1)
+2023-08-16 08:48:22,622 INFO: no action. I am (zalandopatroni777-0), the leader with the lock
+2023-08-16 08:48:32,625 INFO: no action. I am (zalandopatroni777-0), the leader with the lock
+2023-08-16 08:48:42,636 INFO: no action. I am (zalandopatroni777-0), the leader with the lock
 
+2023-08-16 08:48:52,640 INFO: no action. I am (zalandopatroni777-1), a secondary, and following a leader (zalandopatroni777-0)
+2023-08-16 08:49:02,635 INFO: no action. I am (zalandopatroni777-1), a secondary, and following a leader (zalandopatroni777-0)
+2023-08-16 08:49:12,637 INFO: no action. I am (zalandopatroni777-1), a secondary, and following a leader (zalandopatroni777-0)
 
-2023-08-15 07:51:59,259 INFO: no action. I am (zalandopatroni01-1), the leader with the lock
-2023-08-15 07:52:09,261 INFO: no action. I am (zalandopatroni01-1), the leader with the lock
-2023-08-15 07:52:19,259 INFO: no action. I am (zalandopatroni01-1), the leader with the lock
-
-
-2023-08-15 07:55:09,266 INFO: no action. I am (zalandopatroni01-2), a secondary, and following a leader (zalandopatroni01-1)
-2023-08-15 07:55:19,269 INFO: no action. I am (zalandopatroni01-2), a secondary, and following a leader (zalandopatroni01-1)
-2023-08-15 07:55:29,265 INFO: no action. I am (zalandopatroni01-2), a secondary, and following a leader (zalandopatroni01-1)
-2023-08-15 07:55:39,265 INFO: no action. I am (zalandopatroni01-2), a secondary, and following a leader (zalandopatroni01-1)
+2023-08-16 08:49:02,629 INFO: no action. I am (zalandopatroni777-2), a secondary, and following a leader (zalandopatroni777-0)
+2023-08-16 08:49:12,629 INFO: no action. I am (zalandopatroni777-2), a secondary, and following a leader (zalandopatroni777-0)
+2023-08-16 08:49:22,630 INFO: no action. I am (zalandopatroni777-2), a secondary, and following a leader (zalandopatroni777-0)
 ----------
 
 ### прикручиваем сервис который будет служить единой точкой входа 
@@ -1830,41 +1819,47 @@ kubectl get services --namespace spilo
 kubectl get services --namespace spilo
 
 #видим ip адрес сервиса но нам нужно сделать так чтобы сервис ссылался на master ноду проверим как работает оно сейчас
-[root@masterkub vorori]# kubectl get services --namespace spilo
-NAME                      TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
-zalandopatroni01          ClusterIP   10.105.5.80   <none>        5432/TCP   40m
-zalandopatroni01-config   ClusterIP   None          <none>        <none>     40m
+kubectl get services --namespace spilo
+---------------------
+zalandopatroni777          ClusterIP   10.109.75.112   <none>        5432/TCP   7m39s
+zalandopatroni777-config   ClusterIP   None            <none>        <none>     7m39s
+---------------------
 
 #устанавливаю клиента psql
 yum install postgresql
 yum install postgresql
 
 #пытаемся подключиться получаем ошибку это значинт надо моменять конфиг pg_hba.conf
-psql -U postgres -h 10.105.5.80
-psql -U postgres -h 10.105.5.80
+psql -U postgres -h 10.109.75.112
+psql -U postgres -h 10.109.75.112
 
---------------------
-psql: FATAL:  password authentication failed for user "postgres"
-FATAL:  pg_hba.conf rejects connection for host "10.244.0.0", user "postgres", database "postgres", no encryption
---------------------
+#заметка:
+пароль для postgres в нашем случае что указан в конфигурационном yaml: pass1
+пароль для postgres в нашем случае что указан в конфигурационном yaml: pass1
+
 
 #Наборы скриптов для patroni находятся тут
-kubectl -n spilo exec -it pod/zalandopatroni01-1 -- ls /scripts/
-kubectl -n spilo exec -it pod/zalandopatroni01-1 -- ls /scripts/
+kubectl -n spilo exec -it pod/zalandopatroni777-0 -- ls /scripts/
+kubectl -n spilo exec -it pod/zalandopatroni777-0 -- ls /scripts/
 
-#удалил из pg_hba.conf запрешающее правило reject ssl
-pg_hba.conf
+kubectl -n spilo exec -it pod/zalandopatroni777-0 -- cat /scripts/basebackup.sh
+kubectl -n spilo exec -it pod/zalandopatroni777-0 -- cat /scripts/basebackup.sh
+
+#запустить скрипт бекапа
+kubectl -n spilo exec -it pod/zalandopatroni777-0 -- bash /scripts/basebackup.sh
+kubectl -n spilo exec -it pod/zalandopatroni777-0 -- bash /scripts/basebackup.sh
 
 #из логов мы знаем кто мастер подключимся напрямую к этой ноде мастера чтобы добавить разрешаюшие правила в pg_hba.conf
-kubectl -n spilo exec -it pod/zalandopatroni01-1  -- patronictl list
-kubectl -n spilo exec -it pod/zalandopatroni01-1  -- patronictl list
+kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl list
+kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl list
 
-#подключаемся к лидеру 
-kubectl -n spilo exec -it pod/zalandopatroni01-1  -- bash
-kubectl -n spilo exec -it pod/zalandopatroni01-1  -- bash
+#подключаемся к лидеру напрямую внутрь контенера с patroni
+kubectl -n spilo exec -it pod/zalandopatroni777-0  -- bash
+kubectl -n spilo exec -it pod/zalandopatroni777-0  -- bash
 
 ---------------
-[root@masterkub vorori]# kubectl -n spilo exec -it pod/zalandopatroni01-1  -- bash
+[root@masterkub vorori]# kubectl -n spilo exec -it pod/zalandopatroni777-0  -- bash
+
 
  ____        _ _
 / ___| _ __ (_) | ___
@@ -1882,20 +1877,21 @@ sv restart patroni
 
 Current status: (sv status /etc/service/*)
 
-run: /etc/service/cron: (pid 37) 3298s
-run: /etc/service/patroni: (pid 36) 3298s
-run: /etc/service/pgqd: (pid 38) 3298s
+run: /etc/service/cron: (pid 37) 924s
+run: /etc/service/patroni: (pid 38) 924s
+run: /etc/service/pgqd: (pid 36) 924s
 ---------------
 
 #нашли файл с конфигурацией patroni
+pwd
 ---------------
-root@zalandopatroni01-1:/home/postgres# pwd
 /home/postgres
-
-root@zalandopatroni01-1:/home/postgres# ls -l
+---------------
+ls -l
+---------------
 total 4
 lrwxrwxrwx. 1 root     root   8 Mar 10 05:53 etc -> /run/etc
-drwxrwxrwx. 3 root     root  20 Aug 15 07:32 pgdata
+drwxrwxrwx. 3 root     root  20 Aug 16 08:42 pgdata
 -rw-rw-r--. 1 postgres root 157 Mar 10 05:37 pgq_ticker.ini
 lrwxrwxrwx. 1 root     root  17 Mar 10 05:53 postgres.yml -> /run/postgres.yml
 ---------------
@@ -1909,34 +1905,77 @@ patronictl -c postgres.yml edit-config
 
 ------------------
 loop_wait: 10
-maximum_lag_on_failover: 33554432
-postgresql:
+master_start_timeout: 300                                                                                                                         maximum_lag_on_failover: 1048576                                                                                                                  postgresql:
   parameters:
     archive_mode: 'on'
     archive_timeout: 1800s
-    autovacuum_analyze_scale_factor: 0.02
-    autovacuum_max_workers: 5
-    autovacuum_vacuum_scale_factor: 0.05
+    autovacuum: true
+    autovacuum_analyze_scale_factor: 0.03
+    autovacuum_max_workers: 4
+    autovacuum_naptime: 15s
+    autovacuum_vacuum_cost_delay: 2
+    autovacuum_vacuum_cost_limit: 500
+    autovacuum_vacuum_scale_factor: 0.01
+    autovacuum_vacuum_threshold: 20
     checkpoint_completion_target: 0.9
-    hot_standby: 'on'
+    checkpoint_timeout: 10min
+    default_statistics_target: 1000
+    effective_cache_size: 7GB
+    effective_io_concurrency: 200
+    hot_standby: true
+    hot_standby_feedback: false
+    huge_pages: false
+    jit: false
+    lc_messages: en_US.UTF-8
     log_autovacuum_min_duration: 0
-    log_checkpoints: 'on'
-    log_connections: 'on'
-    log_disconnections: 'on'
-    log_line_prefix: '%t [%p]: [%l-1] %c %x %d %u %a %h '
-    log_lock_waits: 'on'
-    log_min_duration_statement: 500
-    log_statement: ddl
+    log_checkpoints: false
+    log_connections: false
+    log_disconnections: false
+	log_filename: postgresql-%a.log
+    log_line_prefix: '%m [%p] %d %u %h (transaction ID %x)'
+    log_lock_waits: true
+    log_min_duration_statement: 30s
+    log_rotation_age: 1d
+    log_rotation_size: 0
+    log_statement: none
     log_temp_files: 0
-    max_connections: 126
+    log_truncate_on_rotation: true
+    logging_collector: true
+    maintenance_work_mem: 512MB
+    max_connections: 101
+    max_files_per_process: 1024
+    max_locks_per_transaction: 64
+    max_parallel_maintenance_workers: 2
+    max_parallel_workers: 4
+    max_parallel_workers_per_gather: 2
+    max_prepared_transactions: 0
     max_replication_slots: 10
+    max_standby_streaming_delay: 30s
     max_wal_senders: 10
+    max_wal_size: 4GB
+    max_worker_processes: 4
+    min_wal_size: 1GB
+    random_page_cost: 1.1
+    seq_page_cost: 1
+    shared_buffers: 2GB
+    superuser_reserved_connections: 4
+	synchronous_commit: true
     tcp_keepalives_idle: 900
     tcp_keepalives_interval: 100
+    track_activities: true
+    track_commit_timestamp: 'off'
+    track_counts: true
     track_functions: all
-    wal_compression: 'on'
-    wal_level: hot_standby
-    wal_log_hints: 'on'
+    track_io_timing: true
+    wal_buffers: 16MB
+    wal_compression: true
+    wal_keep_size: 2GB
+    wal_level: replica
+    wal_log_hints: true
+    wal_receiver_status_interval: 10s
+    wal_writer_delay: 200ms
+    wal_writer_flush_after: 1MB
+    work_mem: 32MB
   pg_hba:
   - host all all 10.244.0.0/0 md5
   - host all all 10.129.0.24/32 md5
@@ -1946,7 +1985,8 @@ postgresql:
   use_pg_rewind: true
   use_slots: true
 retry_timeout: 10
-ttl: 30
+synchronous_mode_strict: false
+ttl: 100
 ----------------------
 
 #подключаемся сначало локально меняем пароль пользователя postgres
@@ -1961,9 +2001,9 @@ psql -U postgres -h 10.105.5.80 -d postgres
 psql -U postgres -h 10.105.5.80 -d postgres
 
 #если требуется изменить конфигурацию ккластера zalandopatroni01
-patronictl -c postgres.yml restart zalandopatroni01
-patronictl -c postgres.yml restart zalandopatroni01
-patronictl -c postgres.yml restart zalandopatroni01
+patronictl -c postgres.yml restart zalandopatroni777
+patronictl -c postgres.yml restart zalandopatroni777
+patronictl -c postgres.yml restart zalandopatroni777
 
 patronictl -c postgres.yml reload zalandopatroni01
 patronictl -c postgres.yml reload zalandopatroni01
