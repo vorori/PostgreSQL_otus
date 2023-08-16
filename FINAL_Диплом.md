@@ -1580,11 +1580,16 @@ kubectl delete -f /data/spilo_kubernetes_final.yaml  --namespace spilo
 kubectl delete -f /data/spilo_kubernetes_final.yaml  --namespace spilo
 
 #если надо удалить
+kubectl delete pvc --all --namespace spilo
+
 kubectl delete pvc,pv --all --namespace spilo
 kubectl delete pvc,pv --all --namespace spilo
 kubectl delete pvc,pv --all --namespace spilo
 
 kubectl delete all,ing,secrets,pvc,pv --all --namespace spilo
+kubectl delete all,ing,secrets,pvc,pv --all --namespace spilo
+kubectl delete all,ing,secrets,pvc,pv --all --namespace spilo
+
 kubectl delete all,ing,secrets,pvc,pv --all
 kubectl delete all,ing,secrets,pvc,pv --all
 
