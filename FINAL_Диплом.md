@@ -1196,6 +1196,25 @@ https://github.com/zalando/spilo/blob/master/ENVIRONMENT.rst
 https://github.com/zalando/patroni/blob/master/postgres0.yml
 
 
+
+#### добавил метки они нам нужны чтобы разкатать patroni по нашим указанным нодам
+
+<pre>
+kubectl label nodes kub1.ru-central1.internal db=spilo
+kubectl label nodes kub2.ru-central1.internal db=spilo
+kubectl label nodes kub3.ru-central1.internal db=spilo
+
+kubectl get nodes --show-labels
+
+root@masterkub vorori]# kubectl get nodes --show-labels
+NAME                             STATUS   ROLES           AGE     VERSION   LABELS
+kub1.ru-central1.internal        Ready    <none>          3d21h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,db=spilo,
+kub2.ru-central1.internal        Ready    <none>          3d21h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,db=spilo,
+kub3.ru-central1.internal        Ready    <none>          3d21h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,db=spilo,
+masterkub.ru-central1.internal   Ready    control-plane   3d22h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,
+</pre>
+
+
 ---------------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------Конфигурационные параметры скрипта START-------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
@@ -1203,7 +1222,21 @@ https://github.com/zalando/patroni/blob/master/postgres0.yml
 #Параметры скрипта поместив в отдельный ConfigMap
 
 vim /data/spilo_backup-script.yaml
+vim /data/spilo_backup-script.yaml
+
+#создаем окружения для backup
 kubectl apply -f /data/spilo_backup-script.yaml
+kubectl apply -f /data/spilo_backup-script.yaml
+
+#проверяем
+kubectl get ConfigMap
+kubectl get ConfigMap
+kubectl get ConfigMap
+
+#если надо удалить
+kubectl delete configmap backup-script
+kubectl delete configmap backup-script
+kubectl delete configmap backup-script
 
 ---
 apiVersion: v1
@@ -1228,341 +1261,19 @@ data:
 ----------------------------------------------Конфигурационные параметры скрипта END---------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
 
-#проверяем
-kubectl get ConfigMap
-kubectl delete configmap backup-script
 
 
-
----------------------------------------------------------------------------------------------------------------------------------------
-----------------------------------------------Конфигурационные параметры zalandopatroni old START------------------------------------------
----------------------------------------------------------------------------------------------------------------------------------------
-
-#my yaml
-vim /data/spilo_kubernetes.yaml
-vim /data/spilo_kubernetes.yaml
-
-#начинаем создание нашего кластера
-#создаем namespase spilo
-kubectl create ns spilo
-kubectl create ns spilo
-
-### Это предоставит информацию о пространствах имен
-kubectl get namespace
-kubectl get namespace
-
-#запускаю наш манифест 
-kubectl -n spilo apply -f /data/spilo_kubernetes.yaml
-kubectl -n spilo apply -f /data/spilo_kubernetes.yaml
-
-#если надо удалить
-kubectl delete -f /data/spilo_kubernetes.yaml --namespace spilo
-kubectl delete -f /data/spilo_kubernetes.yaml --namespace spilo
-
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: &cluster_name zalandopatroni01
-  labels:
-    application: spilo
-    spilo-cluster: *cluster_name
-spec:
-  selector:
-    matchLabels:
-      application: spilo
-      spilo-cluster: *cluster_name
-  replicas: 3
-  serviceName: *cluster_name
-  podManagementPolicy: Parallel
-  template:
-    metadata:
-      labels:
-        application: spilo
-        spilo-cluster: *cluster_name
-    spec:
-      # service account that allows changing endpoints and assigning pod labels
-      # in the given namespace: https://kubernetes.io/docs/user-guide/service-accounts/
-      # not required unless you've changed the default service account in the namespace
-      # used to deploy Spilo
-      serviceAccountName: operator
-      containers:
-      - name: *cluster_name
-        image: registry.opensource.zalan.do/acid/spilo-15:3.0-p1  # put the spilo image here
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 8008
-          protocol: TCP
-        - containerPort: 5432
-          protocol: TCP
-        volumeMounts:
-        - mountPath: /data/pg_wal
-          name: backup
-        - mountPath: /config
-          name: config
-        - mountPath: /home/postgres/pgdata
-          name: pgdata
-        env:
-        - name: DCS_ENABLE_KUBERNETES_API
-          value: 'true'
-#        - name: ETCD_HOST
-#          value: 'test-etcd.default.svc.cluster.local:2379' # where is your etcd?
-#        - name: WAL_S3_BUCKET
-#          value: example-spilo-dbaas
-#        - name: LOG_S3_BUCKET # may be the same as WAL_S3_BUCKET
-#          value: example-spilo-dbaas
-#        - name: BACKUP_SCHEDULE
-#          value: "00 01 * * *"
-        - name: KUBERNETES_SCOPE_LABEL
-          value: spilo-cluster
-        - name: KUBERNETES_ROLE_LABEL
-          value: role
-        - name: SPILO_CONFIGURATION
-          value: | ## https://github.com/zalando/patroni#yaml-configuration
-            bootstrap:
-              initdb:
-                - auth-host: md5
-                - auth-local: md5
-        - name: POD_IP
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: status.podIP
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.namespace
-        - name: PGPASSWORD_SUPERUSER
-          valueFrom:
-            secretKeyRef:
-              name: *cluster_name
-              key: superuser-password
-        - name: PGUSER_ADMIN
-          value: superadmin
-        - name: PGPASSWORD_ADMIN
-          valueFrom:
-            secretKeyRef:
-              name: *cluster_name
-              key: admin-password
-        - name: PGPASSWORD_STANDBY
-          valueFrom:
-            secretKeyRef:
-              name: *cluster_name
-              key: replication-password
-        - name: SCOPE
-          value: *cluster_name
-        - name: PGROOT
-          value: /home/postgres/pgdata/pgroot
-        - name: WALG_FILE_PREFIX
-          value: "/data/pg_wal"
-        - name: CRONTAB
-          value: "[\"00 01 * * * envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data\"]"
-      terminationGracePeriodSeconds: 0
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: db
-                    operator: In
-                    values:
-                      - spilo
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: spilo-cluster
-                    operator: In
-                    values:
-                      - *cluster_name
-              topologyKey: "kubernetes.io/hostname"
-      volumes:
-        - configMap:
-            name: backup-script
-          name: config
-        - persistentVolumeClaim:
-            claimName: zalandopatroni01-backup
-          name: backup
-  volumeClaimTemplates:
-  - metadata:
-      labels:
-        application: spilo
-        spilo-cluster: *cluster_name
-      name: pgdata
-    spec:
-      storageClassName: local-path
-      accessModes:
-      - ReadWriteOnce
-      resources:
-        requests:
-          storage: 2Gi
-  - metadata:
-      labels:
-        application: spilo
-        spilo-cluster: *cluster_name
-      name: backup
-    spec:
-      storageClassName: local-path
-      accessModes:
-       - ReadWriteOnce
-      resources:
-        requests:
-          storage: 2Gi
----
-apiVersion: v1
-kind: Endpoints
-metadata:
-  name: &cluster_name zalandopatroni01
-  labels:
-    application: spilo
-    spilo-cluster: *cluster_name
-subsets: []
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: &cluster_name zalandopatroni01
-  labels:
-    application: spilo
-    spilo-cluster: *cluster_name
-spec:
-  type: ClusterIP
-  ports:
-  - name: postgresql
-    port: 5432
-    targetPort: 5432
-
----
-# headless service to avoid deletion of patronidemo-config endpoint
-apiVersion: v1
-kind: Service
-metadata:
-  name: zalandopatroni01-config
-  labels:
-    application: spilo
-    spilo-cluster: zalandopatroni01
-spec:
-  clusterIP: None
-
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: &cluster_name zalandopatroni01
-  labels:
-    application: spilo
-    spilo-cluster: *cluster_name
-type: Opaque
-stringData:
-  superuser-password: pass1
-  replication-password: pass2
-  admin-password: pass3
-
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: operator
-
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: operator
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  verbs:
-  - create
-  - get
-  - list
-  - patch
-  - update
-  - watch
-  # delete is required only for 'patronictl remove'
-  - delete
-- apiGroups:
-  - ""
-  resources:
-  - endpoints
-  verbs:
-  - get
-  - patch
-  - update
-  # the following three privileges are necessary only when using endpoints
-  - create
-  - list
-  - watch
-  # delete is required only for for 'patronictl remove'
-  - delete
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  verbs:
-  - get
-  - list
-  - patch
-  - update
-  - watch
-# The following privilege is only necessary for creation of headless service
-# for patronidemo-config endpoint, in order to prevent cleaning it up by the
-# k8s master. You can avoid giving this privilege by explicitly creating the
-# service like it is done in this manifest (lines 160..169)
-- apiGroups:
-  - ""
-  resources:
-  - services
-  verbs:
-  - create
-
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: operator
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: operator
-subjects:
-- kind: ServiceAccount
-  name: operator
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: backup-script
-data:
-  PGHOST: "/var/run/postgresql"
-  PGUSER: "postgres"
-  PGROOT: "/home/postgres/pgdata/pgroot"
-  PGLOG: "/home/postgres/pgdata/pgroot/pg_log"
-  PGDATA: "/home/postgres/pgdata/pgroot/data"
-  BACKUP_NUM_TO_RETAIN: "5"
-  USE_WALG_BACKUP: "true"
-  USE_WALG_RESTORE: "true"
-  WALG_ALIVE_CHECK_INTERVAL: "5m"
-  WALE_BINARY: "wal-g"
-  WALG_FILE_PREFIX: "/data/pg_wal"
-  WALE_ENV_DIR: "/config"
-
-
----------------------------------------------------------------------------------------------------------------------------------------
-----------------------------------------------Конфигурационные параметры zalandopatroni old END--------------------------------------------
----------------------------------------------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------Конфигурационные параметры zalandopatroni final START------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
+
+#начинаем создание нашего кластера
+
 #my yaml
 vim /data/spilo_kubernetes_final.yaml
 vim /data/spilo_kubernetes_final.yaml
 
-#начинаем создание нашего кластера
 #создаем namespase spilo
 kubectl create ns spilo
 kubectl create ns spilo
@@ -1575,27 +1286,37 @@ kubectl get namespace
 kubectl apply -f /data/spilo_kubernetes_final.yaml --namespace spilo
 kubectl apply -f /data/spilo_kubernetes_final.yaml --namespace spilo
 
-#если надо удалить
+#1)если надо удалить манифест
 kubectl delete -f /data/spilo_kubernetes_final.yaml  --namespace spilo
 kubectl delete -f /data/spilo_kubernetes_final.yaml  --namespace spilo
 
-#если надо удалить
+kubectl get pods --namespace spilo
+kubectl get pods --namespace spilo
+
+#2)если надо удалить  all,ing,secrets,pvc,pv
+kubectl delete all,ing,secrets,pvc,pv --all --namespace spilo
+kubectl delete all,ing,secrets,pvc,pv --all --namespace spilo
+
+kubectl get pvc --namespace spilo
+kubectl get pvc --namespace spilo
+
+
+#2)если надо удалить  namespace spilo
+kubectl delete namespace spilo
+kubectl delete namespace spilo
+
+kubectl get namespace
+kubectl get namespace 
+ 
+
+#черновик если надо удалить
+kubectl delete pvc,pv --all --namespace spilo
+kubectl delete pvc,pv --all --namespace spilo
+
+kubectl delete pvc --all --namespace spilo
 kubectl delete pvc --all --namespace spilo
 
-kubectl delete pvc,pv --all --namespace spilo
-kubectl delete pvc,pv --all --namespace spilo
-kubectl delete pvc,pv --all --namespace spilo
 
-kubectl delete all,ing,secrets,pvc,pv --all --namespace spilo
-kubectl delete all,ing,secrets,pvc,pv --all --namespace spilo
-kubectl delete all,ing,secrets,pvc,pv --all --namespace spilo
-
-kubectl delete all,ing,secrets,pvc,pv --all
-kubectl delete all,ing,secrets,pvc,pv --all
-
-kubectl delete --namespace spilo
-kubectl delete --namespace spilo
-kubectl delete --namespace spilo
 
 apiVersion: apps/v1
 kind: StatefulSet
@@ -1823,7 +1544,7 @@ spec:
        - ReadWriteOnce
       resources:
         requests:
-          storage: 10Gi
+          storage: 3Gi
 ---
 apiVersion: v1
 kind: Endpoints
@@ -1973,22 +1694,7 @@ data:
 
 
 
-#### добавил метки они нам нужны чтобы разкатать patroni по нашим указанным нодам
 
-<pre>
-kubectl label nodes kub1.ru-central1.internal db=spilo
-kubectl label nodes kub2.ru-central1.internal db=spilo
-kubectl label nodes kub3.ru-central1.internal db=spilo
-
-kubectl get nodes --show-labels
-
-root@masterkub vorori]# kubectl get nodes --show-labels
-NAME                             STATUS   ROLES           AGE     VERSION   LABELS
-kub1.ru-central1.internal        Ready    <none>          3d21h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,db=spilo,
-kub2.ru-central1.internal        Ready    <none>          3d21h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,db=spilo,
-kub3.ru-central1.internal        Ready    <none>          3d21h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,db=spilo,
-masterkub.ru-central1.internal   Ready    control-plane   3d22h   v1.26.1   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,
-</pre>
 
 
 
