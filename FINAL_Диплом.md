@@ -1257,6 +1257,142 @@ data:
   WALG_FILE_PREFIX: "/data/pg_wal"
   WALE_ENV_DIR: "/config"
 
+
+
+
+
+#ЗАМЕТКА
+https://github.com/zalando/postgres-operator/blob/master/docs/administrator.md
+https://github.com/zalando/patroni/issues/1571
+https://blog.csdn.net/chenhongloves/article/details/123236332
+https://blog.csdn.net/chenhongloves/article/details/123236332
+https://blog.csdn.net/chenhongloves/article/details/123236332
+
+В зависимости от поставщика облачного хранилища для Spilo должны быть установлены разные переменные среды . 
+Не все они генерируются автоматически оператором путем изменения его конфигурации. 
+В этом случае вы должны использовать дополнительную карту конфигурации или секрет .
+
+#выполним backup
+envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
+envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
+envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
+
+В Postgres вы можете проверить предварительно настроенные команды для архивации и восстановления файлов WAL. 
+Вы можете найти файлы журналов для соответствующих команд в разделе $HOME/pgdata/pgroot/pg_log/postgres-?.log.
+
+archive_mode: 'on'
+archive_command:  `envdir "{WALE_ENV_DIR}" {WALE_BINARY} wal-push "%p"`
+restore_command:  `envdir "{{WALE_ENV_DIR}}" /scripts/restore_command.sh "%f" "%p"`
+
+
+Вы можете создать базовую резервную копию вручную с помощью следующей команды и проверить, попадает ли она в указанный вами путь резервного копирования WAL:
+envdir "/run/etc/wal-e.d/env" /scripts/postgres_backup.sh "/home/postgres/pgdata/pgroot/data"
+
+Вы также можете проверить, может ли Spilo найти какие-либо резервные копии:
+envdir "/run/etc/wal-e.d/env" wal-g backup-list
+
+#ЗАМЕТКА 2
+https://github.com/zalando/patroni/issues/1571
+https://github.com/zalando/patroni/issues/1571
+
+Спасибо за помощь! Теперь он работает, так что вот мой файл конфигурации и скрипты. Это рабочая комбинация для 
+Postgresql 12 + Patroni + WAL-G (поддерживаемый преемник WAL-E) + Azure/AWS.
+-------------------------------------------------------------------------
+scope: postgres
+namespace: /db/
+name: postgresql1
+
+restapi:
+    listen: 10.0.1.4:8008
+    connect_address: 10.0.1.4:8008
+
+etcd:
+    host: 10.0.1.7:2379
+
+bootstrap:
+    dcs:
+        ttl: 30
+        loop_wait: 10
+        retry_timeout: 10
+        maximum_lag_on_failover: 1048576
+        postgresql:
+            use_pg_rewind: true
+
+    method: clone_with_walg
+    clone_with_walg:
+        command: /home/postgres/clone_with_walg.sh
+        recovery_conf:
+            restore_command: envdir /etc/wal-g.d/env wal-g wal-fetch "%f" "%p"
+            recovery_target_timeline: latest
+            recovery_target_action: promote
+            recovery_target_time: ''
+
+    initdb:
+    - encoding: UTF8
+    - data-checksums
+
+    pg_hba:
+    - host replication replicator 127.0.0.1/32 md5
+    - host replication replicator 10.0.1.4/0 md5
+    - host replication replicator 10.0.1.8/0 md5
+    - host replication replicator 10.0.1.6/0 md5
+    - host all all 0.0.0.0/0 md5
+
+postgresql:
+    listen: 10.0.1.4:5432
+    connect_address: 10.0.1.4:5432
+    data_dir: /data/patroni
+    pgpass: /tmp/pgpass
+    authentication:
+        replication:
+            username: replicator
+            password: rep-pass
+        superuser:
+            username: postgres
+            password: secretpassword
+    parameters:
+        unix_socket_directories: '/var/run/postgresql'
+        shared_preload_libraries: 'pg_stat_statements'
+        archive_mode: 'on'
+        archive_timeout: 300s
+        archive_command: 'envdir /etc/wal-g.d/env wal-g wal-push %p'
+    recovery_conf:
+        restore_command: 'envdir /etc/wal-g.d/env wal-g wal-fetch "%f" "%p"'
+
+tags:
+    nofailover: false
+    noloadbalance: false
+    clonefrom: false
+    nosync: false
+-------------------------------------------------------------------------
+
+
+И простой скрипт clone_with_walg.sh:
+-------------------------------------------------------------------------
+#!/bin/bash
+mkdir -p /data/patroni
+envdir /etc/wal-g.d/env wal-g backup-fetch /data/patroni LATEST
+-------------------------------------------------------------------------
+
+Предупреждение: ваш каталог /data должен быть доступен для записи пользователю postgres.
+
+-------------------------------------------------------------------------
+Шаги к PITR:
+Остановите Patroni на всех узлах реплик и, наконец, на мастере
+sudo systemctl stop Patroni
+
+Обновить файл конфигурации /etc/patroni.yml
+recovery_target_time: '2020-06-08 08:52:00'
+
+Удалить кластер из etcd
+patchl -c /etc/patroni.yml удалить postgres
+
+Резервное копирование и удаление каталога данных на мастере /data/patroni
+
+Запустите Patroni на мастере — он автоматически вызовет скрипт clone_with_walg.sh
+sudo systemctl start patchi
+-------------------------------------------------------------------------
+
 ---------------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------Конфигурационные параметры скрипта END---------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
@@ -1271,7 +1407,7 @@ data:
 #начинаем создание нашего кластера
 
 #my yaml
-vim /data/spilo_kubernetes_final222.yaml
+vim /data/spilo_kubernetes_final.yaml
 vim /data/spilo_kubernetes_final.yaml
 
 #создаем namespase spilo
@@ -2377,11 +2513,26 @@ kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl remove zalandopa
 kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl remove zalandopatroni777
 
 
+
+
+
+
+
+
+<pre>
+
 ---------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------вспомогательные команды-------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
 </pre>
+
+
+
+для внутрянки:
+patronictl -c postgres.yml list
+patronictl -c postgres.yml list
+patronictl -c postgres.yml list
 
 
 <pre>
