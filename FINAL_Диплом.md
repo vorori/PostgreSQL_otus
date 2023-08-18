@@ -2350,7 +2350,7 @@ kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl restart zalando
 /var/run/postgresql:5432 - rejecting connections
 2023-08-17 13:45:29,976 INFO: Lock owner: None; I am zalandopatroni777-0
 2023-08-17 13:45:29,976 INFO: not healthy enough for leader race
-
+ 
 
 #пытаюсь сменить лидера
 kubectl -n spilo exec -it pod/zalandopatroni777-1  -- patronictl switchover
