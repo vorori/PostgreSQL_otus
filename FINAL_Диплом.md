@@ -1283,6 +1283,7 @@ kubectl get namespace
 kubectl get namespace
 
 #запускаю наш манифест 
+kubectl apply -f /data/spilo_kubernetes_final111.yaml --namespace spilo
 kubectl apply -f /data/spilo_kubernetes_final.yaml --namespace spilo
 kubectl apply -f /data/spilo_kubernetes_final.yaml --namespace spilo
 
@@ -2131,7 +2132,7 @@ kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl list
 #после чего patroni пресоздал реплику zalandopatroni777-0
 #и мы видим что с кластером все ок  zalandopatroni777-0 реплицировался TL = 3
 
-kubectl -n spilo exec -it pod/zalandopatroni01-1 -- patronictl list
+kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl list
 + Cluster: zalandopatroni01 ------+---------+---------+----+-----------+
 | Member             | Host       | Role    | State   | TL | Lag in MB |
 +--------------------+------------+---------+---------+----+-----------+
@@ -2140,7 +2141,242 @@ kubectl -n spilo exec -it pod/zalandopatroni01-1 -- patronictl list
 | zalandopatroni777-2| 10.244.3.40 | Leader  | running |  3 |          |
 +--------------------+------------+---------+---------+----+-----------+
 
-<pre>
+
+
+
+#установил на управляюшей ноде postgressudo но кластер не инициализировал мне нужна програмка pg_basebackup 
+yum install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm && yum -y repolist && yum -y install postgresql15-contrib
+
+#выполняю бекап postgres кластера который в кубере 
+mkdir /var/postgre_backup
+chown postgres:postgres /var/postgre_backup
+
+kubectl get services --namespace spilo
+kubectl -n spilo exec -it pod/zalandopatroni777-0  -- bash
+
+#команда на изменение параметра . ниже показан как я добавил раздел pg_hba:: (добавил в pg_hba.conf replication connection from host "10.244.0.0", user "postgres")
+patronictl -c postgres.yml edit-config
+patronictl -c postgres.yml edit-config
+patronictl -c postgres.yml edit-config
+
+--------------------------------------
+loop_wait: 10
+master_start_timeout: 300
+maximum_lag_on_failover: 1048576
+postgresql:
+  parameters:
+    archive_mode: 'on'
+    archive_timeout: 1800s
+    autovacuum: true
+	wal_buffers: 16MB
+    wal_compression: true
+    wal_keep_size: 2GB
+    wal_level: replica
+    wal_log_hints: true
+    wal_receiver_status_interval: 10s
+    wal_writer_delay: 200ms
+    wal_writer_flush_after: 1MB
+    work_mem: 32MB
+  pg_hba:
+  - host replication postgres 10.244.0.0/0 md5
+  - host replication all 10.244.0.0/0 md5
+  use_pg_rewind: true
+  use_slots: true
+retry_timeout: 10
+synchronous_mode_strict: false
+ttl: 100
+--------------------------------------
+
+su - postgres -c "/usr/pgsql-15/bin/pg_basebackup -U postgres -p 5432 -h 10.99.158.120 --progress --verbose --format=tar --gzip --pgdata=/var/postgre_backup/all_db_postgre_backup_`date +"%Y_%m_%d_%H:%M"`"
+su - postgres -c "/usr/pgsql-15/bin/pg_basebackup -U postgres -p 5432 -h 10.99.158.120 --progress --verbose --format=tar --gzip --pgdata=/var/postgre_backup/all_db_postgre_backup_`date +"%Y_%m_%d_%H:%M"`"
+su - postgres -c "/usr/pgsql-15/bin/pg_basebackup -U postgres -p 5432 -h 10.99.158.120 --progress --verbose --format=tar --gzip --pgdata=/var/postgre_backup/all_db_postgre_backup_`date +"%Y_%m_%d_%H:%M"`"
+
+
+#выполним backup
+envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
+envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
+envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
+
+
+postgres@zalandopatroni777-0:/scripts$ envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
+2023-08-17 12:14:53.934 - /scripts/postgres_backup.sh - I was called as: /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
+2023-08-17 12:14:54.000 - /scripts/postgres_backup.sh - producing a new backup
+INFO: 2023/08/17 12:14:54.045921 Calling pg_start_backup()
+INFO: 2023/08/17 12:14:54.361692 Initializing the PG alive checker (interval=5m0s)...
+INFO: 2023/08/17 12:14:54.361729 Starting a new tar bundle
+INFO: 2023/08/17 12:14:54.361756 Walking ...
+INFO: 2023/08/17 12:14:54.361965 Starting part 1 ...
+INFO: 2023/08/17 12:14:54.503048 Packing ...
+INFO: 2023/08/17 12:14:54.503773 Finished writing part 1.
+INFO: 2023/08/17 12:14:54.503804 Starting part 2 ...
+INFO: 2023/08/17 12:14:54.503815 /global/pg_control
+INFO: 2023/08/17 12:14:54.503957 Finished writing part 2.
+INFO: 2023/08/17 12:14:54.503961 Calling pg_stop_backup()
+INFO: 2023/08/17 12:14:54.624791 Starting part 3 ...
+INFO: 2023/08/17 12:14:54.625013 backup_label
+INFO: 2023/08/17 12:14:54.625022 tablespace_map
+INFO: 2023/08/17 12:14:54.625069 Finished writing part 3.
+INFO: 2023/08/17 12:14:54.629729 Wrote backup with name base_00000002000000000000000C
+
+
+#смотрим какие бекапы у нас есть в наличии
+postgres@zalandopatroni777-0:/scripts$ envdir /config /usr/local/bin/wal-g backup-list
+name                          modified             wal_segment_backup_start
+base_00000002000000000000000A 2023-08-17T12:13:49Z 00000002000000000000000A
+base_00000002000000000000000C 2023-08-17T12:14:54Z 00000002000000000000000C
+base_000000020000000000000012 2023-08-17T13:30:34Z 000000020000000000000012
+
+
+
+
+envdir /config /usr/local/bin/wal-g backup-fetch /home/postgres/pgdata/pgroot/data LATEST
+/usr/local/bin/wal-g backup-fetch /home/postgres/pgdata/pgroot/data LATEST
+
+
+
+
+#критическая ситуация удаляю данные со всех дисков patroni
+# удаляю данные
+rm -rf /var/lib/pgsql/15/data
+
+
+
+-----------------------------------------
+2023-08-17 13:33:07,792 INFO: Lock owner: zalandopatroni777-1; I am zalandopatroni777-0
+2023-08-17 13:33:07,792 INFO: bootstrap from leader 'zalandopatroni777-1' in progress
+pg_basebackup: error: could not initiate base backup: ERROR:  the standby was promoted during online backup
+HINT:  This means that the backup being taken is corrupt and should not be used. Try taking another online backup.
+pg_basebackup: removing data directory "/home/postgres/pgdata/pgroot/data"
+2023-08-17 13:33:09,001 INFO: Lock owner: zalandopatroni777-1; I am zalandopatroni777-0
+2023-08-17 13:33:09,001 INFO: bootstrap from leader 'zalandopatroni777-1' in progress
+pg_basebackup: error: connection to server at "10.244.2.37", port 5432 failed: FATAL:  could not open file "global/pg_filenode.map": No such file or directory
+connection to server at "10.244.2.37", port 5432 failed: FATAL:  could not open file "global/pg_filenode.map": No such file or directory
+2023-08-17 13:33:19,476 INFO: Lock owner: None; I am zalandopatroni777-0
+2023-08-17 13:33:19,476 INFO: not healthy enough for leader race
+2023-08-17 13:33:19,476 INFO: bootstrap from leader 'zalandopatroni777-1' in progress
+2023-08-17 13:33:22.403 UTC [27] LOG {ticks: 0, maint: 0, retry: 0}
+2023-08-17 13:33:29,976 INFO: Lock owner: None; I am zalandopatroni777-0
+2023-08-17 13:33:29,976 INFO: not healthy enough for leader race
+2023-08-17 13:33:29,976 INFO: bootstrap from leader 'zalandopatroni777-1' in progress
+pg_basebackup: error: connection to server at "10.244.2.37", port 5432 failed: Connection refused
+        Is the server running on that host and accepting TCP/IP connections?
+2023-08-17 13:33:38,139 ERROR: Error creating replica using method basebackup_fast_xlog: /scripts/basebackup.sh exited with code=1
+2023-08-17 13:33:38,139 ERROR: failed to bootstrap from leader 'zalandopatroni777-1'
+2023-08-17 13:33:38,139 INFO: Removing data directory: /home/postgres/pgdata/pgroot/data
+2023-08-17 13:33:39,976 INFO: Lock owner: None; I am zalandopatroni777-0
+2023-08-17 13:33:40,092 INFO: waiting for leader to bootstrap
+2023-08-17 13:33:49,976 INFO: Lock owner: None; I am zalandopatroni777-0
+2023-08-17 13:33:49,976 INFO: waiting for leader to bootstrap
+2023-08-17 13:33:52.406 UTC [27] ERROR connection error: PQconnectStart
+2023-08-17 13:33:52.406 UTC [27] ERROR libpq: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: No such file or directory
+                Is the server running locally and accepting connections on that socket?
+2023-08-17 13:33:52.406 UTC [27] ERROR connection error: PQconnectStart
+2023-08-17 13:33:52.406 UTC [27] ERROR libpq: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: No such file or directory
+                Is the server running locally and accepting connections on that socket?
+2023-08-17 13:33:52.406 UTC [27] WARNING [yoyku]: default timeout
+2023-08-17 13:33:52.406 UTC [27] ERROR connection error: PQconnectStart
+2023-08-17 13:33:52.406 UTC [27] ERROR libpq: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: No such file or directory
+------------------------------------------
+
+
+### список бекапов
+envdir /config /usr/local/bin/wal-g backup-list
+envdir /config /usr/local/bin/wal-g backup-list
+
+name                          modified             wal_segment_backup_start
+base_00000002000000000000000A 2023-08-17T12:13:49Z 00000002000000000000000A
+base_00000002000000000000000C 2023-08-17T12:14:54Z 00000002000000000000000C
+
+
+### восстанавливаюсь на определенный бекап
+/usr/local/bin/wal-g/wal-g-pg backup-fetch /var/lib/pgsql/15/data backup_name
+
+envdir /config /usr/local/bin/wal-g backup-fetch /home/postgres/pgdata/pgroot/data base_000000020000000000000012
+envdir /config /usr/local/bin/wal-g backup-fetch /home/postgres/pgdata/pgroot/data base_000000020000000000000012
+envdir /config /usr/local/bin/wal-g backup-fetch /home/postgres/pgdata/pgroot/data base_000000020000000000000012
+
+
+#видим очень интересную картину
+[root@masterkub all_db_postgre_backup_2023_08_17_13:18]# kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl list
++ Cluster: zalandopatroni777 -------+---------+----------+----+-----------+
+| Member              | Host        | Role    | State    | TL | Lag in MB |
++---------------------+-------------+---------+----------+----+-----------+
+| zalandopatroni777-0 | 10.244.1.38 | Replica | starting |    |   unknown |
+| zalandopatroni777-1 | 10.244.2.37 | Replica | stopped  |    |   unknown |
+| zalandopatroni777-2 | 10.244.3.42 | Replica | stopped  |    |   unknown |
++---------------------+-------------+---------+----------+----+-----------+
+
+
+var/run/postgresql:5432 - rejecting connections
+2023-08-17 13:41:39,982 INFO: Lock owner: None; I am zalandopatroni777-0
+2023-08-17 13:41:39,983 INFO: Still starting up as a standby.
+2023-08-17 13:41:39,983 INFO: establishing a new patroni connection to the postgres cluster
+2023-08-17 13:41:40,296 INFO: establishing a new patroni connection to the postgres cluster
+2023-08-17 13:41:40,297 WARNING: Retry got exception: 'connection problems'
+2023-08-17 13:41:40,297 WARNING: Failed to determine PostgreSQL state from the connection, falling back to cached role
+2023-08-17 13:41:40,298 INFO: following a different leader because i am not the healthiest node
+/var/run/postgresql:5432 - rejecting connections
+2023-08-17 13:41:49,982 INFO: Lock owner: None; I am zalandopatroni777-0
+2023-08-17 13:41:49,982 INFO: Still starting up as a standby.
+2023-08-17 13:41:49,983 INFO: establishing a new patroni connection to the postgres cluster
+2023-08-17 13:41:50,566 INFO: establishing a new patroni connection to the postgres cluster
+2023-08-17 13:41:50,568 WARNING: Retry got exception: 'connection problems'
+2023-08-17 13:41:50,568 WARNING: Failed to determine PostgreSQL state from the connection, falling back to cached role
+2023-08-17 13:41:50,568 INFO: following a different leader because i am not the healthiest node
+2023-08-17 13:41:52.553 UTC [27] ERROR connection error: PQconnectPoll
+2023-08-17 13:41:52.553 UTC [27] ERROR libpq: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: FATAL:  the database system is starting up
+2023-08-17 13:41:52.553 UTC [27] WARNING [yoyku]: default timeout
+2023-08-17 13:41:52.553 UTC [27] ERROR connection error: PQconnectPoll
+2023-08-17 13:41:52.553 UTC [27] ERROR libpq: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: FATAL:  the database system is starting up
+2023-08-17 13:41:52.554 UTC [27] ERROR connection error: PQconnectPoll
+2023-08-17 13:41:52.554 UTC [27] ERROR libpq: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: FATAL:  the database system is starting up
+2023-08-17 13:41:52.554 UTC [27] WARNING [postgres]: default timeout
+2023-08-17 13:41:52.587 UTC [27] LOG {ticks: 0, maint: 0, retry: 0}
+
+
+#пытаюсь рестартовать кластер не получается
+kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl restart zalandopatroni777
+kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl restart zalandopatroni777
+kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl restart zalandopatroni777
+
+/var/run/postgresql:5432 - rejecting connections
+2023-08-17 13:45:22.628 UTC [27] LOG {ticks: 0, maint: 0, retry: 0}
+/var/run/postgresql:5432 - rejecting connections
+/var/run/postgresql:5432 - rejecting connections
+/var/run/postgresql:5432 - rejecting connections
+/var/run/postgresql:5432 - rejecting connections
+/var/run/postgresql:5432 - rejecting connections
+/var/run/postgresql:5432 - rejecting connections
+/var/run/postgresql:5432 - rejecting connections
+2023-08-17 13:45:29,976 INFO: Lock owner: None; I am zalandopatroni777-0
+2023-08-17 13:45:29,976 INFO: not healthy enough for leader race
+
+
+#пытаюсь сменить лидера
+kubectl -n spilo exec -it pod/zalandopatroni777-1  -- patronictl switchover
+Current cluster topology
++ Cluster: zalandopatroni777 -------+---------+----------+----+-----------+
+| Member              | Host        | Role    | State    | TL | Lag in MB |
++---------------------+-------------+---------+----------+----+-----------+
+| zalandopatroni777-0 | 10.244.1.38 | Replica | starting |    |   unknown |
+| zalandopatroni777-1 | 10.244.2.37 | Replica | stopped  |    |   unknown |
+| zalandopatroni777-2 | 10.244.3.42 | Replica | stopped  |    |   unknown |
++---------------------+-------------+---------+----------+----+-----------+
+Error: This cluster has no leader
+command terminated with exit code 1
+
+
+
+#удаляем поды 
+kubectl delete pods zalandopatroni777-0 zalandopatroni777-1 zalandopatroni777-2 --namespace spilo
+kubectl delete pods zalandopatroni777-0 zalandopatroni777-1 zalandopatroni777-2 --namespace spilo
+
+
+kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl remove zalandopatroni777
+kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl remove zalandopatroni777
+kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl remove zalandopatroni777
+
+
 ---------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------вспомогательные команды-------------------------------------------------------
