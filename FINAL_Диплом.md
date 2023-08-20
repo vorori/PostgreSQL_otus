@@ -2053,13 +2053,10 @@ shutdown -r now
 # делаем принудительную синхронизацию с мастера для пода pod/zalandopatroni777-0
 # можно выполнить специальную команду которая пресоздаст нашу реплику с нуля
 # мы же попробуем просто убить под с этой репликой и посмотрим на работу kubernets
-
 kubectl logs --namespace spilo pod/zalandopatroni777-0
 kubectl logs --namespace spilo pod/zalandopatroni777-1
-kubectl logs --namespace spilo pod/zalandopatroni777-2
 
 ### единоразово смотрим логи pod видм кто у нас матер
-kubectl logs --namespace spilo pod/zalandopatroni777-0
 kubectl logs --namespace spilo pod/zalandopatroni777-0 --tail=40 
 kubectl logs --namespace spilo pod/zalandopatroni777-0 --tail=40 
 
@@ -2079,32 +2076,19 @@ Traceback (most recent call last):
 -------------------
 
 
-kubectl get pods --namespace spilo
-kubectl get pods --namespace spilo
-kubectl get pods --namespace spilo
-
-NAME                 READY   STATUS    RESTARTS      AGE
-zalandopatroni777-0   1/1     Running   1 (18m ago)   3h24m
-zalandopatroni777-1   1/1     Running   0             3h24m
-zalandopatroni777-2   1/1     Running   0             3h24m
-
 #удаляем проблемный под
 kubectl delete pod zalandopatroni777-0 --namespace spilo
 kubectl delete pod zalandopatroni777-0 --namespace spilo
-kubectl delete pod zalandopatroni777-0 --namespace spilo
 
-#проверяем под стартанул
-kubectl get pods --namespace spilo
+#проверяем под стартанул 95s
 NAME                 READY   STATUS    RESTARTS   AGE
 zalandopatroni777-0   1/1     Running   0          95s
 zalandopatroni777-1   1/1     Running   0          3h28m
 zalandopatroni777-2   1/1     Running   0          3h28m
 
-
 ### смотреть логи в режиме реального времени pod pod/zalandopatroni01-0 namespace spilo используя префикс -f
 kubectl logs --namespace spilo pod/zalandopatroni777-0 -f
 kubectl logs --namespace spilo pod/zalandopatroni777-0 -f
-
 
 ###умышленнос сломал zalandopatroni777-0 данные повреждены (удалил пару файлов с каталога data)
 Traceback (most recent call last):
@@ -2119,8 +2103,8 @@ Traceback (most recent call last):
   File "/usr/lib/python3/dist-packages/psycopg2/__init__.py", line 122, in connect
     conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
 
-#наблюдаем вот такую картину
-kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl list
+
+#наблюдаем вот такую картину start failed Lag in MB unknown
 + Cluster: zalandopatroni777 ------+---------+--------------+----+-----------+
 | Member             | Host       | Role    | State        | TL | Lag in MB |
 +--------------------+------------+---------+--------------+----+-----------+
@@ -2131,10 +2115,8 @@ kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl list
 
 
 #чтобы вернуть оживить под zalandopatroni777-0  я пошел на сервер kub1 и почистил каталог с данными
-#после чего patroni пресоздал реплику zalandopatroni777-0
-#и мы видим что с кластером все ок  zalandopatroni777-0 реплицировался TL = 3
-
-kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl list
+# после чего patroni пресоздал реплику zalandopatroni777-0
+# и мы видим что с кластером все ок  zalandopatroni777-0 реплицировался TL = 3
 + Cluster: zalandopatroni01 ------+---------+---------+----+-----------+
 | Member             | Host       | Role    | State   | TL | Lag in MB |
 +--------------------+------------+---------+---------+----+-----------+
@@ -2142,7 +2124,6 @@ kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl list
 | zalandopatroni777-1| 10.244.2.36 | Replica | running |  3 |         0|
 | zalandopatroni777-2| 10.244.3.40 | Leader  | running |  3 |          |
 +--------------------+------------+---------+---------+----+-----------+
-
 
 
 
@@ -2157,7 +2138,6 @@ kubectl get services --namespace spilo
 kubectl -n spilo exec -it pod/zalandopatroni777-0  -- bash
 
 #команда на изменение параметра . ниже показан как я добавил раздел pg_hba:: (добавил в pg_hba.conf replication connection from host "10.244.0.0", user "postgres")
-patronictl -c postgres.yml edit-config
 patronictl -c postgres.yml edit-config
 patronictl -c postgres.yml edit-config
 
@@ -2191,15 +2171,12 @@ ttl: 100
 
 su - postgres -c "/usr/pgsql-15/bin/pg_basebackup -U postgres -p 5432 -h 10.99.158.120 --progress --verbose --format=tar --gzip --pgdata=/var/postgre_backup/all_db_postgre_backup_`date +"%Y_%m_%d_%H:%M"`"
 su - postgres -c "/usr/pgsql-15/bin/pg_basebackup -U postgres -p 5432 -h 10.99.158.120 --progress --verbose --format=tar --gzip --pgdata=/var/postgre_backup/all_db_postgre_backup_`date +"%Y_%m_%d_%H:%M"`"
-su - postgres -c "/usr/pgsql-15/bin/pg_basebackup -U postgres -p 5432 -h 10.99.158.120 --progress --verbose --format=tar --gzip --pgdata=/var/postgre_backup/all_db_postgre_backup_`date +"%Y_%m_%d_%H:%M"`"
-
 
 #выполним backup
 envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
 envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
-envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
 
-
+--------------------------------------
 postgres@zalandopatroni777-0:/scripts$ envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
 2023-08-17 12:14:53.934 - /scripts/postgres_backup.sh - I was called as: /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
 2023-08-17 12:14:54.000 - /scripts/postgres_backup.sh - producing a new backup
@@ -2219,29 +2196,28 @@ INFO: 2023/08/17 12:14:54.625013 backup_label
 INFO: 2023/08/17 12:14:54.625022 tablespace_map
 INFO: 2023/08/17 12:14:54.625069 Finished writing part 3.
 INFO: 2023/08/17 12:14:54.629729 Wrote backup with name base_00000002000000000000000C
-
+--------------------------------------
 
 #смотрим какие бекапы у нас есть в наличии
-postgres@zalandopatroni777-0:/scripts$ envdir /config /usr/local/bin/wal-g backup-list
+--------------------------------------
+envdir /config /usr/local/bin/wal-g backup-list
 name                          modified             wal_segment_backup_start
 base_00000002000000000000000A 2023-08-17T12:13:49Z 00000002000000000000000A
 base_00000002000000000000000C 2023-08-17T12:14:54Z 00000002000000000000000C
 base_000000020000000000000012 2023-08-17T13:30:34Z 000000020000000000000012
-
-
-
-
-envdir /config /usr/local/bin/wal-g backup-fetch /home/postgres/pgdata/pgroot/data LATEST
-/usr/local/bin/wal-g backup-fetch /home/postgres/pgdata/pgroot/data LATEST
-
-
+--------------------------------------
 
 
 #критическая ситуация удаляю данные со всех дисков patroni
-# удаляю данные
+#удаляю данные
+rm -rf /var/lib/pgsql/15/data
 rm -rf /var/lib/pgsql/15/data
 
 
+
+#получить последний бекап из wal-g
+envdir /config /usr/local/bin/wal-g backup-fetch /home/postgres/pgdata/pgroot/data LATEST
+envdir /config /usr/local/bin/wal-g backup-fetch /home/postgres/pgdata/pgroot/data LATEST
 
 -----------------------------------------
 2023-08-17 13:33:07,792 INFO: Lock owner: zalandopatroni777-1; I am zalandopatroni777-0
@@ -2295,7 +2271,6 @@ base_00000002000000000000000C 2023-08-17T12:14:54Z 00000002000000000000000C
 
 envdir /config /usr/local/bin/wal-g backup-fetch /home/postgres/pgdata/pgroot/data base_000000020000000000000012
 envdir /config /usr/local/bin/wal-g backup-fetch /home/postgres/pgdata/pgroot/data base_000000020000000000000012
-envdir /config /usr/local/bin/wal-g backup-fetch /home/postgres/pgdata/pgroot/data base_000000020000000000000012
 
 
 #видим очень интересную картину
@@ -2339,7 +2314,6 @@ var/run/postgresql:5432 - rejecting connections
 #пытаюсь рестартовать кластер не получается
 kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl restart zalandopatroni777
 kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl restart zalandopatroni777
-kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl restart zalandopatroni777
 
 /var/run/postgresql:5432 - rejecting connections
 2023-08-17 13:45:22.628 UTC [27] LOG {ticks: 0, maint: 0, retry: 0}
@@ -2355,7 +2329,6 @@ kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl restart zalando
  
 
 #пытаюсь сменить лидера
-kubectl -n spilo exec -it pod/zalandopatroni777-1  -- patronictl switchover
 Current cluster topology
 + Cluster: zalandopatroni777 -------+---------+----------+----+-----------+
 | Member              | Host        | Role    | State    | TL | Lag in MB |
@@ -2381,7 +2354,7 @@ kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl remove zalandopa
 
 
 
-
+###СДЕЛАТЬ ВОССТАНОВЛЕНИЕ НА ТОЧКУ ВРЕМЕНИ
 
 
 
