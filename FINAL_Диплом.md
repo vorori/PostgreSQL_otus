@@ -1216,29 +1216,41 @@ masterkub.ru-central1.internal   Ready    control-plane   3d22h   v1.26.1   beta
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------
-----------------------------------------------Конфигурационные параметры скрипта START-------------------------------------------------
+----------------------------------------------Конфигурационные параметры скрипта spilo_backup START-------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
-#Конфигурационные параметры скрипта
-#Параметры скрипта поместив в отдельный ConfigMap
 
-vim /data/spilo_backup-script.yaml
-vim /data/spilo_backup-script.yaml
+============================================================================================
+============================================================================================
+============================================================================================
+#создаем окружения для  скрипта backup
+--------------------------
+rm -rf /data/spilo_backup-script_suka.yaml
+vim /data/spilo_backup-script_suka.yaml
+cat /data/spilo_backup-script_suka.yaml
+--------------------------
 
-#создаем окружения для backup
-kubectl apply -f /data/spilo_backup-script.yaml
-kubectl apply -f /data/spilo_backup-script.yaml
+#применяю
+--------------------------
+kubectl apply -f /data/spilo_backup-script_suka.yaml
+kubectl apply -f /data/spilo_backup-script_suka.yaml
+--------------------------
 
 #проверяем
+--------------------------
 kubectl get ConfigMap
 kubectl get ConfigMap
-kubectl get ConfigMap
+--------------------------
 
 #если надо удалить
+--------------------------
 kubectl delete configmap backup-script
 kubectl delete configmap backup-script
-kubectl delete configmap backup-script
+--------------------------
 
----
+--------------------------
+--------------------------
+--------------------------
+--------------------------
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -1252,149 +1264,27 @@ data:
   BACKUP_NUM_TO_RETAIN: "5"
   USE_WALG_BACKUP: "true"
   USE_WALG_RESTORE: "true"
+  WAL_BUCKET_SCOPE_PREFIX: ""
+  WAL_BUCKET_SCOPE_SUFFIX: ""
   WALG_ALIVE_CHECK_INTERVAL: "5m"
   WALE_BINARY: "wal-g"
   WALG_FILE_PREFIX: "/data/pg_wal"
-  WALE_ENV_DIR: "/config"
+  CLONE_USE_WALG_RESTORE: "true"
+  WALG_DISABLE_S3_SSE: "true"
+  WALE_ENV_DIR: "/config
+--------------------------
+--------------------------
+--------------------------
+--------------------------
 
 
+============================================================================================
+============================================================================================
+============================================================================================
 
-
-
-#ЗАМЕТКА
-https://github.com/zalando/postgres-operator/blob/master/docs/administrator.md
-https://github.com/zalando/patroni/issues/1571
-https://blog.csdn.net/chenhongloves/article/details/123236332
-https://blog.csdn.net/chenhongloves/article/details/123236332
-https://blog.csdn.net/chenhongloves/article/details/123236332
-
-В зависимости от поставщика облачного хранилища для Spilo должны быть установлены разные переменные среды . 
-Не все они генерируются автоматически оператором путем изменения его конфигурации. 
-В этом случае вы должны использовать дополнительную карту конфигурации или секрет .
-
-#выполним backup
-envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
-envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
-envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
-
-В Postgres вы можете проверить предварительно настроенные команды для архивации и восстановления файлов WAL. 
-Вы можете найти файлы журналов для соответствующих команд в разделе $HOME/pgdata/pgroot/pg_log/postgres-?.log.
-
-archive_mode: 'on'
-archive_command:  `envdir "{WALE_ENV_DIR}" {WALE_BINARY} wal-push "%p"`
-restore_command:  `envdir "{{WALE_ENV_DIR}}" /scripts/restore_command.sh "%f" "%p"`
-
-
-Вы можете создать базовую резервную копию вручную с помощью следующей команды и проверить, попадает ли она в указанный вами путь резервного копирования WAL:
-envdir "/run/etc/wal-e.d/env" /scripts/postgres_backup.sh "/home/postgres/pgdata/pgroot/data"
-
-Вы также можете проверить, может ли Spilo найти какие-либо резервные копии:
-envdir "/run/etc/wal-e.d/env" wal-g backup-list
-
-#ЗАМЕТКА 2
-https://github.com/zalando/patroni/issues/1571
-https://github.com/zalando/patroni/issues/1571
-
-Спасибо за помощь! Теперь он работает, так что вот мой файл конфигурации и скрипты. Это рабочая комбинация для 
-Postgresql 12 + Patroni + WAL-G (поддерживаемый преемник WAL-E) + Azure/AWS.
--------------------------------------------------------------------------
-scope: postgres
-namespace: /db/
-name: postgresql1
-
-restapi:
-    listen: 10.0.1.4:8008
-    connect_address: 10.0.1.4:8008
-
-etcd:
-    host: 10.0.1.7:2379
-
-bootstrap:
-    dcs:
-        ttl: 30
-        loop_wait: 10
-        retry_timeout: 10
-        maximum_lag_on_failover: 1048576
-        postgresql:
-            use_pg_rewind: true
-
-    method: clone_with_walg
-    clone_with_walg:
-        command: /home/postgres/clone_with_walg.sh
-        recovery_conf:
-            restore_command: envdir /etc/wal-g.d/env wal-g wal-fetch "%f" "%p"
-            recovery_target_timeline: latest
-            recovery_target_action: promote
-            recovery_target_time: ''
-
-    initdb:
-    - encoding: UTF8
-    - data-checksums
-
-    pg_hba:
-    - host replication replicator 127.0.0.1/32 md5
-    - host replication replicator 10.0.1.4/0 md5
-    - host replication replicator 10.0.1.8/0 md5
-    - host replication replicator 10.0.1.6/0 md5
-    - host all all 0.0.0.0/0 md5
-
-postgresql:
-    listen: 10.0.1.4:5432
-    connect_address: 10.0.1.4:5432
-    data_dir: /data/patroni
-    pgpass: /tmp/pgpass
-    authentication:
-        replication:
-            username: replicator
-            password: rep-pass
-        superuser:
-            username: postgres
-            password: secretpassword
-    parameters:
-        unix_socket_directories: '/var/run/postgresql'
-        shared_preload_libraries: 'pg_stat_statements'
-        archive_mode: 'on'
-        archive_timeout: 300s
-        archive_command: 'envdir /etc/wal-g.d/env wal-g wal-push %p'
-    recovery_conf:
-        restore_command: 'envdir /etc/wal-g.d/env wal-g wal-fetch "%f" "%p"'
-
-tags:
-    nofailover: false
-    noloadbalance: false
-    clonefrom: false
-    nosync: false
--------------------------------------------------------------------------
-
-
-И простой скрипт clone_with_walg.sh:
--------------------------------------------------------------------------
-#!/bin/bash
-mkdir -p /data/patroni
-envdir /etc/wal-g.d/env wal-g backup-fetch /data/patroni LATEST
--------------------------------------------------------------------------
-
-Предупреждение: ваш каталог /data должен быть доступен для записи пользователю postgres.
-
--------------------------------------------------------------------------
-Шаги к PITR:
-Остановите Patroni на всех узлах реплик и, наконец, на мастере
-sudo systemctl stop Patroni
-
-Обновить файл конфигурации /etc/patroni.yml
-recovery_target_time: '2020-06-08 08:52:00'
-
-Удалить кластер из etcd
-patchl -c /etc/patroni.yml удалить postgres
-
-Резервное копирование и удаление каталога данных на мастере /data/patroni
-
-Запустите Patroni на мастере — он автоматически вызовет скрипт clone_with_walg.sh
-sudo systemctl start patchi
--------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------------------------------------------
-----------------------------------------------Конфигурационные параметры скрипта END---------------------------------------------------
+----------------------------------------------Конфигурационные параметры скрипта spilo_backup END---------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -1404,57 +1294,72 @@ sudo systemctl start patchi
 ----------------------------------------------Конфигурационные параметры zalandopatroni final START------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
 
+============================================================================================
+============================================================================================
+============================================================================================
 #начинаем создание нашего кластера
 
-#my yaml
-vim /data/spilo_kubernetes_final.yaml
-vim /data/spilo_kubernetes_final.yaml
+#создаем окружения для  основной конфигурации
+-------------------------- 
+rm -rf /data/spilo_kubernetes_final_suka.yaml
+vim /data/spilo_kubernetes_final_suka.yaml
+cat /data/spilo_kubernetes_final_suka.yaml
+--------------------------
+
 
 #создаем namespase spilo
+--------------------------
 kubectl create ns spilo
 kubectl create ns spilo
+--------------------------
 
-### Это предоставит информацию о пространствах имен
-kubectl get namespace
-kubectl get namespace
+#применяю
+--------------------------
+kubectl apply -f /data/spilo_kubernetes_final_suka.yaml --namespace spilo
+kubectl apply -f /data/spilo_kubernetes_final_suka.yaml --namespace spilo
+--------------------------
 
-#запускаю наш манифест 
-kubectl apply -f /data/spilo_kubernetes_final111.yaml --namespace spilo
-kubectl apply -f /data/spilo_kubernetes_final.yaml --namespace spilo
-kubectl apply -f /data/spilo_kubernetes_final.yaml --namespace spilo
-
-#1)если надо удалить манифест
-kubectl delete -f /data/spilo_kubernetes_final.yaml  --namespace spilo
-kubectl delete -f /data/spilo_kubernetes_final.yaml  --namespace spilo
-
+#проверяю
+--------------------------
+# pods
 kubectl get pods --namespace spilo
 kubectl get pods --namespace spilo
 
-#2)если надо удалить  all,ing,secrets,pvc,pv
-kubectl delete all,ing,secrets,pvc,pv --all --namespace spilo
-kubectl delete all,ing,secrets,pvc,pv --all --namespace spilo
-
+# pwc
 kubectl get pvc --namespace spilo
 kubectl get pvc --namespace spilo
 
-
-#2)если надо удалить  namespace spilo
-kubectl delete namespace spilo
-kubectl delete namespace spilo
-
+# Это предоставит информацию о пространствах имен
 kubectl get namespace
-kubectl get namespace 
- 
-
-#черновик если надо удалить
-kubectl delete pvc,pv --all --namespace spilo
-kubectl delete pvc,pv --all --namespace spilo
-
-kubectl delete pvc --all --namespace spilo
-kubectl delete pvc --all --namespace spilo
+kubectl get namespace
+--------------------------
 
 
+#если надо удалить
+--------------------------
+#если надо удалить манифест
+kubectl delete -f /data/spilo_kubernetes_final_suka.yaml  --namespace spilo
+kubectl delete -f /data/spilo_kubernetes_final_suka.yaml  --namespace spilo
 
+#если надо удалить  all,ing,secrets,pvc,pv
+kubectl delete all,ing,secrets,pvc,pv --all --namespace spilo
+kubectl delete all,ing,secrets,pvc,pv --all --namespace spilo
+
+#после удаляю руками persistentvolume которые не удалились автоматом  из директории  
+rm -rf /data/local-path-provisioner/*
+rm -rf /data/local-path-provisioner/*
+rm -rf /data/local-path-provisioner/*
+
+# дополнительно если надо удалить  namespace spilo
+kubectl delete namespace spilo
+kubectl delete namespace spilo
+--------------------------
+
+
+--------------------------
+--------------------------
+--------------------------
+--------------------------
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -1589,12 +1494,32 @@ spec:
                     track_commit_timestamp: "off"
                     wal_log_hints: on
                     hot_standby_feedback: off
+                  pg_hba:
+                  - hostnossl all     vororinew      all          md5
               initdb:
-                - auth-host: md5
                 - encoding: UTF8
-                - auth-host: md5
-                - auth-local: peer
                 - data-checksums
+              pg_hba:
+              - hostnossl all         vorori         all          md5
+            postgresql:
+                parameters:
+                  log_destination: 'stderr'
+                  log_line_prefix: '%m [%p] %d %u %h (transaction ID %x)'
+                  archive_mode: on
+                  archive_command: 'envdir /config /usr/local/bin/wal-g wal-push "%p"'
+                recovery_conf:
+                  restore_command: 'envdir /config /usr/local/bin/wal-g wal-fetch "%f" "%p"'
+                pg_hba:
+                - local     all         all                    trust
+                - hostssl   all         +zalandos 127.0.0.1/32 pam
+                - host      all         all       127.0.0.1/32 md5
+                - hostssl   all         +zalandos ::1/128      pam
+                - host      all         all       ::1/128      md5
+                - local     replication standby                trust
+                - hostssl   replication standby   all          md5
+                - hostnossl all         all       all          md5
+                - hostssl   all         +zalandos all          pam
+                - hostssl   all         all       all          md5
         - name: POD_IP
           valueFrom:
             fieldRef:
@@ -1627,7 +1552,7 @@ spec:
         - name: PGROOT
           value: /home/postgres/pgdata/pgroot
         - name: WALG_FILE_PREFIX
-          value: "/data/pg_wal"
+          value: "/home/postgres/pgdata/pgroot/pg_log"
         - name: CRONTAB
           value: "[\"00 01 * * * envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data\"]"
       terminationGracePeriodSeconds: 0
@@ -1818,10 +1743,18 @@ data:
   BACKUP_NUM_TO_RETAIN: "5"
   USE_WALG_BACKUP: "true"
   USE_WALG_RESTORE: "true"
+  WAL_BUCKET_SCOPE_PREFIX: ""
+  WAL_BUCKET_SCOPE_SUFFIX: ""
   WALG_ALIVE_CHECK_INTERVAL: "5m"
   WALE_BINARY: "wal-g"
   WALG_FILE_PREFIX: "/data/pg_wal"
+  CLONE_USE_WALG_RESTORE: "true"
+  WALG_DISABLE_S3_SSE: "true"
   WALE_ENV_DIR: "/config"
+--------------------------
+--------------------------
+--------------------------
+--------------------------
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------
@@ -1834,7 +1767,7 @@ kubectl get pods --namespace spilo
 kubectl get pods --namespace spilo
 
 ----------
-[root@masterkub vorori]# kubectl get pods --namespace spilo
+kubectl get pods --namespace spilo
 NAME                  READY   STATUS    RESTARTS   AGE
 zalandopatroni777-0   1/1     Running   0          2m22s
 zalandopatroni777-1   1/1     Running   0          2m22s
@@ -1846,7 +1779,6 @@ kubectl get services --namespace spilo
 kubectl get services --namespace spilo
 
 ----------
-[root@masterkub vorori]# kubectl get services --namespace spilo
 NAME                      TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
 zalandopatroni777          ClusterIP   10.99.158.120   <none>        5432/TCP   2m58s
 zalandopatroni777-config   ClusterIP   None            <none>        <none>     2m58s
@@ -1857,7 +1789,6 @@ kubectl get pvc --namespace spilo
 kubectl get pvc --namespace spilo
 
 ----------
-[root@masterkub vorori]# kubectl get pvc --namespace spilo
 backup-zalandopatroni777-0   Bound    pvc-7998c73c-af30-495a-936b-d282c753968e   3Gi        RWO            local-path     3m18s
 backup-zalandopatroni777-1   Bound    pvc-e9977701-028c-4ebf-b674-ac4ab9f28f4a   3Gi        RWO            local-path     3m17s
 backup-zalandopatroni777-2   Bound    pvc-03a38737-e58d-4d2f-90f4-f265c4a089f8   3Gi        RWO            local-path     3m17s
@@ -1913,12 +1844,9 @@ spilo       statefulset.apps/zalandopatroni777   3/3     3m38s
 
 
 
-### смотрим на кворум кто мастер из самого пода pod/zalandopatroni01-0 
+#смотрим на кворум кто мастер из самого пода pod/zalandopatroni01-0 
 kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl list
 kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl list
-
-
-
 
 ----------
 + Cluster: zalandopatroni777 -------+---------+---------+----+-----------+
@@ -1952,20 +1880,9 @@ kubectl logs --namespace spilo pod/zalandopatroni777-0 -f
 2023-08-16 08:49:22,630 INFO: no action. I am (zalandopatroni777-2), a secondary, and following a leader (zalandopatroni777-0)
 ----------
 
-### прикручиваем сервис который будет служить единой точкой входа 
 
-#проверяем что сервис создан
-kubectl get services --namespace spilo
-kubectl get services --namespace spilo
 
-#видим ip адрес сервиса но нам нужно сделать так чтобы сервис ссылался на master ноду проверим как работает оно сейчас
-kubectl get services --namespace spilo
----------------------
-zalandopatroni777          ClusterIP   10.99.158.120   <none>        5432/TCP   7m39s
-zalandopatroni777-config   ClusterIP   None            <none>        <none>     7m39s
----------------------
-
-#устанавливаю клиента psql
+#устанавливаю клиента psql на сервер чтобы подключиться к сервису
 yum install postgresql
 yum install postgresql
 
@@ -1977,7 +1894,6 @@ psql -U postgres -h 10.99.158.120
 пароль для postgres в нашем случае что указан в конфигурационном yaml: pass1
 пароль для postgres в нашем случае что указан в конфигурационном yaml: pass1
 
-
 #Наборы скриптов для patroni находятся тут
 kubectl -n spilo exec -it pod/zalandopatroni777-0 -- ls /scripts/
 kubectl -n spilo exec -it pod/zalandopatroni777-0 -- ls /scripts/
@@ -1988,10 +1904,6 @@ kubectl -n spilo exec -it pod/zalandopatroni777-0 -- cat /scripts/basebackup.sh
 #запустить скрипт бекапа
 kubectl -n spilo exec -it pod/zalandopatroni777-0 -- bash /scripts/basebackup.sh
 kubectl -n spilo exec -it pod/zalandopatroni777-0 -- bash /scripts/basebackup.sh
-
-#из логов мы знаем кто мастер подключимся напрямую к этой ноде мастера чтобы добавить разрешаюшие правила в pg_hba.conf
-kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl list
-kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl list
 
 
 #если требуется изменить конфигурацию кластера zalandopatroni01
@@ -2007,10 +1919,7 @@ kubectl -n spilo exec -it pod/zalandopatroni777-0  -- bash
 kubectl -n spilo exec -it pod/zalandopatroni777-0  -- bash
 
 ---------------
-[root@masterkub vorori]# kubectl -n spilo exec -it pod/zalandopatroni777-0  -- bash
-
-
- ____        _ _
+ ___        _ _
 / ___| _ __ (_) | ___
 \___ \| '_ \| | |/ _ \
  ___) | |_) | | | (_) |
@@ -2051,34 +1960,16 @@ lrwxrwxrwx. 1 root     root  17 Mar 10 05:53 postgres.yml -> /run/postgres.yml
 patronictl -c postgres.yml edit-config
 patronictl -c postgres.yml edit-config
 patronictl -c postgres.yml edit-config
+---------------------
 
-----------------------
-
-----------------------
-
-#подключаемся сначало локально меняем пароль пользователя postgres
-psql -U postgres -d postgres
-psql -U postgres -d postgres
-
-alter user poargres with password 'mypass';
-alter user poargres with password 'mypass';
-
-#а после уже можем подключаться к ip адресу нашего сервиса
-psql -U postgres -h 10.105.5.80 -d postgres
-psql -U postgres -h 10.105.5.80 -d postgres
-
-#если требуется изменить конфигурацию ккластера zalandopatroni01
-patronictl -c postgres.yml restart zalandopatroni777
+#если требуется restart
 patronictl -c postgres.yml restart zalandopatroni777
 patronictl -c postgres.yml restart zalandopatroni777
 
-patronictl -c postgres.yml reload zalandopatroni01
-patronictl -c postgres.yml reload zalandopatroni01
-patronictl -c postgres.yml reload zalandopatroni01
+#если требуется reload
+patronictl -c postgres.yml reload zalandopatroni777
+patronictl -c postgres.yml reload zalandopatroni777
 
-patronictl -c postgres.yml restart zalandopatroni01
-patronictl -c postgres.yml restart zalandopatroni01
-patronictl -c postgres.yml restart zalandopatroni01
 -----------------------------------------------------------------------------
 #показать лидера и кворум из внутрянки пода 
 -----------------------------------------------------------------------------
@@ -2088,9 +1979,7 @@ patronictl -c postgres.yml list
 patronictl -c postgres.yml list
 -----------------------------------------------------------------------------
 
-#подключаемся для тестов с управляюшей ноды
-psql -U postgres -h 10.99.158.120 -d postgres
-psql -U postgres -h 10.99.158.120 -d postgres
+
 
 #БАЗОВАЯ ИНФОРМАЦИЯ порт версия сервер
 select
@@ -2136,9 +2025,7 @@ kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl list
 kubectl -n spilo exec -it pod/zalandopatroni777-1  -- patronictl switchover
 kubectl -n spilo exec -it pod/zalandopatroni777-1  -- patronictl switchover
 
-
 #видим лидер изменился и TL
-kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl list
 + Cluster: zalandopatroni777 -------+---------+---------+----+-----------+
 | Member              | Host        | Role    | State   | TL | Lag in MB |
 +---------------------+-------------+---------+---------+----+-----------+
@@ -2147,38 +2034,14 @@ kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl list
 | zalandopatroni777-2 | 10.244.3.40 | Replica  | running |  1 |         0 |
 +---------------------+-------------+---------+---------+----+-----------+
 
-
-#преподключаемся к ip сервиса и видем что мы уже на новом мастере
-kubectl get all -A
-psql -U postgres -h 10.99.158.120 -d postgres
-select pg_is_in_recovery();
-
----------------------
-postgres=# select pg_is_in_recovery();
- pg_is_in_recovery
--------------------
- f
-(1 row)
----------------------
-
-
 #создаю аварийную ситуацию роняю под лидера на котором работает кластер патрони прегружаю vm kub1
-
-[root@masterkub vorori]# kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl list
-+ Cluster: zalandopatroni777 -------+---------+---------+----+-----------+
-| Member              | Host        | Role    | State   | TL | Lag in MB |
-+---------------------+-------------+---------+---------+----+-----------+
-| zalandopatroni777-0 | 10.244.1.37 | Leader  | running |  1 |           |
-| zalandopatroni777-1 | 10.244.2.36 | Replica | running |  1 |         0 |
-| zalandopatroni777-2 | 10.244.3.40 | Replica | running |  1 |         0 |
-+---------------------+-------------+---------+---------+----+-----------+
 
 #на мастере
 shutdown -r now
 shutdown -r now
 
-#смотрим что под zalandopatroni01-2 стал лидером а zalandopatroni01-0 Replica и с лагом репликации 1 и TL не преключился на 3
-root@kub3 vorori]# kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl list
+#смотрим что под zalandopatroni777-2  стал лидером а zalandopatroni777-1  
+#Replica и с лагом репликации 1 и TL не преключился на 3
 + Cluster: zalandopatroni777 -------+---------+---------+----+-----------+
 | Member              | Host        | Role    | State   | TL | Lag in MB |
 +---------------------+-------------+---------+---------+----+-----------+
