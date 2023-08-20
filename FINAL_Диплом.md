@@ -1917,6 +1917,9 @@ spilo       statefulset.apps/zalandopatroni777   3/3     3m38s
 kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl list
 kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl list
 
+
+
+
 ----------
 + Cluster: zalandopatroni777 -------+---------+---------+----+-----------+
 | Member              | Host        | Role    | State   | TL | Lag in MB |
