@@ -2463,6 +2463,7 @@ envdir /etc/wal-g.d/env wal-g backup-fetch /data/patroni LATEST
 </pre>
 
 <pre>
+на нодах с 8 gb озу 4 cpu диск hdd
 pgbench -c30 -j 3 -T 600 -f /tmp/my.sql -U postgres 
 
 
@@ -2478,7 +2479,7 @@ END;
 latency average = 303.688 ms
 latency stddev = 330.130 ms
 average connection time = 6.301 ms
-tps = 1011.745819 (including reconnection times)
+tps = 3011.745819 (including reconnection times)
 
 
 
