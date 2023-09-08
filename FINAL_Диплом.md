@@ -1724,12 +1724,13 @@ data:
 --------------------------
 </pre>
 
-
+<pre>
 ---------------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------Конфигурационные параметры zalandopatroni final END--------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------
+</pre>
 
-
+<pre>
 #проверяю что все ок и что все запустилось все под создались и работают
 kubectl get pods --namespace spilo
 kubectl get pods --namespace spilo
@@ -1809,9 +1810,10 @@ local-path-storage   replicaset.apps/local-path-provisioner-7f8667b75c   1      
 NAMESPACE   NAME                                 READY   AGE
 spilo       statefulset.apps/zalandopatroni777   3/3     3m38s
 ----------
+</pre>
 
 
-
+<pre>
 #смотрим на кворум кто мастер из самого пода pod/zalandopatroni01-0 
 kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl list
 kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl list
@@ -1847,9 +1849,10 @@ kubectl logs --namespace spilo pod/zalandopatroni777-0 -f
 2023-08-16 08:49:12,629 INFO: no action. I am (zalandopatroni777-2), a secondary, and following a leader (zalandopatroni777-0)
 2023-08-16 08:49:22,630 INFO: no action. I am (zalandopatroni777-2), a secondary, and following a leader (zalandopatroni777-0)
 ----------
+</pre>
 
 
-
+<pre>
 #устанавливаю клиента psql на сервер чтобы подключиться к сервису
 yum install postgresql
 yum install postgresql
@@ -1885,7 +1888,10 @@ kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl reload zalandop
 #подключаемся к лидеру напрямую внутрь контенера с patroni
 kubectl -n spilo exec -it pod/zalandopatroni777-0  -- bash
 kubectl -n spilo exec -it pod/zalandopatroni777-0  -- bash
+</pre>
 
+
+<pre>
 ---------------
  ___        _ _
 / ___| _ __ (_) | ___
@@ -1946,9 +1952,10 @@ patronictl -c postgres.yml list
 patronictl -c postgres.yml list
 patronictl -c postgres.yml list
 -----------------------------------------------------------------------------
+</pre>
 
 
-
+<pre>
 #БАЗОВАЯ ИНФОРМАЦИЯ порт версия сервер
 select
 inet_server_addr( ) AS "Server",
@@ -2042,8 +2049,10 @@ Traceback (most recent call last):
   File "/usr/lib/python3/dist-packages/psycopg2/__init__.py", line 122, in connect
     conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
 -------------------
+</pre>
 
 
+<pre>
 #удаляем проблемный под
 kubectl delete pod zalandopatroni777-0 --namespace spilo
 kubectl delete pod zalandopatroni777-0 --namespace spilo
@@ -2092,9 +2101,10 @@ Traceback (most recent call last):
 | zalandopatroni777-1| 10.244.2.36 | Replica | running |  3 |         0|
 | zalandopatroni777-2| 10.244.3.40 | Leader  | running |  3 |          |
 +--------------------+------------+---------+---------+----+-----------+
+</pre>
 
 
-
+<pre>
 #установил на управляюшей ноде postgressudo но кластер не инициализировал мне нужна програмка pg_basebackup 
 yum install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm && yum -y repolist && yum -y install postgresql15-contrib
 
@@ -2108,7 +2118,9 @@ kubectl -n spilo exec -it pod/zalandopatroni777-0  -- bash
 #команда на изменение параметра . ниже показан как я добавил раздел pg_hba:: (добавил в pg_hba.conf replication connection from host "10.244.0.0", user "postgres")
 patronictl -c postgres.yml edit-config
 patronictl -c postgres.yml edit-config
+</pre>
 
+<pre>
 --------------------------------------
 loop_wait: 10
 master_start_timeout: 300
@@ -2136,12 +2148,15 @@ retry_timeout: 10
 synchronous_mode_strict: false
 ttl: 100
 --------------------------------------
+</pre>
 
-
+<pre>
 #если надо выполнить через 
 su - postgres -c "/usr/pgsql-15/bin/pg_basebackup -U postgres -p 5432 -h 10.99.158.120 --progress --verbose --format=tar --gzip --pgdata=/var/postgre_backup/all_db_postgre_backup_`date +"%Y_%m_%d_%H:%M"`"
 su - postgres -c "/usr/pgsql-15/bin/pg_basebackup -U postgres -p 5432 -h 10.99.158.120 --progress --verbose --format=tar --gzip --pgdata=/var/postgre_backup/all_db_postgre_backup_`date +"%Y_%m_%d_%H:%M"`"
+</pre>
 
+<pre>
 #выполним backup
 envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
 envdir /config /scripts/postgres_backup.sh /home/postgres/pgdata/pgroot/data
@@ -2279,8 +2294,9 @@ var/run/postgresql:5432 - rejecting connections
 2023-08-17 13:41:52.554 UTC [27] ERROR libpq: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: FATAL:  the database system is starting up
 2023-08-17 13:41:52.554 UTC [27] WARNING [postgres]: default timeout
 2023-08-17 13:41:52.587 UTC [27] LOG {ticks: 0, maint: 0, retry: 0}
+</pre>
 
-
+<pre>
 #пытаюсь рестартовать кластер не получается
 kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl restart zalandopatroni777
 kubectl -n spilo exec -it pod/zalandopatroni777-0  -- patronictl restart zalandopatroni777
@@ -2320,10 +2336,11 @@ kubectl delete pods zalandopatroni777-0 zalandopatroni777-1 zalandopatroni777-2 
 kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl remove zalandopatroni777
 kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl remove zalandopatroni777
 kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl remove zalandopatroni777
+</pre>
 
 
 
-
+<pre>
 ###ЕСЛИ НАДО СДЕЛАТЬ ВОССТАНОВЛЕНИЕ НА ТОЧКУ ВРЕМЕНИ ПРИ УСЛОВИИ ЧТО КЛАСТЕР НЕ РАБОТОСПОСОБЕН
 Предупреждение: ваш каталог /data должен быть доступен для записи пользователю postgres.
 
@@ -2498,12 +2515,12 @@ TPS с момента последнего отчета, а также сред�
 </pre>
 
 
-
+<pre>
 для внутрянки:
 patronictl -c postgres.yml list
 patronictl -c postgres.yml list
 patronictl -c postgres.yml list
-
+</pre>
 
 <pre>
 ----------------------------------------------------------
