@@ -150,10 +150,14 @@ sudo modprobe overlay && sudo modprobe br_netfilter && sudo sysctl --system
 reboot -h now
 reboot -h now
 reboot -h now
+</pre>
 
+
+<pre>
 tail -f /var/log/messages
 tail -f /var/log/messages
 tail -f /var/log/messages
+</pre>
 
 Настройка контейнера
 
@@ -353,7 +357,484 @@ systemctl restart containerd && sudo systemctl enable --now containerd && system
 ------------------------------
 </pre>
 
+#### 5.6)
+#### извлекаем образы для версии Kubernetes 1.26. Pull the images
 
+<pre>
+------------------------------
+sudo kubeadm config images pull --image-repository=registry.k8s.io --cri-socket unix:///run/containerd/containerd.sock --kubernetes-version v1.26.1
+sudo kubeadm config images pull --image-repository=registry.k8s.io --cri-socket unix:///run/containerd/containerd.sock --kubernetes-version v1.26.1
+sudo kubeadm config images pull --image-repository=registry.k8s.io --cri-socket unix:///run/containerd/containerd.sock --kubernetes-version v1.26.1
+------------------------------
+</pre>
+
+#### 5.7)
+
+#### запускаю команду инициализации kubeadm на узле управления.
+
+
+#### Здесь CIDR сети pod зависит от CNI, который вы будете устанавливать позже, поэтому в этом случае я использую фланель 
+#### и --control-plane-endpoint буду общедоступным IP-адресом для экземпляра (это также может быть частный IP-адрес, 
+#### но если вы хотите получить доступ это из-за пределов узла с помощью Kubeconfig, тогда вам нужно указать общедоступный IP-адрес).
+
+<pre>
+------------------------------
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.24 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
+------------------------------
+</pre>
+
+#### 5.8)
+
+#### проверяю
+
+<pre>
+------------------------------
+kubectl version
+kubectl version
+kubectl version
+
+WARNING: This version information is deprecated and will be replaced with the output from kubectl version --short.  Use --output=yaml|json to get the full version.
+Client Version: version.Info{Major:"1", Minor:"26", GitVersion:"v1.26.1", GitCommit:"8f94681cd294aa8cfd3407b8191f6c70214973a4", GitTreeState:"clean", BuildDate:"2023-01-18T15:58:16Z", GoVersion:"go1.19.5", Compiler:"gc", Platform:"linux/amd64"}
+Kustomize Version: v4.5.7
+Server Version: version.Info{Major:"1", Minor:"26", GitVersion:"v1.26.1", GitCommit:"8f94681cd294aa8cfd3407b8191f6c70214973a4", GitTreeState:"clean", BuildDate:"2023-01-18T15:51:25Z", GoVersion:"go1.19.5", Compiler:"gc", Platform:"linux/amd64"}
+------------------------------
+
+------------------------------
+hostname -i
+hostname -i
+hostname -i
+------------------------------
+</pre>
+
+#### 5.9)
+
+#### выполняю init Kubernetes cluster
+
+<pre>
+------------------------------
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.24 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.24 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.24 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
+[config/images] Pulled registry.k8s.io/kube-apiserver:v1.26.1
+[config/images] Pulled registry.k8s.io/kube-controller-manager:v1.26.1
+[config/images] Pulled registry.k8s.io/kube-scheduler:v1.26.1
+[config/images] Pulled registry.k8s.io/kube-proxy:v1.26.1
+[config/images] Pulled registry.k8s.io/pause:3.9
+[config/images] Pulled registry.k8s.io/etcd:3.5.6-0
+[config/images] Pulled registry.k8s.io/coredns/coredns:v1.9.3
+[root@masterkub modules-load.d]# sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.129.0.24 --upload-certs --kubernetes-version=v1.26.1 --control-plane-endpoint=masterkub.ru-central1.internal --cri-socket unix:///run/containerd/containerd.sock
+[init] Using Kubernetes version: v1.26.1
+[preflight] Running pre-flight checks
+[preflight] Pulling images required for setting up a Kubernetes cluster
+[preflight] This might take a minute or two, depending on the speed of your internet connection
+[preflight] You can also perform this action in beforehand using 'kubeadm config images pull'
+[certs] Using certificateDir folder "/etc/kubernetes/pki"
+[certs] Generating "ca" certificate and key
+[certs] Generating "apiserver" certificate and key
+[certs] apiserver serving cert is signed for DNS names [kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local masterkub.ru-central1.internal] and IPs [10.96.0.1 10.129.0.24]
+[certs] Generating "apiserver-kubelet-client" certificate and key
+[certs] Generating "front-proxy-ca" certificate and key
+[certs] Generating "front-proxy-client" certificate and key
+[certs] Generating "etcd/ca" certificate and key
+[certs] Generating "etcd/server" certificate and key
+[certs] etcd/server serving cert is signed for DNS names [localhost masterkub.ru-central1.internal] and IPs [10.129.0.24 127.0.0.1 ::1]
+[certs] Generating "etcd/peer" certificate and key
+[certs] etcd/peer serving cert is signed for DNS names [localhost masterkub.ru-central1.internal] and IPs [10.129.0.24 127.0.0.1 ::1]
+[certs] Generating "etcd/healthcheck-client" certificate and key
+[certs] Generating "apiserver-etcd-client" certificate and key
+[certs] Generating "sa" key and public key
+[kubeconfig] Using kubeconfig folder "/etc/kubernetes"
+[kubeconfig] Writing "admin.conf" kubeconfig file
+[kubeconfig] Writing "kubelet.conf" kubeconfig file
+[kubeconfig] Writing "controller-manager.conf" kubeconfig file
+[kubeconfig] Writing "scheduler.conf" kubeconfig file
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Starting the kubelet
+[control-plane] Using manifest folder "/etc/kubernetes/manifests"
+[control-plane] Creating static Pod manifest for "kube-apiserver"
+[control-plane] Creating static Pod manifest for "kube-controller-manager"
+[control-plane] Creating static Pod manifest for "kube-scheduler"
+[etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
+[wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests". This can take up to 4m0s
+[apiclient] All control plane components are healthy after 7.502577 seconds
+[upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
+[kubelet] Creating a ConfigMap "kubelet-config" in namespace kube-system with the configuration for the kubelets in the cluster
+[upload-certs] Storing the certificates in Secret "kubeadm-certs" in the "kube-system" Namespace
+[upload-certs] Using certificate key:
+25e511511f5ae6e5c0428dd276919391b4cb5692d32b9593627f9152715d5d97
+[mark-control-plane] Marking the node masterkub.ru-central1.internal as control-plane by adding the labels: [node-role.kubernetes.io/control-plane node.kubernetes.io/exclude-from-external-load-balancers]
+[mark-control-plane] Marking the node masterkub.ru-central1.internal as control-plane by adding the taints [node-role.kubernetes.io/control-plane:NoSchedule]
+[bootstrap-token] Using token: eo5469.fboaarc5jjvl4dh1
+[bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
+[bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to get nodes
+[bootstrap-token] Configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
+[bootstrap-token] Configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
+[bootstrap-token] Configured RBAC rules to allow certificate rotation for all node client certificates in the cluster
+[bootstrap-token] Creating the "cluster-info" ConfigMap in the "kube-public" namespace
+[kubelet-finalize] Updating "/etc/kubernetes/kubelet.conf" to point to a rotatable kubelet client certificate and key
+[addons] Applied essential addon: CoreDNS
+[addons] Applied essential addon: kube-proxy
+
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Alternatively, if you are the root user, you can run:
+
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+You can now join any number of the control-plane node running the following command on each as root:
+
+  kubeadm join masterkub.ru-central1.internal:6443 --token eo5469.fboaarc5jjvl4dh1 \
+        --discovery-token-ca-cert-hash sha256:ab7b5ce50b4825850aa86009b2f1d9a7c67db6ff872b08575f691410f8f4b220 \
+        --control-plane --certificate-key 25e511511f5ae6e5c0428dd276919391b4cb5692d32b9593627f9152715d5d97
+
+Please note that the certificate-key gives access to cluster sensitive data, keep it secret!
+As a safeguard, uploaded-certs will be deleted in two hours; If necessary, you can use
+"kubeadm init phase upload-certs --upload-certs" to reload certs afterward.
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join masterkub.ru-central1.internal:6443 --token eo5469.fboaarc5jjvl4dh1 \
+        --discovery-token-ca-cert-hash sha256:ab7b5ce50b4825850aa86009b2f1d9a7c67db6ff872b08575f691410f8f4b220
+------------------------------
+</pre>
+
+
+#### 5.10)
+
+#### основные конфиги (для распространения управления на других узлах)
+#### Экспортируйте KUBECONFIG и установите CNI Flannel.
+
+<pre>
+------------------------------
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+export KUBECONFIG=/etc/kubernetes/admin.conf
+
+настройка сети
+kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
+kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
+kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
+------------------------------
+</pre>
+
+#### 5.11)
+
+#### ловим ошибку CrashLoopBackOff
+
+<pre>
+----------------------------------------------------------------------------------------------------------------------------
+https://stackoverflow.com/questions/52098214/kube-flannel-in-crashloopbackoff-status
+https://stackoverflow.com/questions/52098214/kube-flannel-in-crashloopbackoff-status
+https://stackoverflow.com/questions/52098214/kube-flannel-in-crashloopbackoff-status
+
+ошибка в моем случае:
+kube-system   kube-flannel-ds-amd64-42rl7            0/1       CrashLoopBackOff
+как оказалась проблема была в этом --pod-network-cidr=10.244.0.0/16
+Для flannelкорректной работы необходимо перейти --pod-network-cidr=10.244.0.0/16на kubeadm init.
+Это верно только для главного узла. Другие рабочие узлы не должны запускать эту команду. 
+Посмотрите на другой ответ, предоставленный @pande ниже; это то, что решило эту проблему для меня.
+
+как можно разрулить дополнительно:
+------------------------
+Причина в том, что
+фланелевый бег с CIDR= 10.244.0.0/16​​НЕТ 10.244.0.0/24!!!
+Конфликты CNI из-за того, что узел установил несколько подключаемых модулей CNI в /etc/cni/net.d/.
+Интерфейс 2 flannel.1и cni0не соответствовали друг другу. Например:
+flannel.1=10.244.0.0и cni0=10.244.1.1потерпит неудачу. Это должно быть
+flannel.1=10.244.0.0иcni0=10.244.0.1
+
+Чтобы исправить это, выполните следующие действия:
+
+Шаг 0: Сбросьте все узлы в вашем кластере. Запустите все узлы с
+kubeadm reset --force;
+
+Шаг 1: вниз по интерфейсу cni0и flannel.1.
+sudo ifconfig cni0 down;
+sudo ifconfig flannel.1 down;
+
+Шаг 2: Удалите интерфейс cni0и файлы flannel.1.
+sudo ip link delete cni0;
+sudo ip link delete flannel.1;
+
+Шаг 3: Удалите все элементы внутри /etc/cni/net.d/.
+sudo rm -rf /etc/cni/net.d/;
+
+Шаг 4. Повторно загрузите кластер Kubernetes.
+kubeadm init --control-plane-endpoint="..." --pod-network-cidr=10.244.0.0/16;
+
+Шаг 5. Повторно разверните CNI.
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml;
+
+Шаг 6: Перезапустите ваши CNI, здесь я использовал Container Daemon (Containerd).
+systemctl restart containerd;
+
+Это обеспечит правильную работу вашего Core-DNS.
+----------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+#### 5.12)
+
+#### проверяем статус и что все работает. a ..
+
+<pre>
+----------------------------------------------------------------------------------------------------------------------------
+root@masterkub vorori]# kubectl get nodes
+NAME                             STATUS   ROLES           AGE     VERSION
+masterkub.ru-central1.internal   Ready    control-plane   4m27s   v1.26.1
+----------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+#### 5.13)
+
+#### смотрим что все работает. b ..
+
+<pre>
+----------------------------------------------------------------------------------------------------------------------------
+[root@masterkub ~]# kubectl get all -A
+NAMESPACE      NAME                                                         READY   STATUS    RESTARTS   AGE
+kube-flannel   pod/kube-flannel-ds-rdp9t                                    1/1     Running   0          59s
+kube-system    pod/coredns-787d4945fb-f98p8                                 1/1     Running   0          3m27s
+kube-system    pod/coredns-787d4945fb-s78vs                                 1/1     Running   0          3m27s
+kube-system    pod/etcd-masterkub.ru-central1.internal                      1/1     Running   1          3m41s
+kube-system    pod/kube-apiserver-masterkub.ru-central1.internal            1/1     Running   1          3m39s
+kube-system    pod/kube-controller-manager-masterkub.ru-central1.internal   1/1     Running   0          3m39s
+kube-system    pod/kube-proxy-9khtr                                         1/1     Running   0          3m27s
+kube-system    pod/kube-scheduler-masterkub.ru-central1.internal            1/1     Running   1          3m39s
+
+NAMESPACE     NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                  AGE
+default       service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP                  3m41s
+kube-system   service/kube-dns     ClusterIP   10.96.0.10   <none>        53/UDP,53/TCP,9153/TCP   3m39s
+
+NAMESPACE      NAME                             DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+kube-flannel   daemonset.apps/kube-flannel-ds   1         1         1       1            1           <none>                   59s
+kube-system    daemonset.apps/kube-proxy        1         1         1       1            1           kubernetes.io/os=linux   3m39s
+
+NAMESPACE     NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+kube-system   deployment.apps/coredns   2/2     2            2           3m39s
+
+NAMESPACE     NAME                                 DESIRED   CURRENT   READY   AGE
+kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       3m28s
+----------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+#### 5.14)
+
+#### на нодах пытаемся присоединиться к мастеру
+
+<pre>
+# еа эту ошибку не обрашаем внимания
+----------------------------------------------------------------------------------------------------------------------------
+rm /etc/containerd/config.toml
+rm /etc/containerd/config.toml
+rm /etc/containerd/config.toml
+
+systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
+systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
+systemctl restart containerd && sudo systemctl enable --now containerd && systemctl status containerd
+
+
+kubeadm join masterkub.ru-central1.internal:6443 --token eo5469.fboaarc5jjvl4dh1 --discovery-token-ca-cert-hash sha256:ab7b5ce50b4825850aa86009b2f1d9a7c67db6ff872b08575f691410f8f4b220
+kubeadm join masterkub.ru-central1.internal:6443 --token eo5469.fboaarc5jjvl4dh1 --discovery-token-ca-cert-hash sha256:ab7b5ce50b4825850aa86009b2f1d9a7c67db6ff872b08575f691410f8f4b220
+
+
+---------------------------------
+[root@kub1 vorori]# kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33 \
+>         --discovery-token-ca-cert-hash sha256:bbc69ceafaa3261fc3d7ce088f9f0837318d2e1dbc5f426b7de264f9c5bf64db
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+---------------------------------
+
+---------------------------------
+[root@kub2 vorori]# kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33 --discovery-token-ca-cert-hash sha256:bbc69ceafaa3261fc3d7ce088f9f0837318d2e1dbc5f426b7de264f9c5bf64db
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+---------------------------------
+
+---------------------------------
+[root@kub3 vorori]# kubeadm join masterkub.ru-central1.internal:6443 --token 6ar5s6.jvgjuszqhzdlmj33 --discovery-token-ca-cert-hash sha256:bbc69ceafaa3261fc3d7ce088f9f0837318d2e1dbc5f426b7de264f9c5bf64db
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+---------------------------------
+</pre>
+
+
+#### 5.15)
+
+#### заметка если сделать в ручника (пытаемся присоединиться к мастеру)
+
+<pre>
+---------------------------------
+можно скопировать файл kubeconfig с узла controlplane node управления (~/.kube/config ) 
+на локальный и экспортировать переменную KUBECONFIG или получить прямой доступ к кластеру с узла controlplane node.
+
+mkdir -p $HOME/.kube
+mkdir -p $HOME/.kube
+mkdir -p $HOME/.kube
+
+cat /etc/kubernetes/admin.conf
+cat /etc/kubernetes/admin.conf
+cat /etc/kubernetes/admin.conf
+
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMvakNDQWVhZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJek1EZ3hNVEE0TXprek5Gb1hEVE16TURnd09EQTRNemt6TkZvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTDlBCklLTE5jaUJvWDhxS1QzYys2N3prdFZWdEl6d2k2d1o4WUJBZzFNNVI2T3pkQnZaekZsOGtzWSt4ejVHWHR4YmsKWERkekNPSldlSFdTSlR5WXoxT3RvdS9IS2JOdmNETHg1SVo5Mk9YVFhTS0lpcTh2UUFKT1ZpdytTUnNPQ0FqWgppRkVwUUVEY25aN05ZaTJSM1IyWFRUSHpCaDFKb3BWOVcxelYzN25ydksrZFpnMFlUOFd6Mi9OUmdmd2xqU05HCjBIeEhpZk1XY3lTcTJEalRyTmsyTkkwYk9XVmIvK0prNUJGT1dtMUtHSUhOTkl2MXMxRUU3TGhldGRCRXRuQjMKdGUyaCtnS0ROU3kxb1dzekRCNUNzdG9uUWhOVklMS0NLWnc0YWtOSXNBYzhKWFY5eDZqT29mdzlGNDF6dlVVUApuVmdjYy9PeVg4cUROVmdXNXFzQ0F3RUFBYU5aTUZjd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0hRWURWUjBPQkJZRUZJUFRlTVBsUWx5VHg2R1k0S1J5Q202Wm83VVpNQlVHQTFVZEVRUU8KTUF5Q0NtdDFZbVZ5Ym1WMFpYTXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBSEF5bGpKUHhpR0FHNDIwYlhIKwppWlJ2VUEreXY4b0NyaHIzbHJNRHVSV3lBc0tMUnVZY2lseFpXN2ZFQjkxbTdZUS9Lamc2S01vSFhoYlVIZS9aCk93ZVE1NUZzMmNoQmhqQUt6eDltQkZJUzVvWGxNdk9CWllaMWNsVTdyTGI2WGc1UUhKQnpOZ2dXWGhHQ2ZnakwKR1drSk1JWGk1b1E2RFNCclFtQWJkM0wvWHc3eXNjMUUxdXJtaHArb202QUlJTTdxYVdTYkNTd2VwVVVSU05mMApud01la1NyWGJMU3YxZkxVNVlMcUlJdXVKdmFiRFYyYUluMThoN2VialB6ZFNxNm1CT1Z0bmZ6MTg0YVVrbUx5CkxKN0h1ajdobjlGNmRmcTBPdXhNUlBGZkZsRGlML1g2NnpiZU45S3RDUzJ1bGRjTHg2Myt0c2U4RHFBU3hTV0wKZ2hjPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+    server: https://masterkub.ru-central1.internal:6443
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    user: kubernetes-admin
+  name: kubernetes-admin@kubernetes
+current-context: kubernetes-admin@kubernetes
+kind: Config
+preferences: {}
+users:
+- name: kubernetes-admin
+  user:
+    client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURJVENDQWdtZ0F3SUJBZ0lJZDg2MUN2YWdFUll3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TXpBNE1URXdPRE01TXpSYUZ3MHlOREE0TVRBd09ETTVNelphTURReApGekFWQmdOVkJBb1REbk41YzNSbGJUcHRZWE4wWlhKek1Sa3dGd1lEVlFRREV4QnJkV0psY201bGRHVnpMV0ZrCmJXbHVNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXhQQy9nb1NBbERVSStvcjYKOXR0TkpIaHpFZkw4bmk1aXo2S1NBaXc2OGJyR0dFekRjeFNJU0pNMGlqM0wvcUFqbitIZzl3UktleWZJeTcvVgphR3dIaGVMaFdsTjlQdEdYWWd5QTF4Z2RVTFNuOTlhMmY2S2NWb2p0R0Q4ZVdMNm9BWE5UVHFVbmpTTVhxK0k3CmZCUVFiYllPOHFqUmt1UnVLbnMvdkJhei9QRmlRUGJTU1lzbnhNOXJNQkVmbHJVdU9KbXNXMGNxMStZanBNQXcKODUxMnZlUDU0MldxMlBheVhFcDQ0MHlrc0MwRy9DQmkrVXY5SjQ0cVF0SjMwV1QrOXo2ZXFSVVFXYWphY3NhUApOZ0dPQjFVU2JML3pOcWdKUDRlVG4wRDZrNFZTNnhSb0VuNEJRSzBnK0doeEc5enhhVXRZaHpRNHo3eGU3YTZTCkhOT0pJd0lEQVFBQm8xWXdWREFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUgKQXdJd0RBWURWUjBUQVFIL0JBSXdBREFmQmdOVkhTTUVHREFXZ0JTRDAzakQ1VUpjazhlaG1PQ2tjZ3B1bWFPMQpHVEFOQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBVVJLRjVZNnNNSm4xbWFiQWlaSlRtMndpRHFkTzhKckVjSFFqClBVY05XYWdJUFVibHViYmJUcFg5VmdqUEk4TDlBb3NJMUFzT2d0Q2dycTZ6NEVtV1NHVnZhbTFOeGxwYWxoSUcKS2lWNkNGbjU2QlRhM0FPVFprRHErem1VWFVaODJOOVNRVDQySkc2cUZnZXhCMVcyS0xVZmhyM2tZVmxJOGFoOQpnT1Rxekx6SjhoU1JtdVAvK1RkRVQ1MDR3NzNhRVFWMHN5cmU1YXpoWFhhb2h4bWE2WklRZVlrTkc2bnlBc0hyCm5jdHc0N0w3TFcrenRFdWtuMTdEbjUxRGJRd2Q4aXFWL3h3L2JDQTk1bEQyU2E5VXFtUktkcG1zaWZXN0JScWQKWWhhVlBEZmhrdG1zR1lPWlFSTTJXL0xTZVF2MGJvcFVoWUFncW5Mc0Z4YU45THB2TWc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+    client-key-data: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcFFJQkFBS0NBUUVBeFBDL2dvU0FsRFVJK29yNjl0dE5KSGh6RWZMOG5pNWl6NktTQWl3NjhickdHRXpECmN4U0lTSk0waWozTC9xQWpuK0hnOXdSS2V5Zkl5Ny9WYUd3SGhlTGhXbE45UHRHWFlneUExeGdkVUxTbjk5YTIKZjZLY1ZvanRHRDhlV0w2b0FYTlRUcVVualNNWHErSTdmQlFRYmJZTzhxalJrdVJ1S25zL3ZCYXovUEZpUVBiUwpTWXNueE05ck1CRWZsclV1T0ptc1cwY3ExK1lqcE1Bdzg1MTJ2ZVA1NDJXcTJQYXlYRXA0NDB5a3NDMEcvQ0JpCitVdjlKNDRxUXRKMzBXVCs5ejZlcVJVUVdhamFjc2FQTmdHT0IxVVNiTC96TnFnSlA0ZVRuMEQ2azRWUzZ4Um8KRW40QlFLMGcrR2h4Rzl6eGFVdFloelE0ejd4ZTdhNlNITk9KSXdJREFRQUJBb0lCQVFDTkIyWHMvaHZoaGhVVwo3WDJJVjBUbjBBVi9IZ1UrOVRLM1E5RFJFNEZtWjN6Q0cvNStvMzV3a2xHMmlVaFMzN1NESXNycHVUM284WFYrClNySjFJNTlEaGxRZ1RkZExxK1YvUmpyaFRSaDVHZFdLeWt4SUhGZGVOSkdzb2s2RitJbnc5L2Y1UXBXUElVa3IKUWtlY3MvV0x5eXJySkc5bmhJTkxrcFR5aVVOODVzN0duRlNOTDVobFR6VXh0c2RpanpLd2JnOWhjNnRGTWhtbgpEcncvSDJyekJVR1dxcGdXQWhYb0tBOGRPVmFLbFFhYm14NWZrbHVYS1JTYkg3ZXUwRXNwdEJMVnZNckdSeGVxCkhHYkZUTXRLaDVSSEFZQWpZL2JOKzIycjFjTXhVTWpxV0hYdkt1ZGxVd0tmTXpwM0xIaFlNNmR5Z2toYzZkRDgKSGdUcnB3cTVBb0dCQVB5YlpiU2xGaUlNdXRud20vcW5iM2I3YkVnZnYxZmxxNFlIckE3Z2ZVTThTZ3Z0bnNZZwp1R3YxYUl0N0lMcGhPYmQxZG9ydGh6SVJVS0FHbFlOTUlNaDdSajVKTC9EUkVmK2pJZmQ3aVlvWFAycFd1YXNRClRXN0praDJDN3l2a0VpZmFRMHJTRU1VV2FiOFk5RlRQVk9QYTZtRm5MSm1YamVSNXJjMFNIbk90QW9HQkFNZVYKOEMvWkI2T2hqZG83MTFqSDVYS2tKNXJocmJXUDFUMGQ5UjJJR0dKUkxZR2JJNEcwdnV2L2RacXBTSUZYZ0NBdQpJNE9Eclk5enRlRkZjRWs1dTlaTFJoYWF6RlFIdzNzY1ZsbDFOTGRSVlhJK2FjaEl0LzBmVVpiejRBd0pCZ2JwCkU1TUFXWS9YT2srdURqaks3NitxQ09JRG15KzBvSE9xN3RoUFhnb1BBb0dCQU5RREpTaXB5bHJIcm1mTzMwdFEKRG1paGV1OUozaEhLek54UVFpTzJYTXY2cFBjLzk1dTR5TENycDVReHduVkx0dUo0cndiSmQwZ1phajcxWjdWcwpSck9kYTRaSmJQaEVzVU9LeXE1cFBEWHZieVUwSnQ4aGJxd0dlQ0ZXektCYzZyUVNKNXA3bHVHai94c0p1Y0FZCng5bjUyZS9vWlhGLzF2S2xBYTkxZnFOOUFvR0FWeURybzllNDhBUWM2d0pvdGtjOXNWaGNPYzcvaUYxc0Y2dzIKVDFnVVhRZFhPRmREbnVJSzN2ZThuWEg5UndtdDAxNlEvbDdEcS9ZMWxrdzhBcHVEbHI5eHIzaVFicmFjN2VlbgpBcEthR3RVVTJqVEk5VGhacWRTOFI0dmJhU1dmVGZEK0xKUmdoTnpPaGU1VUl4TGtvK2sweTRZTGZ6MzVOY1dQClV6c0NzSjBDZ1lFQTE4Yk52Y0YwbUFHTitwSGNNM2kyc1ZNRmJFN0EwYnlOLzE5MGh6Y0pRYWh4R250TTBqOVkKVUZxU2RaRzBHa203azd0UlFUR2pISkNCc1d6OVoyMEowSkFjSDVvM2xuZk1yaytDUUZXSmk0MmZVdDE1VlRoUwo5d2xJYUJtb1dPbmhsWXlaa0RTMVZXaWNFNys1clIzQ0lxUXhvb0VEMTl4U0I2WmVmV2s1NVo4PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+---------------------------------
+</pre>
+
+<pre>
+vim $HOME/.kube/config
+vim $HOME/.kube/config
+vim $HOME/.kube/config
+</pre>
+
+<pre>
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+</pre>
+----------------------------------------------------------------------------------------------------------------------------
+
+#### проверяем
+
+<pre>
+kubectl get nodes
+kubectl get nodes
+kubectl get nodes
+
+kubectl get nodes
+
+NAME                             STATUS   ROLES           AGE   VERSION
+kub1.ru-central1.internal        Ready    <none>          16h   v1.26.1
+kub2.ru-central1.internal        Ready    <none>          16h   v1.26.1
+kub3.ru-central1.internal        Ready    <none>          16h   v1.26.1
+masterkub.ru-central1.internal   Ready    control-plane   20h   v1.26.1
+</pre>
+
+
+#### 5.16)
+
+#### проверяю 
+
+<pre>
+----------------------------------------------------------------------------------------------------------------------------
+kubectl get nodes
+
+NAME                             STATUS   ROLES           AGE     VERSION
+kub1.ru-central1.internal        Ready    <none>          35m     v1.26.1
+kub2.ru-central1.internal        Ready    <none>          35s     v1.26.1
+kub3.ru-central1.internal        Ready    <none>          16m     v1.26.1
+masterkub.ru-central1.internal   Ready    control-plane   4h30m   v1.26.1
+----------------------------------------------------------------------------------------------------------------------------
+</pre>
+
+
+#### 5.17)
+
+#### важно! выделил заметка для себя   ---- ноды значения/наименования которых мы ввидем из разных команд
+
+<pre>
+----------------------------------------------------------------------------------------------------------------------------
+[root@masterkub vorori]# kubectl get nodes
+NAME                             STATUS   ROLES           AGE     VERSION
+----
+kub1.ru-central1.internal        Ready    <none>          37m     v1.26.1
+kub2.ru-central1.internal        Ready    <none>          3m16s   v1.26.1
+kub3.ru-central1.internal        Ready    <none>          18m     v1.26.1
+----
+masterkub.ru-central1.internal   Ready    control-plane   4h33m   v1.26.1
+[root@masterkub vorori]# kubectl get all -A
+NAMESPACE      NAME                                                         READY   STATUS    RESTARTS        AGE
+kube-flannel   pod/kube-flannel-ds-77pwz                                    1/1     Running   1 (7m20s ago)   8m8s
+kube-flannel   pod/kube-flannel-ds-8nrhx                                    1/1     Running   0               10m
+kube-flannel   pod/kube-flannel-ds-d94qd                                    1/1     Running   0               58m
+kube-flannel   pod/kube-flannel-ds-pslvk                                    1/1     Running   0               9m7s
+kube-system    pod/coredns-787d4945fb-mxvx7                                 1/1     Running   0               65m
+kube-system    pod/coredns-787d4945fb-x57tb                                 1/1     Running   0               65m
+kube-system    pod/etcd-masterkub.ru-central1.internal                      1/1     Running   0               66m
+kube-system    pod/kube-apiserver-masterkub.ru-central1.internal            1/1     Running   0               66m
+kube-system    pod/kube-controller-manager-masterkub.ru-central1.internal   1/1     Running   0               66m
+kube-system    pod/kube-proxy-25mpq                                         1/1     Running   0               10m
+kube-system    pod/kube-proxy-cdhx7                                         1/1     Running   0               65m
+kube-system    pod/kube-proxy-ssz9x                                         1/1     Running   0               8m8s
+kube-system    pod/kube-proxy-z4prx                                         1/1     Running   0               9m7s
+kube-system    pod/kube-scheduler-masterkub.ru-central1.internal            1/1     Running   0               66m
+
+NAMESPACE     NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                  AGE
+default       service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP                  66m
+kube-system   service/kube-dns     ClusterIP   10.96.0.10   <none>        53/UDP,53/TCP,9153/TCP   66m
+
+NAMESPACE      NAME                             DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+kube-flannel   daemonset.apps/kube-flannel-ds   4         4         4       4            4           <none>                   58m
+kube-system    daemonset.apps/kube-proxy        4         4         4       4            4           kubernetes.io/os=linux   66m
+
+NAMESPACE     NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+kube-system   deployment.apps/coredns   2/2     2            2           66m
+
+NAMESPACE     NAME                                 DESIRED   CURRENT   READY   AGE
+kube-system   replicaset.apps/coredns-787d4945fb   2         2         2       65m
+----------------------------------------------------------------------------------------------------------------------------
+</pre>
 
 
 <pre>
