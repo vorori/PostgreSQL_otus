@@ -852,17 +852,13 @@ replicas 3   --- создастца один мастер под и 2 слейв
 ---------------------------------------------------------------------------------------------------------------------------------------
 0)
 zalando postgres patroni
-https://habr.com/ru/articles/527042/
-https://highload.ru/moscow/2019/abstracts/6049
+
 
 
 1)
 Local Path Provisioner
 Local Path Provisioner
 Local Path Provisioner
-https://www.youtube.com/watch?v=9H0Wp1Xnbf4&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
-https://www.youtube.com/watch?v=9H0Wp1Xnbf4&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
-https://www.youtube.com/watch?v=9H0Wp1Xnbf4&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
 
 Диски
 Быстродействие любых БД упирается в скорость работы дисковой подсистемы. В kubernetes принято использовать PV и PVC, которые являются не самым быстрым 
@@ -887,37 +883,7 @@ B local-path-provisioner:v0.0.24 ограничение по объему PV н�
 в статус deprecated. :( Я пока не думал как в новых кластерах ввести ограничение на hostPath. Но скорее всего придётся пользоваться внешними инструментами, muna kyverno.
 Манифест для установки приложения 00-local-path-storage.yaml.
 
-2)
-Zalando spilo in kubernetes - manifests
-Zalando spilo in kubernetes - manifests
-Zalando spilo in kubernetes - manifests
-https://www.youtube.com/watch?v=fFvOA8UlnrI&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
-https://www.youtube.com/watch?v=fFvOA8UlnrI&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
-https://www.youtube.com/watch?v=fFvOA8UlnrI&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
 
-3)
-Анонс видео: Подробно о создании helm chart.
-Анонс видео: Подробно о создании helm chart.
-Анонс видео: Подробно о создании helm chart.
-https://www.youtube.com/watch?v=bXr7wvMgKkw&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
-https://www.youtube.com/watch?v=bXr7wvMgKkw&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
-https://www.youtube.com/watch?v=bXr7wvMgKkw&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
-
-https://www.youtube.com/watch?v=vv8SSYITzPE&list=PLmxqUDFl0XM7e0d0ixZ82zlcBprpMfEpk&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
-https://www.youtube.com/watch?v=vv8SSYITzPE&list=PLmxqUDFl0XM7e0d0ixZ82zlcBprpMfEpk&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
-https://www.youtube.com/watch?v=vv8SSYITzPE&list=PLmxqUDFl0XM7e0d0ixZ82zlcBprpMfEpk&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
-
-4)
-Zalando postgres-operator [01] Артур Крюков
-https://www.youtube.com/watch?v=1eJ8njJqIS4&t=784s&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
-https://www.youtube.com/watch?v=1eJ8njJqIS4&t=784s&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
-https://www.youtube.com/watch?v=1eJ8njJqIS4&t=784s&ab_channel=%D0%90%D1%80%D1%82%D1%83%D1%80%D0%9A%D1%80%D1%8E%D0%BA%D0%BE%D0%B2
-
-
-
-дополнительно для информации:
-https://www.youtube.com/watch?v=iruaCgeG7qs&ab_channel=Apprenda
-https://www.youtube.com/watch?v=iruaCgeG7qs&ab_channel=Apprenda
 
 
 
@@ -934,12 +900,8 @@ https://www.youtube.com/watch?v=iruaCgeG7qs&ab_channel=Apprenda
 
 
 1)
-https://github.com/BigKAA/youtube/tree/38f295485674147bc484c2183625059987a46013/base/local-path-provisioner
-
 установить настроить local-path-provisioner
 
-скачать манифест редактируем по своим настройкам:
-https://github.com/BigKAA/youtube/blob/38f295485674147bc484c2183625059987a46013/base/local-path-provisioner/manifests/00-local-path-storage.yaml
 
 mkdir /data
 mkdir /data/local-path-provisioner
@@ -1188,12 +1150,6 @@ spec:
 </pre>
 
 Преходим к следуюшему шагу подкготовки базоввому yaml для patroni от zalando/spilo (будем использовать контенеры для построения кластера patroni в kub)
-
-https://github.com/zalando/spilo
-https://github.com/BigKAA/youtube/blob/38f295485674147bc484c2183625059987a46013/base/spilo/manifests/spilo_kubernetes.yaml
-https://github.com/BigKAA/youtube/blob/38f295485674147bc484c2183625059987a46013/base/spilo/Spilo-manual.md
-https://github.com/zalando/spilo/blob/master/ENVIRONMENT.rst
-https://github.com/zalando/patroni/blob/master/postgres0.yml
 
 
 
