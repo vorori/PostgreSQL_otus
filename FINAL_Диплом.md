@@ -2354,10 +2354,110 @@ kubectl -n spilo exec -it pod/zalandopatroni777-1 -- patronictl remove zalandopa
 
 
 
-###СДЕЛАТЬ ВОССТАНОВЛЕНИЕ НА ТОЧКУ ВРЕМЕНИ
+###ЕСЛИ НАДО СДЕЛАТЬ ВОССТАНОВЛЕНИЕ НА ТОЧКУ ВРЕМЕНИ ПРИ УСЛОВИИ ЧТО КЛАСТЕР НЕ РАБОТОСПОСОБЕН
+Предупреждение: ваш каталог /data должен быть доступен для записи пользователю postgres.
+
+Шаги к PITR:
+
+1)
+Остановите Patroni на всех узлах реплик и, наконец, на мастере
+sudo systemctl stop Patroni
+
+2)
+Обновить файл конфигурации /etc/patroni.yml
+recovery_target_time: '2020-06-08 08:52:00'
+
+3)
+Удалить кластер из etcd
+patronictl -c /etc/patroni.yml remove postgres
+
+4)
+Резервное копирование и удаление каталога данных на мастере /data/patroni
+
+5)
+Запустите Patroni на мастере — он автоматически вызовет скрипт clone_with_walg.sh
+sudo systemctl start patchi
 
 
 
+#пример который работает с восстановлением
+----------------------------------------------------------------------------------------------------------
+scope: postgres
+namespace: /db/
+name: postgresql1
+
+restapi:
+    listen: 10.0.1.4:8008
+    connect_address: 10.0.1.4:8008
+
+etcd:
+    host: 10.0.1.7:2379
+
+bootstrap:
+    dcs:
+        ttl: 30
+        loop_wait: 10
+        retry_timeout: 10
+        maximum_lag_on_failover: 1048576
+        postgresql:
+            use_pg_rewind: true
+
+    method: clone_with_walg
+    clone_with_walg:
+        command: /home/postgres/clone_with_walg.sh
+        recovery_conf:
+            restore_command: envdir /etc/wal-g.d/env wal-g wal-fetch "%f" "%p"
+            recovery_target_timeline: latest
+            recovery_target_action: promote
+            recovery_target_time: ''
+
+    initdb:
+    - encoding: UTF8
+    - data-checksums
+
+    pg_hba:
+    - host replication replicator 127.0.0.1/32 md5
+    - host replication replicator 10.0.1.4/0 md5
+    - host replication replicator 10.0.1.8/0 md5
+    - host replication replicator 10.0.1.6/0 md5
+    - host all all 0.0.0.0/0 md5
+
+postgresql:
+    listen: 10.0.1.4:5432
+    connect_address: 10.0.1.4:5432
+    data_dir: /data/patroni
+    pgpass: /tmp/pgpass
+    authentication:
+        replication:
+            username: replicator
+            password: rep-pass
+        superuser:
+            username: postgres
+            password: secretpassword
+    parameters:
+        unix_socket_directories: '/var/run/postgresql'
+        shared_preload_libraries: 'pg_stat_statements'
+        archive_mode: 'on'
+        archive_timeout: 300s
+        archive_command: 'envdir /etc/wal-g.d/env wal-g wal-push %p'
+    recovery_conf:
+        restore_command: 'envdir /etc/wal-g.d/env wal-g wal-fetch "%f" "%p"'
+
+tags:
+    nofailover: false
+    noloadbalance: false
+    clonefrom: false
+    nosync: false
+----------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------
+И простой скрипт clone_with_walg.sh:
+
+#!/bin/bash
+
+mkdir -p /data/patroni
+envdir /etc/wal-g.d/env wal-g backup-fetch /data/patroni LATEST
+----------------------------------------------------------------------------------------------------------
 <pre>
 
 ---------------------------------------------------------------------------------------------------------------------------------------
