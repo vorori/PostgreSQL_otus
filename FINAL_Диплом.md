@@ -161,7 +161,7 @@ tail -f /var/log/messages
 
 
 
-<pre>
+
 Настройка контейнера
 
 cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
